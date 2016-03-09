@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Aegis.Monitor.Core
 {
-    public class EventPublisher
+    public static class AegisEventCache
     {
     }
 }
