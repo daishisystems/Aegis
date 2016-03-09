@@ -674,15 +674,28 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Aegis.Monitor.Core
 {
-    public class AegisEventPublisher
+    /// <summary>
+    ///     AegisEvent represents a simple structure that is designed to
+    ///     encapsulate user-specific metadata that the Aegis platform can aggregate
+    ///     and process in order to identify patterns in traffic.
+    /// </summary>
+    public class AegisEvent
     {
+        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        public string IPAddress { get; set; }
+
+        /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        public string Path { get; set; }
+
+        /// <summary>Time is a string-based translation of the event time.</summary>
+        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
+        public string Time { get; set; }
+
+        public override string ToString()
+        {
+            return $"IP address:   {IPAddress}";
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿/* License
+﻿extensions: designer.cs generated.cs
+extensions: .cs .cpp .h
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -674,15 +676,3 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Aegis.Monitor.Core
-{
-    public class AegisEventPublisher
-    {
-    }
-}
