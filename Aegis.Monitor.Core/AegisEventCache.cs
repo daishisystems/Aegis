@@ -674,16 +674,62 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using System.Collections.Concurrent;
 
 namespace Aegis.Monitor.Core
 {
-    public static class AegisEventCache
+    /// <summary>
+    ///     AegisEventCache is an in-memory cache that retains a collection of
+    ///     <see cref="AegisEvent" /> instances in a static capacity.
+    /// </summary>
+    /// <remarks>
+    ///     <para>AegisEventCache should be instantiated upon application-startup.</para>
+    ///     <para>
+    ///         Application pool recycling or hardware failure will result in loss of
+    ///         data. This is not a concern, as <see cref="AegisEvent" /> instances are
+    ///         not critical in terms of retaining application resilience; a certain
+    ///         degree of data-loss is acceptable.
+    ///     </para>
+    /// </remarks>
+    /// <threadsafety static="true" instance="false">
+    ///     <see cref="AegisEvent" /> instances are added in a thread-safe manner.
+    ///     <see cref="AegisEventPublisher" /> will execute at regular intervals,
+    ///     during which, AegisEventCache will be purged. This will not introduce
+    ///     mutually-exclusive locking related issues, as per
+    ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
+    ///     post.
+    /// </threadsafety>
+    public class AegisEventCache
     {
+        /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
+        private static readonly ConcurrentQueue<AegisEvent> Events =
+            new ConcurrentQueue<AegisEvent>();
 
+        /// <summary>
+        ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
+        ///     cache.
+        /// </summary>
+        /// <param name="event">event is an instance of <see cref="AegisEvent" />.</param>
+        /// <remarks>The <see cref="AegisEvent" /> is added to the end of the cache.</remarks>
+        public static void Add(AegisEvent @event)
+        {
+            Events.Enqueue(@event);
+        }
+
+        /// <summary>
+        ///     Publish invokes a <see cref="Publisher" /> implementation to process
+        ///     the underlying cache.
+        /// </summary>
+        /// <param name="publisher">publisher is <see cref="Publisher" /> implementation.</param>
+        /// <remarks>
+        ///     <see cref="Publisher" /> should purge the underlying cache, once it has
+        ///     completed its execution process.
+        /// </remarks>
+        public static void Publish(Publisher publisher)
+        {
+            publisher.Publish(Events);
+        }
     }
+
 }
