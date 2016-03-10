@@ -58,7 +58,6 @@
     <Compile Include="AegisEventCache.cs" />
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Publisher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Aegis.Monitor.Core.licenseheader" />

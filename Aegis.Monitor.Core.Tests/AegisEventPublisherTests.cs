@@ -674,34 +674,28 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-
 using System.Collections.Concurrent;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Core
+namespace Aegis.Monitor.Core.Tests
 {
-    /// <summary>Publisher allows a custom implementation to process a collection of
-    ///     <see cref="AegisEvent" /> instances.</summary>
-    public interface Publisher
+    [TestClass]
+    public class AegisEventPublisherTests
     {
-        /// <summary>
-        ///     Publish processes each <see cref="AegisEvent" /> in
-        ///     <see cref="events" />.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///         Publish should purge the <see cref="events" />, once it has completed
-        ///         processing.
-        ///     </para>
-        /// </remarks>
-        /// <param name="events">
-        ///     <see cref="events" /> is a collection of
-        ///     <see cref="AegisEvent" /> instances.
-        /// </param>
-        /// <param name="batchSize">
-        ///     <see cref="batchSize" /> determines the number of
-        ///     <see cref="AegisEvent" /> instances to remove from the cache and persist
-        ///     simultaneously.
-        /// </param>
-        void Publish(ConcurrentQueue<AegisEvent> events, int batchSize);
+        [TestMethod]
+        public void AegisEventPublisherProcessesCorrectNumberOfEvents()
+        {
+            var events = new ConcurrentQueue<AegisEvent>();
+
+            for (var i = 0; i < 11; i++)
+            {
+                events.Enqueue(new AegisEvent());
+            }
+
+            var numEventsPublished = AegisEventPublisher.Instance.Publish(
+                events, 10, batch => {});
+
+            Assert.AreEqual(10, numEventsPublished);
+        }
     }
 }

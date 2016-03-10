@@ -690,11 +690,9 @@ namespace Aegis.Monitor.Core
     ///     removed instance to an Azure Event Hub in batches.
     /// </summary>
     /// <threadsafety static="false" instance="false" />
-    public class AegisEventPublisher : Publisher, IDisposable
+    public class AegisEventPublisher : IDisposable
     {
         private static AegisEventPublisher _instance;
-
-        private EventHubClient _eventHubClient;
 
         /// <summary>Private constructor facilitates Singleton implementation.</summary>
         private AegisEventPublisher()
@@ -706,6 +704,8 @@ namespace Aegis.Monitor.Core
         public static AegisEventPublisher Instance
             => _instance ?? (_instance = new AegisEventPublisher());
 
+        public EventHubClient EventHubClient { get; private set; }
+
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing,
         ///     or resetting unmanaged resources.
@@ -713,9 +713,9 @@ namespace Aegis.Monitor.Core
         /// <remarks>Disconnects from the underlying Azure Event Hub.</remarks>
         public void Dispose()
         {
-            if (_eventHubClient != null && !_eventHubClient.IsClosed)
+            if (EventHubClient != null && !EventHubClient.IsClosed)
             {
-                _eventHubClient.Close();
+                EventHubClient.Close();
             }
         }
 
@@ -744,11 +744,16 @@ namespace Aegis.Monitor.Core
         ///     <see cref="AegisEvent" /> instances to remove from the cache and persist
         ///     simultaneously.
         /// </param>
-        public void Publish(ConcurrentQueue<AegisEvent> events, int batchSize)
+        /// <param name="publish">
+        ///     The <see cref="Action" /> to execute against
+        ///     <see cref="publish" />.
+        /// </param>
+        /// <returns>The number of <see cref="AegisEvent" /> instances published.</returns>
+        public int Publish(ConcurrentQueue<AegisEvent> events, int batchSize,
+            Action<List<EventData>> publish)
         {
             bool notEmpty;
             var batch = new List<EventData>();
-            var counter = 0;
 
             do
             {
@@ -763,12 +768,11 @@ namespace Aegis.Monitor.Core
                                 JsonConvert.SerializeObject(@event))));
                 }
 
-            } while (notEmpty && ++counter <= batchSize);
+            } while (notEmpty && batch.Count < batchSize);
 
-            if (batch.Count > 0)
-            {
-                _eventHubClient.SendBatch(batch);
-            }
+            publish(batch);
+
+            return batch.Count;
         }
 
         /// <summary>Initialise connects to the underlying Azure Event Hub.</summary>
@@ -782,7 +786,7 @@ namespace Aegis.Monitor.Core
         public void Initialise(string eventHubName,
             string eventHubConnectionString)
         {
-            _eventHubClient =
+            EventHubClient =
                 EventHubClient.CreateFromConnectionString(
                     eventHubConnectionString, eventHubName);
         }
