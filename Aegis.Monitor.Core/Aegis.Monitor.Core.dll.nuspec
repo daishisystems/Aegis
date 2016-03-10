@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Aegis.Monitor.Core.dll</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Paul Mooney</authors>
     <owners>Paul Mooney</owners>
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
@@ -13,7 +13,7 @@
     <tags>Aegis</tags>
     <dependencies>
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
-      <dependency id="Newtonsoft.Json" version="8.0.2" />
+      <dependency id="Newtonsoft.Json" version="7.0.1" />
       <dependency id="WindowsAzure.ServiceBus" version="3.1.4" />
     </dependencies>
   </metadata>
