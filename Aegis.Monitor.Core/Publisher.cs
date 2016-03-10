@@ -683,6 +683,25 @@ namespace Aegis.Monitor.Core
     ///     <see cref="AegisEvent" /> instances.</summary>
     public interface Publisher
     {
-        void Publish(ConcurrentQueue<AegisEvent> events);
+        /// <summary>
+        ///     Publish processes each <see cref="AegisEvent" /> in
+        ///     <see cref="events" />.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         Publish should purge the <see cref="events" />, once it has completed
+        ///         processing.
+        ///     </para>
+        /// </remarks>
+        /// <param name="events">
+        ///     <see cref="events" /> is a collection of
+        ///     <see cref="AegisEvent" /> instances.
+        /// </param>
+        /// <param name="batchSize">
+        ///     <see cref="batchSize" /> determines the number of
+        ///     <see cref="AegisEvent" /> instances to remove from the cache and persist
+        ///     simultaneously.
+        /// </param>
+        void Publish(ConcurrentQueue<AegisEvent> events, int batchSize);
     }
 }

@@ -710,21 +710,28 @@ namespace Aegis.Monitor.Core
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
         ///     cache.
         /// </summary>
-        /// <param name="event">event is an instance of <see cref="AegisEvent" />.</param>
-        /// <remarks>The <see cref="AegisEvent" /> is added to the end of the cache.</remarks>
+        /// <param name="event">
+        ///     <see cref="@event" /> is an instance of
+        ///     <see cref="AegisEvent" />.
+        /// </param>
+        /// <remarks>
+        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
+        /// </remarks>
         public static void Add(AegisEvent @event)
         {
             Events.Enqueue(@event);
         }
 
         /// <summary>
-        ///     Publish invokes a <see cref="Publisher" /> implementation to process
-        ///     the underlying cache.
+        ///     Publish invokes <see cref="publisher" /> to process the underlying
+        ///     cache.
         /// </summary>
         /// <param name="publisher">publisher is <see cref="Publisher" /> implementation.</param>
         /// <remarks>
-        ///     <see cref="Publisher" /> should purge the underlying cache, once it has
-        ///     completed its execution process.
+        ///     <para>
+        ///         <see cref="Publisher" /> should purge the underlying cache, once it
+        ///         has completed its execution process.
+        ///     </para>
         /// </remarks>
         public static void Publish(Publisher publisher)
         {

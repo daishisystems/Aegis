@@ -675,9 +675,116 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.ServiceBus.Messaging;
+using Newtonsoft.Json;
+
 namespace Aegis.Monitor.Core
 {
-    public class AegisEventPublisher
+    /// <summary>
+    ///     AegisEventPublisher removes <see cref="AegisEvent" /> instances from a
+    ///     collection of <see cref="AegisEvent" /> instances, and publishes the
+    ///     removed instance to an Azure Event Hub in batches.
+    /// </summary>
+    /// <threadsafety static="false" instance="false" />
+    public class AegisEventPublisher : Publisher, IDisposable
     {
+        private static AegisEventPublisher _instance;
+
+        private EventHubClient _eventHubClient;
+
+        /// <summary>Private constructor facilitates Singleton implementation.</summary>
+        private AegisEventPublisher()
+        {
+        }
+
+        /// <summary>Instance is a Singleton instance of <see cref="AegisEventPublisher" />
+        ///     .</summary>
+        public static AegisEventPublisher Instance
+            => _instance ?? (_instance = new AegisEventPublisher());
+
+        /// <summary>
+        ///     Performs application-defined tasks associated with freeing, releasing,
+        ///     or resetting unmanaged resources.
+        /// </summary>
+        /// <remarks>Disconnects from the underlying Azure Event Hub.</remarks>
+        public void Dispose()
+        {
+            if (_eventHubClient != null && !_eventHubClient.IsClosed)
+            {
+                _eventHubClient.Close();
+            }
+        }
+
+        /// <summary>
+        ///     Publish processes each <see cref="AegisEvent" /> in
+        ///     <see cref="events" />.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         Publish removes <see cref="AegisEvent" /> instances and adds each
+        ///         instance to a batch consisting of 10 instances, where the number of
+        ///         instances in <see cref="events" /> is >= 10. Batches are then published
+        ///         as an ATOMic operation to the underlying Azure Event Hub.
+        ///     </para>
+        ///     <para>
+        ///         Publish purges the <see cref="events" />, once it has completed
+        ///         processing.
+        ///     </para>
+        /// </remarks>
+        /// <param name="events">
+        ///     <see cref="events" /> is a collection of
+        ///     <see cref="AegisEvent" /> instances.
+        /// </param>
+        /// <param name="batchSize">
+        ///     <see cref="batchSize" /> determines the number of
+        ///     <see cref="AegisEvent" /> instances to remove from the cache and persist
+        ///     simultaneously.
+        /// </param>
+        public void Publish(ConcurrentQueue<AegisEvent> events, int batchSize)
+        {
+            bool notEmpty;
+            var batch = new List<EventData>();
+            var counter = 0;
+
+            do
+            {
+                AegisEvent @event;
+                notEmpty = events.TryDequeue(out @event);
+
+                if (notEmpty)
+                {
+                    batch.Add(
+                        new EventData(
+                            Encoding.UTF8.GetBytes(
+                                JsonConvert.SerializeObject(@event))));
+                }
+
+            } while (notEmpty && ++counter <= batchSize);
+
+            if (batch.Count > 0)
+            {
+                _eventHubClient.SendBatch(batch);
+            }
+        }
+
+        /// <summary>Initialise connects to the underlying Azure Event Hub.</summary>
+        /// <param name="eventHubName">
+        ///     <see cref="eventHubName" /> is the name of the Azure Event Hub
+        /// </param>
+        /// <param name="eventHubConnectionString">
+        ///     <see cref="eventHubConnectionString" />
+        ///     is the connection-string pertaining to the Azure Event Hub.
+        /// </param>
+        public void Initialise(string eventHubName,
+            string eventHubConnectionString)
+        {
+            _eventHubClient =
+                EventHubClient.CreateFromConnectionString(
+                    eventHubConnectionString, eventHubName);
+        }
     }
 }
