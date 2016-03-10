@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Aegis.Monitor.Core.dll</id>
+    <version>1.0.0</version>
+    <authors>Paul Mooney</authors>
+    <owners>Paul Mooney</owners>
+    <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simple Aegis event-monitoring tools.</description>
+    <releaseNotes>This is the initial release of this package for general consumption.</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>Aegis</tags>
+    <dependencies>
+      <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.1.0" />
+      <dependency id="Newtonsoft.Json" version="8.0.2" />
+      <dependency id="WindowsAzure.ServiceBus" version="3.1.4" />
+    </dependencies>
+  </metadata>
+</package>
