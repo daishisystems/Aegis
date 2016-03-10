@@ -8,7 +8,7 @@
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple Aegis event-monitoring tools.</description>
-    <releaseNotes>This is the initial release of this package for general consumption.</releaseNotes>
+    <releaseNotes>This release updates NuGet package dependency versions.</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>Aegis</tags>
     <dependencies>
