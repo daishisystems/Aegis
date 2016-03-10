@@ -674,6 +674,7 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System.Collections.Concurrent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -683,7 +684,7 @@ namespace Aegis.Monitor.Core.Tests
     public class AegisEventPublisherTests
     {
         [TestMethod]
-        public void AegisEventPublisherProcessesCorrectNumberOfEvents()
+        public void AegisEventPublisherProcessesMaximumNumberOfEvents()
         {
             var events = new ConcurrentQueue<AegisEvent>();
 
@@ -692,10 +693,26 @@ namespace Aegis.Monitor.Core.Tests
                 events.Enqueue(new AegisEvent());
             }
 
-            var numEventsPublished = AegisEventPublisher.Instance.Publish(
-                events, 10, batch => {});
+            var numEventsPublished = AegisEventPublisher.Publish(
+                events, 10, batch => { });
 
             Assert.AreEqual(10, numEventsPublished);
+        }
+
+        [TestMethod]
+        public void AegisEventPublisherProcessesMinimumNumberOfEvents()
+        {
+            var events = new ConcurrentQueue<AegisEvent>();
+
+            for (var i = 0; i < 8; i++)
+            {
+                events.Enqueue(new AegisEvent());
+            }
+
+            var numEventsPublished = AegisEventPublisher.Publish(
+                events, 10, batch => { });
+
+            Assert.AreEqual(8, numEventsPublished);
         }
     }
 }

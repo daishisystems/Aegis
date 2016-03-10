@@ -735,7 +735,7 @@ namespace Aegis.Monitor.Core
         /// </remarks>
         public static void Publish(AegisEventPublisher publisher)
         {
-            publisher.Publish(Events, 10, batch =>
+            AegisEventPublisher.Publish(Events, 10, batch =>
             {
                 if (batch.Count > 0)
                 {

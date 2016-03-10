@@ -749,7 +749,7 @@ namespace Aegis.Monitor.Core
         ///     <see cref="publish" />.
         /// </param>
         /// <returns>The number of <see cref="AegisEvent" /> instances published.</returns>
-        public int Publish(ConcurrentQueue<AegisEvent> events, int batchSize,
+        public static int Publish(ConcurrentQueue<AegisEvent> events, int batchSize,
             Action<List<EventData>> publish)
         {
             bool notEmpty;
