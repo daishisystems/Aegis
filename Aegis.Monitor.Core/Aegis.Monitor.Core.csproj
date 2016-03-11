@@ -66,9 +66,7 @@
     <Compile Include="PublishTask.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Aegis.Monitor.Core.dll.nuspec">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Aegis.Monitor.Core.dll.nuspec" />
     <None Include="Aegis.Monitor.Core.licenseheader" />
     <None Include="packages.config" />
   </ItemGroup>
