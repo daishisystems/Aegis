@@ -690,7 +690,7 @@ namespace Aegis.Monitor.Core
     ///     removed instance to an Azure Event Hub in batches.
     /// </summary>
     /// <threadsafety static="false" instance="false" />
-    public class AegisEventPublisher : IDisposable
+    public sealed class AegisEventPublisher : IDisposable
     {
         private static AegisEventPublisher _instance;
 
