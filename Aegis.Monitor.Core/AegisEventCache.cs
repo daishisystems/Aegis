@@ -726,16 +726,20 @@ namespace Aegis.Monitor.Core
         ///     Publish invokes <see cref="publisher" /> to process the underlying
         ///     cache.
         /// </summary>
-        /// <param name="publisher">publisher is <see cref="Publisher" /> implementation.</param>
+        /// <param name="publisher">publisher is <see cref="publisher" /> implementation.</param>
+        /// <param name="batchSize">
+        ///     <see cref="batchSize" /> determines the number of
+        ///     <see cref="AegisEvent" /> instances to publish per batch.
+        /// </param>
         /// <remarks>
         ///     <para>
         ///         <see cref="publisher" /> purges the underlying cache, once it has
         ///         completed its execution process.
         ///     </para>
         /// </remarks>
-        public static void Publish(AegisEventPublisher publisher)
+        public static void Publish(AegisEventPublisher publisher, int batchSize)
         {
-            AegisEventPublisher.Publish(Events, 10, batch =>
+            AegisEventPublisher.Publish(Events, batchSize, batch =>
             {
                 if (batch.Count > 0)
                 {
