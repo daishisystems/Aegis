@@ -676,6 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Monitor.Core.Tests
@@ -719,6 +721,20 @@ namespace Aegis.Monitor.Core.Tests
         public void AegisCanBeToggledFromConfigFile()
         {
             Assert.IsTrue(Aegis.IsEnabledInConfigFile("AegisIsEnabled"));
+        }
+
+        [TestMethod]
+        public void ValidIPAddressCanBeParsedFromHTTPRequest()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("NS_CLIENT_IP", "127.0.0.1");
+
+            IPAddress ipAddress;
+
+            Assert.IsTrue(Aegis.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+                request, out ipAddress));
+
+            Assert.AreEqual("127.0.0.1", ipAddress.ToString());
         }
     }
 }
