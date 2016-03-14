@@ -714,5 +714,11 @@ namespace Aegis.Monitor.Core.Tests
 
             Assert.AreEqual(8, numEventsPublished);
         }
+
+        [TestMethod]
+        public void AegisCanBeToggledFromConfigFile()
+        {
+            Assert.IsTrue(Aegis.IsEnabledInConfigFile("AegisIsEnabled"));
+        }
     }
 }

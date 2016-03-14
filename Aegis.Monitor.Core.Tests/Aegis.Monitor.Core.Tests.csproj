@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Aegis.Monitor.Core.licenseheader" />
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Choose>
