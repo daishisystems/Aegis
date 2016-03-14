@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
-<package >
+
+<package>
   <metadata>
     <id>Aegis.Monitor.Core</id>
     <title>Aegis Monitoring Plugin for .NET</title>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Paul Mooney</authors>
     <owners>Paul Mooney</owners>
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple Aegis event-monitoring tools</description>
-    <releaseNotes>Initial release candidate</releaseNotes>
+    <releaseNotes>Added Aegis helper methods for common tasks.</releaseNotes>
     <copyright>Aegis  Copyright (C) 2016  Paul Mooney</copyright>
     <tags>Aegis</tags>
     <dependencies>
+      <dependency id="FluentScheduler" version="3.1.46" />
       <dependency id="Microsoft.WindowsAzure.ConfigurationManager" version="3.2.1" />
       <dependency id="Newtonsoft.Json" version="7.0.1" />
       <dependency id="WindowsAzure.ServiceBus" version="3.1.5" />
