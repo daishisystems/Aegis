@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Net;
 using System.Web.Http;
 using Aegis.Monitor.Core;
 
@@ -10,7 +11,7 @@ namespace Aegis.Monitor.SampleApp.Controllers
     {
         [Route("sample/{ipaddress}")]
         [AcceptVerbs("GET")]
-        public bool Get(string ipAddress)
+        public string Get(string ipAddress)
         {
             bool aegisIsEnabled;
 
@@ -19,17 +20,22 @@ namespace Aegis.Monitor.SampleApp.Controllers
                     ConfigurationManager.AppSettings["AegisIsEnabled"],
                     out aegisIsEnabled);
 
-            if (settingsAreValid && aegisIsEnabled)
+            IPAddress validator;
+
+            var ipAddressIsValid =
+                IPAddress.TryParse(ipAddress.Replace('-', '.'), out validator);
+
+            if (settingsAreValid && aegisIsEnabled && ipAddressIsValid)
             {
                 AegisEventCache.Add(new AegisEvent
                 {
-                    IPAddress = ipAddress.Replace('-', '.'),
+                    IPAddress = validator.ToString(),
                     Path = Request.RequestUri.AbsolutePath,
                     Time = DateTime.UtcNow.ToString("O")
                 });
             }
 
-            return aegisIsEnabled;
+            return validator.ToString();
         }
     }
 }
