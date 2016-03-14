@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
@@ -21,22 +22,34 @@ namespace Aegis.Monitor.SampleApp
 
             #region Aegis
 
-            const string eventHubName = "samplepumper";
-            const string eventHubConnectionString =
-                "Endpoint=sb://ryanair-samplepumper.servicebus.windows.net/;SharedAccessKeyName=ALL;SharedAccessKey=ptn2jAbyjKdKEdNBoJELBzEMR84+qFo60YhQ4LvIr2I=";
+            bool aegisIsEnabled;
 
-            try
-            {
-                // Establish connection to the Azure Event Hub
-                AegisEventPublisher.Instance.Initialise(eventHubName,
-                    eventHubConnectionString);
+            var settingsAreValid =
+                bool.TryParse(
+                    ConfigurationManager.AppSettings["AegisIsEnabled"],
+                    out aegisIsEnabled);
 
-                // Start the recurring monitor task
-                TaskManager.Initialize(new AegisRegistry());
-            }
-            catch (Exception)
+            if (settingsAreValid && aegisIsEnabled)
             {
-                // Fail silently and ignore errors for POC
+                var eventHubName =
+                    ConfigurationManager.AppSettings["AegisEventHubName"];
+                var eventHubConnectionString =
+                    ConfigurationManager.AppSettings[
+                        "AegisEventHubConnectionString"];
+
+                try
+                {
+                    // Establish connection to the Azure Event Hub
+                    AegisEventPublisher.Instance.Initialise(eventHubName,
+                        eventHubConnectionString);
+
+                    // Start the recurring monitor task
+                    TaskManager.Initialize(new AegisRegistry());
+                }
+                catch (Exception)
+                {
+                    // Fail silently and ignore errors for POC
+                }
             }
 
             #endregion

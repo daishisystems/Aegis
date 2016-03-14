@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Configuration;
 using System.Web.Http;
 using Aegis.Monitor.Core;
 
@@ -10,16 +10,26 @@ namespace Aegis.Monitor.SampleApp.Controllers
     {
         [Route("sample/{ipaddress}")]
         [AcceptVerbs("GET")]
-        public IEnumerable<string> Get(string ipAddress)
+        public bool Get(string ipAddress)
         {
-            AegisEventCache.Add(new AegisEvent
-            {
-                IPAddress = ipAddress.Replace('-', '.'),
-                Path = Request.RequestUri.AbsolutePath,
-                Time = DateTime.UtcNow.ToString("O")
-            });
+            bool aegisIsEnabled;
 
-            return new[] {ipAddress};
+            var settingsAreValid =
+                bool.TryParse(
+                    ConfigurationManager.AppSettings["AegisIsEnabled"],
+                    out aegisIsEnabled);
+
+            if (settingsAreValid && aegisIsEnabled)
+            {
+                AegisEventCache.Add(new AegisEvent
+                {
+                    IPAddress = ipAddress.Replace('-', '.'),
+                    Path = Request.RequestUri.AbsolutePath,
+                    Time = DateTime.UtcNow.ToString("O")
+                });
+            }
+
+            return aegisIsEnabled;
         }
     }
 }
