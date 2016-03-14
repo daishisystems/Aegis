@@ -679,7 +679,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Aegis.Monitor.Core
 {
@@ -717,13 +717,15 @@ namespace Aegis.Monitor.Core
         /// <summary>
         ///     <see cref="TryParseIPAddressFromHeader" /> parses a value pertaining to an
         ///     <see cref="IPAddress" /> pertaining to <see cref="headerName" /> in
-        ///     <see cref="request" />.
         /// </summary>
         /// <param name="headerName">
         ///     <see cref="headerName" /> is the name of the HTTP header that contains the
         ///     <see cref="IPAddress" />.
         /// </param>
-        /// <param name="request"><see cref="request" /> is the HTTP request to be parsed.</param>
+        /// <param name="headers">
+        ///     <see cref="headers" /> is the HTTP request header
+        ///     collection to be parsed.
+        /// </param>
         /// <param name="ipAddress">
         ///     <see cref="ipAddress" /> is the resulting output, if the operation
         ///     succeeds.
@@ -731,14 +733,14 @@ namespace Aegis.Monitor.Core
         /// <returns>
         ///     A <see cref="bool" /> value indicating whether or not an
         ///     <see cref="IPAddress" /> was successfully parsed from
-        ///     <see cref="request" />.
+        ///     <see cref="headers" />.
         /// </returns>
         public static bool TryParseIPAddressFromHeader(string headerName,
-            HttpRequestMessage request, out IPAddress ipAddress)
+            HttpRequestHeaders headers, out IPAddress ipAddress)
         {
             IEnumerable<string> headerValues;
 
-            if (request.Headers.TryGetValues(headerName,
+            if (headers.TryGetValues(headerName,
                 out headerValues))
             {
                 var rawIPAddress = headerValues.FirstOrDefault();
