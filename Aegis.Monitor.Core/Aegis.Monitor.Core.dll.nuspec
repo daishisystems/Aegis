@@ -4,7 +4,7 @@
   <metadata>
     <id>Aegis.Monitor.Core</id>
     <title>Aegis Monitoring Plugin for .NET</title>
-    <version>1.0.1</version>
+    <version>1.0.4</version>
     <authors>Paul Mooney</authors>
     <owners>Paul Mooney</owners>
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
