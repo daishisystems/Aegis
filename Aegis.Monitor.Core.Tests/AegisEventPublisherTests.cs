@@ -720,7 +720,7 @@ namespace Aegis.Monitor.Core.Tests
         [TestMethod]
         public void AegisCanBeToggledFromConfigFile()
         {
-            Assert.IsTrue(Aegis.IsEnabledInConfigFile("AegisIsEnabled"));
+            Assert.IsTrue(AegisHelper.IsEnabledInConfigFile("AegisIsEnabled"));
         }
 
         [TestMethod]
@@ -731,7 +731,7 @@ namespace Aegis.Monitor.Core.Tests
 
             IPAddress ipAddress;
 
-            Assert.IsTrue(Aegis.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+            Assert.IsTrue(AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
                 request, out ipAddress));
 
             Assert.AreEqual("127.0.0.1", ipAddress.ToString());

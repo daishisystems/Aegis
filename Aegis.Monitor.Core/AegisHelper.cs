@@ -684,10 +684,10 @@ using System.Net.Http;
 namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="Aegis" /> provides helpful static methods for commonly used
-    ///     tasks.
+    ///     <see cref="AegisHelper" /> provides helpful static methods for commonly
+    ///     used tasks.
     /// </summary>
-    public static class Aegis
+    public static class AegisHelper
     {
         /// <summary>
         ///     <see cref="IsEnabledInConfigFile" /> determines whether the application
