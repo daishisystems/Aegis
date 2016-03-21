@@ -281,3 +281,5 @@ $RECYCLE.BIN/
 *.lnk
 *.nuspec
 *.nuspec
+*.nuspec
+Aegis.Monitor.Core/Aegis.Monitor.Core.dll.nuspec
