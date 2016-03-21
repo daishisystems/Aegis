@@ -57,6 +57,8 @@ namespace Aegis.Monitor.Logger.Bots
             {
                 try
                 {
+                    Console.Clear();
+
                     var data = Encoding.UTF8.GetString(eventData.GetBytes());
                     var aegisEvent =
                         JsonConvert.DeserializeObject<AegisEvent>(data);
@@ -76,6 +78,8 @@ namespace Aegis.Monitor.Logger.Bots
                             .Id(aegisEvent.IPAddress)
                             .Refresh()
                             );
+
+                        Console.WriteLine("Added new event.");
                     }
 
                     // Was IP previously flagged as human?
@@ -92,6 +96,8 @@ namespace Aegis.Monitor.Logger.Bots
                                 .Index("traffic")
                                 .Type("good")
                             );
+                        
+                        Console.WriteLine("Flagged event as bot.");
                     }
                 }
                 catch (Exception e)
