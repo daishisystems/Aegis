@@ -16,14 +16,16 @@ namespace Aegis.Monitor.Logger.Bots
         private readonly ConcurrentDictionary<string, string> _blacklist =
             new ConcurrentDictionary<string, string>();
 
-        private ElasticClient _client;
+        private readonly ElasticClient _client;
 
         private Stopwatch checkpointStopWatch;
 
         public LoggingEventProcessor()
         {
             var node = new Uri("http://localhost:9200");
-            _client = new ElasticClient();
+            var settings = new ConnectionSettings(node);
+
+            _client = new ElasticClient(settings);
         }
 
         async Task IEventProcessor.CloseAsync(PartitionContext context,
@@ -53,28 +55,50 @@ namespace Aegis.Monitor.Logger.Bots
         {
             foreach (var eventData in messages)
             {
-                var data = Encoding.UTF8.GetString(eventData.GetBytes());
-
-                //Console.WriteLine(
-                //    "Message received.  Partition: '{0}', Data: '{1}'",
-                //    context.Lease.PartitionId, data);
-
-                var metadata = JsonConvert.DeserializeObject<AegisEvent>(data);
-
-                _blacklist.GetOrAdd(metadata.IPAddress,
-                    key =>
-                    {
-                        // todo: pump to ElasticSearch here...
-                        return "BOT";
-                    });
-
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Blacklist:");
-
-                foreach (var pair in _blacklist)
+                try
                 {
-                    Console.WriteLine(pair.Key);
+                    var data = Encoding.UTF8.GetString(eventData.GetBytes());
+                    var aegisEvent =
+                        JsonConvert.DeserializeObject<AegisEvent>(data);
+
+                    // Does event exist?
+                    var getR = _client.Get<AegisEvent>(aegisEvent.IPAddress,
+                        g => g
+                            .Index("traffic")
+                            .Type("bad"));
+
+                    if (!getR.Found)
+                    {
+                        // Add if not found
+                        _client.Index(aegisEvent, i => i
+                            .Index("traffic")
+                            .Type("bad")
+                            .Id(aegisEvent.IPAddress)
+                            .Refresh()
+                            );
+                    }
+
+                    // Was IP previously flagged as human?
+                    getR = _client.Get<AegisEvent>(aegisEvent.IPAddress,
+                        g => g
+                            .Index("traffic")
+                            .Type("good"));
+
+                    if (getR.Found)
+                    {
+                        // Delete if found
+                        _client.Delete<AegisEvent>(
+                            aegisEvent.IPAddress, d => d
+                                .Index("traffic")
+                                .Type("good")
+                            );
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Clear();
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("-----");
                 }
             }
 
