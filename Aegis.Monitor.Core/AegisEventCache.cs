@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
 using System.Configuration;
 using System.Net;
@@ -747,7 +748,7 @@ namespace Aegis.Monitor.Core
             {
                 if (batch.Count > 0)
                 {
-                    publisher.EventHubClient.SendBatch(batch);
+                    // Todo: Park this in favour of proxy solution
                 }
             });
         }
@@ -763,22 +764,42 @@ namespace Aegis.Monitor.Core
             {
                 if (batch.Count > 0)
                 {
-                    var aegisProxyAddress =
-                        ConfigurationManager.AppSettings["AegisProxy"];
-
-                    if (!string.IsNullOrEmpty(aegisProxyAddress))
+                    try
                     {
-                        var request = WebRequest.Create(aegisProxyAddress);
-                        request.Method = "POST";
+                        var aegisProxyAddress =
+                            ConfigurationManager.AppSettings["AegisProxy"];
+                        var proxyAddress =
+                            ConfigurationManager.AppSettings["Proxy"];
 
-                        var postData = JsonConvert.SerializeObject(batch);
-                        var byteArray = Encoding.UTF8.GetBytes(postData);
+                        if (!string.IsNullOrEmpty(aegisProxyAddress))
+                        {
+                            var request = WebRequest.Create(aegisProxyAddress);
+                            request.Method = "POST";
 
-                        request.ContentLength = byteArray.Length;
-                        var dataStream = request.GetRequestStream();
+                            request.ContentType =
+                                "application/x-www-form-urlencoded; charset=UTF-8";
 
-                        dataStream.Write(byteArray, 0, byteArray.Length);
-                        dataStream.Close();
+                            if (!string.IsNullOrEmpty(proxyAddress))
+                            {
+                                request.Proxy = new WebProxy(proxyAddress);
+                            }
+
+                            var postData = "=" +
+                                           JsonConvert.SerializeObject(batch);
+                            var byteArray = Encoding.UTF8.GetBytes(postData);
+
+                            request.ContentLength = byteArray.Length;
+                            var dataStream = request.GetRequestStream();
+
+                            dataStream.Write(byteArray, 0, byteArray.Length);
+                            dataStream.Close();
+
+                            request.GetResponse();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        // Failed silently and ignore for POC
                     }
                 }
             });

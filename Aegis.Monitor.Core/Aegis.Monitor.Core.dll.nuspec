@@ -4,13 +4,13 @@
   <metadata>
     <id>Aegis.Monitor.Core</id>
     <title>Aegis Monitoring Plugin for .NET</title>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <authors>Paul Mooney</authors>
     <owners>Paul Mooney</owners>
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple Aegis event-monitoring tools</description>
-    <releaseNotes>Primary release candidat.</releaseNotes>
+    <releaseNotes>Added Proxy relay feature</releaseNotes>
     <copyright>Aegis  Copyright (C) 2016  Paul Mooney</copyright>
     <tags>Aegis</tags>
     <dependencies>

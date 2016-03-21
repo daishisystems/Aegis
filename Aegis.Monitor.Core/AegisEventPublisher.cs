@@ -678,9 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.ServiceBus.Messaging;
-using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
@@ -749,11 +747,12 @@ namespace Aegis.Monitor.Core
         ///     <see cref="publish" />.
         /// </param>
         /// <returns>The number of <see cref="AegisEvent" /> instances published.</returns>
-        public static int Publish(ConcurrentQueue<AegisEvent> events, int batchSize,
-            Action<List<EventData>> publish)
+        public static int Publish(ConcurrentQueue<AegisEvent> events,
+            int batchSize,
+            Action<List<AegisEvent>> publish)
         {
             bool notEmpty;
-            var batch = new List<EventData>();
+            var batch = new List<AegisEvent>();
 
             do
             {
@@ -762,10 +761,7 @@ namespace Aegis.Monitor.Core
 
                 if (notEmpty)
                 {
-                    batch.Add(
-                        new EventData(
-                            Encoding.UTF8.GetBytes(
-                                JsonConvert.SerializeObject(@event))));
+                    batch.Add(@event);
                 }
 
             } while (notEmpty && batch.Count < batchSize);

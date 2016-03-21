@@ -737,7 +737,7 @@ namespace Aegis.Monitor.Core
                 // todo: abstract batchSize to input variable
                 try
                 {
-                    AegisEventCache.Publish(AegisEventPublisher.Instance, 1000);
+                    AegisEventCache.Relay(1000);
                 }
                 catch (Exception)
                 {

@@ -40,8 +40,7 @@ namespace Aegis.Monitor.SampleApp
                 try
                 {
                     // Establish connection to the Azure Event Hub
-                    AegisEventPublisher.Instance.Initialise(eventHubName,
-                        eventHubConnectionString);
+                   
 
                     // Start the recurring monitor task
                     TaskManager.Initialize(new AegisRegistry());
