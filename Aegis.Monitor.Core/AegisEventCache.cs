@@ -676,6 +676,10 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Concurrent;
+using System.Configuration;
+using System.Net;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
@@ -744,6 +748,38 @@ namespace Aegis.Monitor.Core
                 if (batch.Count > 0)
                 {
                     publisher.EventHubClient.SendBatch(batch);
+                }
+            });
+        }
+
+        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
+        /// <param name="batchSize">
+        ///     <see cref="batchSize" /> determines the number of
+        ///     <see cref="AegisEvent" /> instances to publish per batch.
+        /// </param>
+        public static void Relay(int batchSize)
+        {
+            AegisEventPublisher.Publish(Events, batchSize, batch =>
+            {
+                if (batch.Count > 0)
+                {
+                    var aegisProxyAddress =
+                        ConfigurationManager.AppSettings["AegisProxy"];
+
+                    if (!string.IsNullOrEmpty(aegisProxyAddress))
+                    {
+                        var request = WebRequest.Create(aegisProxyAddress);
+                        request.Method = "POST";
+
+                        var postData = JsonConvert.SerializeObject(batch);
+                        var byteArray = Encoding.UTF8.GetBytes(postData);
+
+                        request.ContentLength = byteArray.Length;
+                        var dataStream = request.GetRequestStream();
+
+                        dataStream.Write(byteArray, 0, byteArray.Length);
+                        dataStream.Close();
+                    }
                 }
             });
         }
