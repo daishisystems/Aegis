@@ -67,37 +67,28 @@ namespace Aegis.Monitor.Logger.Humans
                     var getR = _client.Get<AegisEvent>(aegisEvent.IPAddress,
                         g => g
                             .Index("traffic")
-                            .Type("bad"));
+                            .Type("good"));
 
                     if (!getR.Found)
                     {
-                        // Add if not found
-                        _client.Index(aegisEvent, i => i
-                            .Index("traffic")
-                            .Type("bad")
-                            .Id(aegisEvent.IPAddress)
-                            .Refresh()
-                            );
+                        // Was IP previously flagged as bot?
+                        getR = _client.Get<AegisEvent>(aegisEvent.IPAddress,
+                            g => g
+                                .Index("traffic")
+                                .Type("bad"));
 
-                        Console.WriteLine("Added new event.");
-                    }
-
-                    // Was IP previously flagged as human?
-                    getR = _client.Get<AegisEvent>(aegisEvent.IPAddress,
-                        g => g
-                            .Index("traffic")
-                            .Type("good"));
-
-                    if (getR.Found)
-                    {
-                        // Delete if found
-                        _client.Delete<AegisEvent>(
-                            aegisEvent.IPAddress, d => d
+                        if (!getR.Found)
+                        {
+                            // Add if not found
+                            _client.Index(aegisEvent, i => i
                                 .Index("traffic")
                                 .Type("good")
-                            );
+                                .Id(aegisEvent.IPAddress)
+                                .Refresh()
+                                );
 
-                        Console.WriteLine("Flagged event as bot.");
+                            Console.WriteLine("Added new human event.");
+                        }
                     }
                 }
                 catch (Exception e)
