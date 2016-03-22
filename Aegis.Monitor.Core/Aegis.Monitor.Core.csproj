@@ -66,6 +66,7 @@
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="AegisRegistry.cs" />
     <Compile Include="AegisResult.cs" />
+    <Compile Include="Location.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublishTask.cs" />
   </ItemGroup>

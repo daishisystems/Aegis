@@ -6,5 +6,7 @@
         public string Path { get; set; }
         public int Total { get; set; }
         public int Count { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
     }
 }

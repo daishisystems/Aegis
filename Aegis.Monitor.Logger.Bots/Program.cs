@@ -1,5 +1,13 @@
 ﻿using System;
+using System.IO;
+using System.Net;
+using System.Threading;
+using Aegis.Monitor.Core;
+using Microsoft.Azure;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using Nest;
+using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Logger.Bots
 {
@@ -7,31 +15,133 @@ namespace Aegis.Monitor.Logger.Bots
     {
         private static void Main(string[] args)
         {
-            var eventHubConnectionString =
-                "Endpoint=sb://ryanair-bots.servicebus.windows.net/;SharedAccessKeyName=ALL;SharedAccessKey=dfSi0NS7OS3+5RRg6H2jUFAcKe2PugUCLNMWKLAlkYg=";
-            var eventHubName = "bots";
-            var storageAccountName = "ryanairbots";
-            var storageAccountKey =
-                "s44unwU9YKC4VcMPu8unmSmQViIkXRJA9kx+hADLHrnBKnZZcmvZDWlYIRjO4Q7MesbZ4Ky20j5kOa5rqcgRaQ==";
+            // Create the topic if it does not exist already.
+            var connectionString =
+                CloudConfigurationManager.GetSetting(
+                    "Microsoft.ServiceBus.ConnectionString");
 
-            var storageConnectionString =
-                string.Format(
-                    "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
-                    storageAccountName, storageAccountKey);
+            var namespaceManager =
+                NamespaceManager.CreateFromConnectionString(connectionString);
 
-            var eventProcessorHostName = Guid.NewGuid().ToString();
-            var eventProcessorHost =
-                new EventProcessorHost(eventProcessorHostName, eventHubName,
-                    EventHubConsumerGroup.DefaultGroupName,
-                    eventHubConnectionString, storageConnectionString);
-            Console.WriteLine("Registering EventProcessor...");
-            eventProcessorHost
-                .RegisterEventProcessorAsync<LoggingEventProcessor>
-                ().Wait();
+            if (!namespaceManager.TopicExists("botq"))
+            {
+                namespaceManager.CreateTopic("botq");
+            }
 
-            Console.WriteLine("Receiving. Press enter key to stop worker.");
+            if (!namespaceManager.SubscriptionExists("botq", "AllMessages"))
+            {
+                namespaceManager.CreateSubscription("botq", "AllMessages");
+            }
+
+            var Client =
+                SubscriptionClient.CreateFromConnectionString
+                    (connectionString, "botq", "AllMessages",
+                        ReceiveMode.ReceiveAndDelete);
+
+            // Configure the callback options.
+            var options = new OnMessageOptions();
+            options.AutoComplete = false;
+            options.AutoRenewTimeout = TimeSpan.FromMinutes(1);
+
+            var node = new Uri("http://localhost:9200");
+            var settings = new ConnectionSettings(node);
+
+            var client = new ElasticClient(settings);
+
+            Client.OnMessage(message =>
+            {
+                try
+                {
+                    var parsed = message.GetBody<string>();
+                    var aegisResult =
+                        JsonConvert.DeserializeObject<AegisResult>(parsed);
+
+                    try
+                    {
+                        var request = WebRequest.Create(
+                            "http://ip-api.com/json/" + aegisResult.IPAddress);
+
+                        var response = request.GetResponse();
+                        var dataStream = response.GetResponseStream();
+
+                        var reader = new StreamReader(dataStream);
+                        var responseFromServer = reader.ReadToEnd();
+
+                        var location =
+                            JsonConvert.DeserializeObject<Location>(
+                                responseFromServer);
+
+                        reader.Close();
+                        response.Close();
+
+                        if (location.Country.ToLowerInvariant() ==
+                            "united kingdom")
+                        {
+                            location.Country = "UK";
+                        }
+
+                        if (location.Country.ToLowerInvariant() ==
+                            "united states")
+                        {
+                            location.Country = "USA";
+                        }
+
+                        aegisResult.City = location.City;
+                        aegisResult.Country = location.Country;
+
+
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception)
+                    {
+                        // Do nothing
+                    }
+
+                    // Does event exist?
+                    var getR = client.Get<AegisResult>(aegisResult.IPAddress,
+                        g => g
+                            .Index("aegis")
+                            .Type("bad"));
+
+                    if (!getR.Found)
+                    {
+                        // Add if not found
+                        client.Index(aegisResult, i => i
+                            .Index("aegis")
+                            .Type("bad")
+                            .Id(aegisResult.IPAddress)
+                            .Refresh()
+                            );
+
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("A scraper connected at {0}",
+                            DateTime.UtcNow.ToString("T"));
+                    }
+
+                    // Was IP previously flagged as human?
+                    getR = client.Get<AegisResult>(aegisResult.IPAddress,
+                        g => g
+                            .Index("aegis")
+                            .Type("good"));
+
+                    if (getR.Found)
+                    {
+                        // Delete if found
+                        client.Delete<AegisResult>(
+                            aegisResult.IPAddress, d => d
+                                .Index("aegis")
+                                .Type("good")
+                            );
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }, options);
+
             Console.ReadLine();
-            eventProcessorHost.UnregisterEventProcessorAsync().Wait();
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Aegis.Monitor.Logger.Humans
                         JsonConvert.DeserializeObject<AegisResult>(parsed);
 
                     // Does event exist?
-                    var getR = client.Get<AegisEvent>(aegisResult.IPAddress,
+                    var getR = client.Get<AegisResult>(aegisResult.IPAddress,
                         g => g
                             .Index("aegis")
                             .Type("good"));
@@ -62,7 +62,7 @@ namespace Aegis.Monitor.Logger.Humans
                     if (!getR.Found)
                     {
                         // Was IP previously flagged as bot?
-                        getR = client.Get<AegisEvent>(aegisResult.IPAddress,
+                        getR = client.Get<AegisResult>(aegisResult.IPAddress,
                             g => g
                                 .Index("aegis")
                                 .Type("bad"));
@@ -77,7 +77,10 @@ namespace Aegis.Monitor.Logger.Humans
                                 .Refresh()
                                 );
 
-                            Console.WriteLine("Added new human event.");
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("A person connected at {0}",
+                                DateTime.UtcNow.ToString("T"));
                         }
                     }
                 }
