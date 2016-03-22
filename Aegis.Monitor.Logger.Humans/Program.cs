@@ -1,5 +1,10 @@
 ﻿using System;
+using Aegis.Monitor.Core;
+using Microsoft.Azure;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using Nest;
+using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Logger.Humans
 {
@@ -7,31 +12,82 @@ namespace Aegis.Monitor.Logger.Humans
     {
         private static void Main(string[] args)
         {
-            var eventHubConnectionString =
-                "Endpoint=sb://ryanair-humans.servicebus.windows.net/;SharedAccessKeyName=ALL;SharedAccessKey=geGhpO3kRlTDPKwm9uyqnS+4tldnbE73AocZ1Ra7HCs=";
-            var eventHubName = "humans";
-            var storageAccountName = "ryanairbots";
-            var storageAccountKey =
-                "s44unwU9YKC4VcMPu8unmSmQViIkXRJA9kx+hADLHrnBKnZZcmvZDWlYIRjO4Q7MesbZ4Ky20j5kOa5rqcgRaQ==";
+            // Create the topic if it does not exist already.
+            var connectionString =
+                CloudConfigurationManager.GetSetting(
+                    "Microsoft.ServiceBus.ConnectionString");
 
-            var storageConnectionString =
-                string.Format(
-                    "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
-                    storageAccountName, storageAccountKey);
+            var namespaceManager =
+                NamespaceManager.CreateFromConnectionString(connectionString);
 
-            var eventProcessorHostName = Guid.NewGuid().ToString();
-            var eventProcessorHost =
-                new EventProcessorHost(eventProcessorHostName, eventHubName,
-                    EventHubConsumerGroup.DefaultGroupName,
-                    eventHubConnectionString, storageConnectionString);
-            Console.WriteLine("Registering EventProcessor...");
-            eventProcessorHost
-                .RegisterEventProcessorAsync<LoggingEventProcessor>
-                ().Wait();
+            if (!namespaceManager.TopicExists("humanq"))
+            {
+                namespaceManager.CreateTopic("humanq");
+            }
 
-            Console.WriteLine("Receiving. Press enter key to stop worker.");
+            if (!namespaceManager.SubscriptionExists("humanq", "AllMessages"))
+            {
+                namespaceManager.CreateSubscription("humanq", "AllMessages");
+            }
+
+            var Client =
+                SubscriptionClient.CreateFromConnectionString
+                    (connectionString, "humanq", "AllMessages",
+                        ReceiveMode.ReceiveAndDelete);
+
+            // Configure the callback options.
+            var options = new OnMessageOptions();
+            options.AutoComplete = false;
+            options.AutoRenewTimeout = TimeSpan.FromMinutes(1);
+
+            var node = new Uri("http://localhost:9200");
+            var settings = new ConnectionSettings(node);
+
+            var client = new ElasticClient(settings);
+
+            Client.OnMessage(message =>
+            {
+                try
+                {
+                    var parsed = message.GetBody<string>();
+                    var aegisResult =
+                        JsonConvert.DeserializeObject<AegisResult>(parsed);
+
+                    // Does event exist?
+                    var getR = client.Get<AegisEvent>(aegisResult.IPAddress,
+                        g => g
+                            .Index("aegis")
+                            .Type("good"));
+
+                    if (!getR.Found)
+                    {
+                        // Was IP previously flagged as bot?
+                        getR = client.Get<AegisEvent>(aegisResult.IPAddress,
+                            g => g
+                                .Index("aegis")
+                                .Type("bad"));
+
+                        if (!getR.Found)
+                        {
+                            // Add if not found
+                            client.Index(aegisResult, i => i
+                                .Index("aegis")
+                                .Type("good")
+                                .Id(aegisResult.IPAddress)
+                                .Refresh()
+                                );
+
+                            Console.WriteLine("Added new human event.");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }, options);
+
             Console.ReadLine();
-            eventProcessorHost.UnregisterEventProcessorAsync().Wait();
         }
     }
 }
