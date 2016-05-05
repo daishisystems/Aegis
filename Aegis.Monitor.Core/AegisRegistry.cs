@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Configuration;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Core
@@ -687,7 +688,31 @@ namespace Aegis.Monitor.Core
     {
         public AegisRegistry()
         {
-            Schedule<PublishTask>().ToRunNow().AndEvery(10).Seconds();
+            var publishFrequencySeconds =
+                ConfigurationManager.AppSettings["PublishFrequencySeconds"];
+
+            if (!string.IsNullOrEmpty(publishFrequencySeconds)) // Test this!!!
+            {
+                int interval;
+                var canParse = int.TryParse(publishFrequencySeconds,
+                    out interval);
+
+                if (canParse)
+                {
+                    Schedule<PublishTask>()
+                        .ToRunNow()
+                        .AndEvery(interval)
+                        .Seconds();
+                }
+                else
+                {
+                    Schedule<PublishTask>().ToRunNow().AndEvery(10).Seconds();
+                }
+            }
+            else
+            {
+                Schedule<PublishTask>().ToRunNow().AndEvery(10).Seconds();
+            }
         }
     }
 }
