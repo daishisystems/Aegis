@@ -691,7 +691,7 @@ namespace Aegis.Monitor.Core
             var publishFrequencySeconds =
                 ConfigurationManager.AppSettings["PublishFrequencySeconds"];
 
-            if (!string.IsNullOrEmpty(publishFrequencySeconds)) // Test this!!!
+            if (!string.IsNullOrEmpty(publishFrequencySeconds))
             {
                 int interval;
                 var canParse = int.TryParse(publishFrequencySeconds,

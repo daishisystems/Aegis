@@ -779,6 +779,30 @@ namespace Aegis.Monitor.Core
                             request.ContentType =
                                 "application/x-www-form-urlencoded; charset=UTF-8";
 
+                            var publishTimeoutMilliseconds =
+                                ConfigurationManager.AppSettings[
+                                    "PublishTimeoutMilliseconds"];
+
+                            if (
+                                !string.IsNullOrEmpty(publishTimeoutMilliseconds))
+                            {
+                                int timeout;
+                                var canParse =
+                                    int.TryParse(publishTimeoutMilliseconds,
+                                        out timeout);
+
+                                /* 
+                                Approx. 1 second less than publish interval
+                                to ensure that no overlap occurs, preventing 
+                                multiple simultaneous threads running concurrently. 
+                                */
+                                request.Timeout = canParse ? timeout : 9000;
+                            }
+                            else
+                            {
+                                request.Timeout = 9000;
+                            }
+
                             if (!string.IsNullOrEmpty(proxyAddress))
                             {
                                 request.Proxy = new WebProxy(proxyAddress);
