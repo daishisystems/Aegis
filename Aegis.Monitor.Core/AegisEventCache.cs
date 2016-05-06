@@ -779,16 +779,18 @@ namespace Aegis.Monitor.Core
                             request.ContentType =
                                 "application/x-www-form-urlencoded; charset=UTF-8";
 
-                            var publishTimeoutMilliseconds =
+                            var aegisPublishTimeoutMilliseconds =
                                 ConfigurationManager.AppSettings[
-                                    "PublishTimeoutMilliseconds"];
+                                    "AegisPublishTimeoutMilliseconds"];
 
                             if (
-                                !string.IsNullOrEmpty(publishTimeoutMilliseconds))
+                                !string.IsNullOrEmpty(
+                                    aegisPublishTimeoutMilliseconds))
                             {
                                 int timeout;
                                 var canParse =
-                                    int.TryParse(publishTimeoutMilliseconds,
+                                    int.TryParse(
+                                        aegisPublishTimeoutMilliseconds,
                                         out timeout);
 
                                 /* 

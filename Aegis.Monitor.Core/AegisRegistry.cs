@@ -688,13 +688,13 @@ namespace Aegis.Monitor.Core
     {
         public AegisRegistry()
         {
-            var publishFrequencySeconds =
-                ConfigurationManager.AppSettings["PublishFrequencySeconds"];
+            var aegisPublishFrequencySeconds =
+                ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
 
-            if (!string.IsNullOrEmpty(publishFrequencySeconds))
+            if (!string.IsNullOrEmpty(aegisPublishFrequencySeconds))
             {
                 int interval;
-                var canParse = int.TryParse(publishFrequencySeconds,
+                var canParse = int.TryParse(aegisPublishFrequencySeconds,
                     out interval);
 
                 if (canParse)
