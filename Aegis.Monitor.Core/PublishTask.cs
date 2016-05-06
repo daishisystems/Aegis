@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Configuration;
 using System.Web.Hosting;
 using FluentScheduler;
 
@@ -691,12 +692,30 @@ namespace Aegis.Monitor.Core
     /// </remarks>
     public class PublishTask : ITask, IRegisteredObject
     {
+
+        private readonly int _aegisCacheBatchSize;
         private readonly object _lock = new object();
 
         private volatile bool _shuttingDown;
 
         public PublishTask()
         {
+            var aegisCacheBatchSize =
+                ConfigurationManager.AppSettings["AegisCacheBatchSize"];
+
+            if (!string.IsNullOrEmpty(aegisCacheBatchSize))
+            {
+                int batchSize;
+                var canParse = int.TryParse(aegisCacheBatchSize, out batchSize);
+
+                // Set batchsize to 1000 if config setting is missing or invalid.
+                _aegisCacheBatchSize = canParse ? batchSize : 1000;
+            }
+            else
+            {
+                _aegisCacheBatchSize = 1000;
+            }
+
             HostingEnvironment.RegisterObject(this);
         }
 
@@ -734,10 +753,9 @@ namespace Aegis.Monitor.Core
                 if (_shuttingDown)
                     return;
 
-                // todo: abstract batchSize to input variable
                 try
                 {
-                    AegisEventCache.Relay(1000);
+                    AegisEventCache.Relay(_aegisCacheBatchSize);
                 }
                 catch (Exception)
                 {
