@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
@@ -22,33 +21,19 @@ namespace Aegis.Monitor.SampleApp
 
             #region Aegis
 
-            bool aegisIsEnabled;
+            var aegisIsEnabled =
+                AegisHelper.IsEnabledInConfigFile("AegisIsEnabled");
 
-            var settingsAreValid =
-                bool.TryParse(
-                    ConfigurationManager.AppSettings["AegisIsEnabled"],
-                    out aegisIsEnabled);
+            if (!aegisIsEnabled) return;
 
-            if (settingsAreValid && aegisIsEnabled)
+            try
             {
-                var eventHubName =
-                    ConfigurationManager.AppSettings["AegisEventHubName"];
-                var eventHubConnectionString =
-                    ConfigurationManager.AppSettings[
-                        "AegisEventHubConnectionString"];
-
-                try
-                {
-                    // Establish connection to the Azure Event Hub
-                   
-
-                    // Start the recurring monitor task
-                    TaskManager.Initialize(new AegisRegistry());
-                }
-                catch (Exception)
-                {
-                    // Fail silently and ignore errors for POC
-                }
+                // Start the recurring monitor task
+                TaskManager.Initialize(new AegisRegistry());
+            }
+            catch (Exception)
+            {
+                // Fail silently and ignore errors for POC
             }
 
             #endregion

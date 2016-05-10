@@ -725,7 +725,7 @@ namespace Aegis.Monitor.Proxy.Controllers
         /// <summary>
         ///     Post receives a collection of <see cref="AegisEvent" /> instances,
         ///     which are deserialised, validated, and wrapped in <see cref="EventData" />
-        ///     instances that target specific Event Hub Partitions. The collection of
+        ///     instances that target a specific Event Hub Partition. The collection of
         ///     <see cref="EventData" /> instances are then persisted as a single batch to
         ///     an Azure Event Hub.
         /// </summary>
@@ -776,6 +776,8 @@ namespace Aegis.Monitor.Proxy.Controllers
                     new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
 
+            var partitionKey = _partitionKeys[_random.Next(0, 4)];
+
             var batch =
                 events.Select(
                     aegisEvent =>
@@ -783,7 +785,7 @@ namespace Aegis.Monitor.Proxy.Controllers
                             Encoding.UTF8.GetBytes(
                                 JsonConvert.SerializeObject(aegisEvent)))
                         {
-                            PartitionKey = _partitionKeys[_random.Next(0, 4)]
+                            PartitionKey = partitionKey
                         });
 
             var eventHubClient =
