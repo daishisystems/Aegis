@@ -723,8 +723,7 @@ namespace Aegis.Monitor.Core
         ///     <see cref="IPAddress" />.
         /// </param>
         /// <param name="headers">
-        ///     <see cref="headers" /> is the HTTP request header
-        ///     collection to be parsed.
+        ///     <see cref="headers" /> is the HTTP request header collection to be parsed.
         /// </param>
         /// <param name="ipAddress">
         ///     <see cref="ipAddress" /> is the resulting output, if the operation
@@ -756,6 +755,24 @@ namespace Aegis.Monitor.Core
 
             ipAddress = null;
             return false;
+        }
+
+        /// <summary>
+        ///     TryParseAppSetting returns <c>true</c>, as well as outputting
+        ///     appSettingValue, if appSettingKey is a valid configuration setting.
+        /// </summary>
+        /// <param name="appSettingKey"></param>
+        /// <param name="appSettingValue"></param>
+        /// <returns>
+        ///     <see cref="bool" /> value indicating whether or not appSettingValue is
+        ///     a valid configuration setting.
+        /// </returns>
+        public static bool TryParseAppSetting(string appSettingKey,
+            out string appSettingValue)
+        {
+            appSettingValue = ConfigurationManager.AppSettings[appSettingKey];
+
+            return !string.IsNullOrEmpty(appSettingKey);
         }
     }
 }
