@@ -696,7 +696,6 @@ namespace Aegis.Monitor.Proxy.Controllers
     /// </summary>
     public class MonitorController : ApiController
     {
-
         /// <summary>
         ///     Azure Event Hub Partition IDs that determine which Partition will be
         ///     leveraged.
@@ -827,12 +826,12 @@ namespace Aegis.Monitor.Proxy.Controllers
                                 PartitionKey = partitionKey
                             });
 
-                var eventHubClient =
+                EventHubManager.Instance.EventHubClient =
                     EventHubClient.CreateFromConnectionString(
                         eventHubConnectionString,
                         eventHubName);
 
-                eventHubClient.SendBatch(batch);
+                EventHubManager.Instance.EventHubClient.SendBatch(batch);
 
                 _stopwatch.Stop();
 
