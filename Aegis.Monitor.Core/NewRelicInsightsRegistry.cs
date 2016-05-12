@@ -14,7 +14,7 @@ namespace Aegis.Monitor.Core
 
             var newRelicPublishFrequencySecondsIsAvailable =
                 AegisHelper.TryParseAppSetting(
-                    "NewRelicPublishFrequencySeconds",
+                    "AegisNewRelicPublishFrequencySeconds",
                     out newRelicPublishFrequencySeconds);
 
             if (newRelicPublishFrequencySecondsIsAvailable)
