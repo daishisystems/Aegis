@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
@@ -689,6 +690,7 @@ namespace Aegis.Monitor.Core
         ///     EventType is the New Relic Event Grouping. It essentially determines
         ///     the database to which the event will persist.
         /// </summary>
+        [JsonProperty(PropertyName = "eventType")]
         public string EventType { get; set; }
 
         /// <summary>
@@ -711,7 +713,7 @@ namespace Aegis.Monitor.Core
         ///     Duration is the amount of time, in milliseconds, that elapsed during
         ///     the course of the event.
         /// </summary>
-        public int Duration { get; set; }
+        public long Duration { get; set; }
 
         /// <summary>
         ///     HTTPStatusCode refers to the HTTP Status Code that occurred as a

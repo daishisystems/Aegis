@@ -676,196 +676,160 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Web.Http;
-using Aegis.Monitor.Core;
-using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 
-namespace Aegis.Monitor.Proxy.Controllers
+namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     MonitorController consists of a single HTTP POST method that receives
-    ///     batches of <see cref="AegisEvent" /> instances, and relays those instances,
-    ///     as a single batch, to an Azure Event Hub for live stream-processing.
+    ///     NewRelicInsightsAegisEventCache retains a thread-safe collection of
+    ///     <see cref="NewRelicInsightsAegisEvent" /> instances. It provides a means of
+    ///     pubishing these events to New Relic Insights, either as a complete
+    ///     collection, or in batches of predefined size.
     /// </summary>
-    public class MonitorController : ApiController
+    public static class NewRelicInsightsAegisEventCache
     {
 
-        /// <summary>
-        ///     Azure Event Hub Partition IDs that determine which Partition will be
-        ///     leveraged.
-        /// </summary>
-        private readonly string[] _partitionKeys;
+        private static readonly ConcurrentQueue<NewRelicInsightsAegisEvent>
+            Events =
+                new ConcurrentQueue<NewRelicInsightsAegisEvent>();
 
-        private readonly Random _random;
-
-        private readonly Stopwatch _stopwatch;
-
-        /// <summary>
-        ///     Initialise a new collection of Azure Event Hub Partition IDs. IDs are
-        ///     hashed by the Azure SDK and should be unique in order to achieve reasonably
-        ///     fair distribution.
-        /// </summary>
-        public MonitorController()
+        /// <summary>Add enqueues a <see cref="NewRelicInsightsAegisEvent" /> to the cache.</summary>
+        /// <param name="event">The <see cref="NewRelicInsightsAegisEvent" /> to enqueue.</param>
+        public static void Add(NewRelicInsightsAegisEvent @event)
         {
-            _partitionKeys = new[]
-            {
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            };
-
-            _random = new Random();
-            _stopwatch = new Stopwatch();
+            Events.Enqueue(@event);
         }
 
         /// <summary>
-        ///     Post receives a collection of <see cref="AegisEvent" /> instances,
-        ///     which are deserialised, validated, and wrapped in <see cref="EventData" />
-        ///     instances that target a specific Event Hub Partition. The collection of
-        ///     <see cref="EventData" /> instances are then persisted as a single batch to
-        ///     an Azure Event Hub.
+        ///     Publish empties the cache to a local collection, either in total or
+        ///     segments. Once emptied, the collection is serialised and published to New
+        ///     Relic Insights.
         /// </summary>
-        /// <param name="value">
-        ///     the POST Body value that contains the collection of
-        ///     <see cref="AegisEvent" /> instances.
+        /// <param name="batchSize">
+        ///     The count of <see cref="NewRelicInsightsAegisEvent" />
+        ///     instances to publish.
         /// </param>
-        /// <returns>
-        ///     A <see cref="HttpResponseMessage" /> with the appropriate HTTP Status
-        ///     Code.
-        /// </returns>
         /// <remarks>
-        ///     <para>
-        ///         An initial connection to an Azure Event Hub is established by the
-        ///         first request to this resource. The Azure SDK will reuse the underlying
-        ///         TCP connection for subsequent requests, long as the TCP connection
-        ///         remains open. E.g., it is not closed due to a period of inactivity,
-        ///         etc.).
-        ///     </para>
-        ///     <para>Significant events are logged to New Relic Insights.</para>
+        ///     The cache is drained, regardless of whether or not the operation is
+        ///     successful. Specifying a <see cref="batchSize" /> of
+        ///     <see cref="int.MaxValue" /> ensures that the entire cache is drained.
         /// </remarks>
-        public HttpResponseMessage Post([FromBody] string value)
+        public static async void Publish(int batchSize)
         {
-            IEnumerable<AegisEvent> events;
-            _stopwatch.Start();
+            bool notEmpty;
+            var batch = new List<NewRelicInsightsAegisEvent>();
+
+            do
+            {
+                NewRelicInsightsAegisEvent @event;
+                notEmpty = Events.TryDequeue(out @event);
+
+                if (notEmpty)
+                {
+                    batch.Add(@event);
+                }
+
+            } while (notEmpty && batch.Count < batchSize);
+
+            if (batch.Count.Equals(0))
+            {
+                return;
+            }
+
+            WebResponse response = null;
 
             try
             {
-                events =
-                    JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value);
-            }
-            catch (Exception e)
-            {
-                _stopwatch.Stop();
+                string newRelicAccountID;
 
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
+                var newRelicAccountIDIsAvailable =
+                    AegisHelper.TryParseAppSetting("AegisNewRelicAccountID",
+                        out newRelicAccountID);
+
+                if (!newRelicAccountIDIsAvailable) return;
+
+                var newRelicURI =
+                    string.Concat(
+                        "https://insights-collector.newrelic.com/v1/accounts/",
+                        newRelicAccountID, "/events");
+
+                var request = WebRequest.Create(newRelicURI);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+
+                string proxyAddress;
+
+                var proxyAddressIsAvailable =
+                    AegisHelper.TryParseAppSetting("Proxy",
+                        out proxyAddress);
+
+                if (proxyAddressIsAvailable)
                 {
-                    EventType = "Aegis",
-                    EventName = "Deserialise Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.BadRequest,
-                    Success = false,
-                    ErrorMessage = e.Message,
-                    InnerErrorMessage = e.InnerException?.Message
-                });
+                    request.Proxy = new WebProxy(proxyAddress);
+                }
 
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            }
+                string aegisNewRelicTimeoutMilliseconds;
 
-            string eventHubName, eventHubConnectionString;
+                var aegisNewRelicTimeoutMillisecondsIsAvailable =
+                    AegisHelper.TryParseAppSetting(
+                        "AegisNewRelicTimeoutMilliseconds",
+                        out aegisNewRelicTimeoutMilliseconds);
 
-            if (
-                !AegisHelper.TryParseAppSetting("AegisEventHubName",
-                    out eventHubName))
-            {
-
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            }
-
-            if (
-                !AegisHelper.TryParseAppSetting("AegisEventHubConnectionString",
-                    out eventHubConnectionString))
-            {
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
+                if (aegisNewRelicTimeoutMillisecondsIsAvailable)
                 {
-                    EventType = "Aegis",
-                    EventName = "Parse Event Hub Config",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.InternalServerError,
-                    Success = false,
-                    ErrorMessage =
-                        "Event Hub ConnectionString could not be parsed."
-                });
+                    int timeout;
 
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            }
+                    var canParse =
+                        int.TryParse(
+                            aegisNewRelicTimeoutMilliseconds,
+                            out timeout);
 
-            try
-            {
-                var partitionKey = _partitionKeys[_random.Next(0, 4)];
-
-                var batch =
-                    events.Select(
-                        aegisEvent =>
-                            new EventData(
-                                Encoding.UTF8.GetBytes(
-                                    JsonConvert.SerializeObject(aegisEvent)))
-                            {
-                                PartitionKey = partitionKey
-                            });
-
-                var eventHubClient =
-                    EventHubClient.CreateFromConnectionString(
-                        eventHubConnectionString,
-                        eventHubName);
-
-                eventHubClient.SendBatch(batch);
-
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
+                    /* 
+                    Approx. 1 second less than publish interval
+                    to ensure that no overlap occurs, preventing 
+                    multiple simultaneous threads running concurrently. 
+                    */
+                    request.Timeout = canParse ? timeout : 4000;
+                }
+                else
                 {
-                    EventType = "Aegis",
-                    EventName = "Publish Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.Created,
-                    Success = true
-                });
+                    request.Timeout = 4000;
+                }
 
-                return new HttpResponseMessage(HttpStatusCode.Created);
+                var postData = JsonConvert.SerializeObject(batch);
+                var byteArray = Encoding.UTF8.GetBytes(postData);
+
+                string newRelicAPIKey;
+
+                var newRelicAPIKeyIsAvailable =
+                    AegisHelper.TryParseAppSetting("AegisNewRelicAPIKey",
+                        out newRelicAPIKey);
+
+                if (!newRelicAPIKeyIsAvailable) return;
+
+                var newRelicAPIKeyHeader = string.Concat("X-Insert-Key: ",
+                    newRelicAPIKey);
+
+                var headers = request.Headers;
+                headers.Add(newRelicAPIKeyHeader);
+
+                var dataStream = await request.GetRequestStreamAsync();
+                await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
+
+                dataStream.Close();
+                response = await request.GetResponseAsync();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
-                {
-                    EventType = "Aegis",
-                    EventName = "Publish Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.InternalServerError,
-                    Success = false,
-                    ErrorMessage = e.Message,
-                    InnerErrorMessage = e.InnerException?.Message
-                });
-
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                // Fail silently until a fallback mechanism exists.
+            }
+            finally
+            {
+                response?.Close();
             }
         }
     }

@@ -676,196 +676,108 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Web.Http;
-using Aegis.Monitor.Core;
-using Microsoft.ServiceBus.Messaging;
-using Newtonsoft.Json;
+using System.Web.Hosting;
+using FluentScheduler;
 
-namespace Aegis.Monitor.Proxy.Controllers
+namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     MonitorController consists of a single HTTP POST method that receives
-    ///     batches of <see cref="AegisEvent" /> instances, and relays those instances,
-    ///     as a single batch, to an Azure Event Hub for live stream-processing.
+    ///     <see cref="NewRelicInsightsTask" /> is a Fluent Scheduler command that
+    ///     executes at regular intervals.
     /// </summary>
-    public class MonitorController : ApiController
+    /// <remarks>
+    ///     <see cref="NewRelicInsightsTask" /> registers with the ASP.NET process to
+    ///     allow graceful shutdown, and offers a wind-down time of up to 90 seconds.
+    /// </remarks>
+    public class NewRelicInsightsTask : ITask, IRegisteredObject
     {
 
-        /// <summary>
-        ///     Azure Event Hub Partition IDs that determine which Partition will be
-        ///     leveraged.
-        /// </summary>
-        private readonly string[] _partitionKeys;
+        private readonly int _batchSize;
+        private readonly object _lock = new object();
 
-        private readonly Random _random;
-
-        private readonly Stopwatch _stopwatch;
+        private volatile bool _shuttingDown;
 
         /// <summary>
-        ///     Initialise a new collection of Azure Event Hub Partition IDs. IDs are
-        ///     hashed by the Azure SDK and should be unique in order to achieve reasonably
-        ///     fair distribution.
+        ///     NewRelicInsightsTask registers this instance with ASP.NET and loads
+        ///     the New Relic event batch size variable from configuration.
         /// </summary>
-        public MonitorController()
+        /// <remarks>
+        ///     Setting BatchSize to -1 in the configuration file translates to a
+        ///     maximum integer value.
+        /// </remarks>
+        public NewRelicInsightsTask()
         {
-            _partitionKeys = new[]
-            {
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            };
+            string aegisNewRelicBatchSize;
 
-            _random = new Random();
-            _stopwatch = new Stopwatch();
+            var aegisNewRelicBatchSizeIsAvailable =
+                AegisHelper.TryParseAppSetting("AegisNewRelicBatchSize",
+                    out aegisNewRelicBatchSize);
+
+            if (aegisNewRelicBatchSizeIsAvailable)
+            {
+                var canParse = int.TryParse(aegisNewRelicBatchSize,
+                    out _batchSize);
+
+                if (canParse)
+                {
+                    // Setting BatchSize to -1 translates to a maximum integer value
+                    _batchSize = _batchSize == -1 ? int.MaxValue : _batchSize;
+                }
+                else
+                {
+                    _batchSize = int.MaxValue;
+                }
+            }
+            else
+            {
+                _batchSize = int.MaxValue;
+            }
+
+            HostingEnvironment.RegisterObject(this);
+        }
+
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
+        {
+            // Locking here will wait for the lock in Execute to be released until this code can continue.
+            lock (_lock)
+            {
+                _shuttingDown = true;
+            }
+
+            HostingEnvironment.UnregisterObject(this);
         }
 
         /// <summary>
-        ///     Post receives a collection of <see cref="AegisEvent" /> instances,
-        ///     which are deserialised, validated, and wrapped in <see cref="EventData" />
-        ///     instances that target a specific Event Hub Partition. The collection of
-        ///     <see cref="EventData" /> instances are then persisted as a single batch to
-        ///     an Azure Event Hub.
+        ///     <see cref="Execute" /> runs at regular intervals, invoking
+        ///     <see cref="AegisEventCache.Publish" /> to persist a batch of
+        ///     <see cref="AegisEvent" /> instances to an Azure Event Hub.
         /// </summary>
-        /// <param name="value">
-        ///     the POST Body value that contains the collection of
-        ///     <see cref="AegisEvent" /> instances.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpResponseMessage" /> with the appropriate HTTP Status
-        ///     Code.
-        /// </returns>
         /// <remarks>
         ///     <para>
-        ///         An initial connection to an Azure Event Hub is established by the
-        ///         first request to this resource. The Azure SDK will reuse the underlying
-        ///         TCP connection for subsequent requests, long as the TCP connection
-        ///         remains open. E.g., it is not closed due to a period of inactivity,
-        ///         etc.).
+        ///         <see cref="Execute" /> locks in order to ensure sequential access.
+        ///         Exceptions are ignored in POC-mode, the current project state.
         ///     </para>
-        ///     <para>Significant events are logged to New Relic Insights.</para>
         /// </remarks>
-        public HttpResponseMessage Post([FromBody] string value)
+        public void Execute()
         {
-            IEnumerable<AegisEvent> events;
-            _stopwatch.Start();
-
-            try
+            lock (_lock)
             {
-                events =
-                    JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value);
-            }
-            catch (Exception e)
-            {
-                _stopwatch.Stop();
+                if (_shuttingDown)
+                    return;
 
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
+                try
                 {
-                    EventType = "Aegis",
-                    EventName = "Deserialise Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.BadRequest,
-                    Success = false,
-                    ErrorMessage = e.Message,
-                    InnerErrorMessage = e.InnerException?.Message
-                });
-
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            }
-
-            string eventHubName, eventHubConnectionString;
-
-            if (
-                !AegisHelper.TryParseAppSetting("AegisEventHubName",
-                    out eventHubName))
-            {
-
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            }
-
-            if (
-                !AegisHelper.TryParseAppSetting("AegisEventHubConnectionString",
-                    out eventHubConnectionString))
-            {
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
+                    NewRelicInsightsAegisEventCache.Publish(_batchSize);
+                }
+                catch (Exception)
                 {
-                    EventType = "Aegis",
-                    EventName = "Parse Event Hub Config",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.InternalServerError,
-                    Success = false,
-                    ErrorMessage =
-                        "Event Hub ConnectionString could not be parsed."
-                });
-
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            }
-
-            try
-            {
-                var partitionKey = _partitionKeys[_random.Next(0, 4)];
-
-                var batch =
-                    events.Select(
-                        aegisEvent =>
-                            new EventData(
-                                Encoding.UTF8.GetBytes(
-                                    JsonConvert.SerializeObject(aegisEvent)))
-                            {
-                                PartitionKey = partitionKey
-                            });
-
-                var eventHubClient =
-                    EventHubClient.CreateFromConnectionString(
-                        eventHubConnectionString,
-                        eventHubName);
-
-                eventHubClient.SendBatch(batch);
-
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
-                {
-                    EventType = "Aegis",
-                    EventName = "Publish Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.Created,
-                    Success = true
-                });
-
-                return new HttpResponseMessage(HttpStatusCode.Created);
-            }
-            catch (Exception e)
-            {
-                _stopwatch.Stop();
-
-                NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
-                {
-                    EventType = "Aegis",
-                    EventName = "Publish Events",
-                    Source = "Aegis Proxy",
-                    Duration = _stopwatch.ElapsedMilliseconds,
-                    HTTPStatusCode = (int) HttpStatusCode.InternalServerError,
-                    Success = false,
-                    ErrorMessage = e.Message,
-                    InnerErrorMessage = e.InnerException?.Message
-                });
-
-                return
-                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                    // Fail silently and ignore errors until a fallback solution exists.
+                }
             }
         }
     }

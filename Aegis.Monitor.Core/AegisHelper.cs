@@ -691,27 +691,27 @@ namespace Aegis.Monitor.Core
     {
         /// <summary>
         ///     <see cref="IsEnabledInConfigFile" /> determines whether the application
-        ///     configuration settings are correctly configured, and that Aegis is enabled
-        ///     in the application configuration file.
+        ///     configuration settings are correctly configured, and that the specified
+        ///     configuration value is enabled in the application configuration file.
         /// </summary>
         /// <param name="appSettingKey">
-        ///     The application configuration key petaining to
-        ///     Aegis start-mode.
+        ///     The application configuration key petaining to the
+        ///     specified configuration value.
         /// </param>
         /// <returns>
-        ///     A <see cref="bool" /> value indicating whether or not Aegis is enabled
-        ///     in the application configuration file.
+        ///     A <see cref="bool" /> value indicating whether or not a specified
+        ///     configuration value is enabled in the application configuration file.
         /// </returns>
         public static bool IsEnabledInConfigFile(string appSettingKey)
         {
-            bool aegisIsEnabled;
+            bool isEnabled;
 
             var settingsAreValid =
                 bool.TryParse(
                     ConfigurationManager.AppSettings[appSettingKey],
-                    out aegisIsEnabled);
+                    out isEnabled);
 
-            return settingsAreValid && aegisIsEnabled;
+            return settingsAreValid && isEnabled;
         }
 
         /// <summary>
@@ -764,15 +764,15 @@ namespace Aegis.Monitor.Core
         /// <param name="appSettingKey"></param>
         /// <param name="appSettingValue"></param>
         /// <returns>
-        ///     <see cref="bool" /> value indicating whether or not appSettingValue is
-        ///     a valid configuration setting.
+        ///     <see cref="bool" /> value indicating whether or not appSettingValue is a
+        ///     valid configuration setting.
         /// </returns>
         public static bool TryParseAppSetting(string appSettingKey,
             out string appSettingValue)
         {
             appSettingValue = ConfigurationManager.AppSettings[appSettingKey];
 
-            return !string.IsNullOrEmpty(appSettingKey);
+            return !string.IsNullOrEmpty(appSettingValue);
         }
     }
 }
