@@ -675,28 +675,34 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-namespace Aegis.Monitor.Core
+using System.Net;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Aegis.Monitor.Core.Tests
 {
-    /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to
-    ///     encapsulate user-specific metadata that the Aegis platform can aggregate
-    ///     and process in order to identify patterns in traffic.
-    /// </summary>
-    public class AegisEvent
+    [TestClass]
+    public class IPAddressExtensionMethodsTests
     {
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        public string IPAddress { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        public string Path { get; set; }
-
-        /// <summary>Time is a string-based translation of the event time.</summary>
-        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        public string Time { get; set; }
-
-        public override string ToString()
+        [TestMethod]
+        public void PrivateIPAddressIsDetermined()
         {
-            return $"IP address:   {IPAddress}";
+            IPAddress[] privateIPAddresses =
+            {
+                IPAddress.Parse("10.0.0.0"),
+                IPAddress.Parse("172.16.0.0"),
+                IPAddress.Parse("192.168.0.0"),
+                IPAddress.Parse("10.255.255.255"),
+                IPAddress.Parse("172.31.255.255"),
+                IPAddress.Parse("192.168.255.255")
+            };
+
+            foreach (var privateIPAddress in privateIPAddresses)
+            {
+                var isPrivate = privateIPAddress.IsPrivate();
+
+                Assert.IsTrue(isPrivate);
+            }
         }
     }
+
 }

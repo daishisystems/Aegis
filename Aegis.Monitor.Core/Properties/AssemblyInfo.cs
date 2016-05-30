@@ -674,13 +674,14 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+
 [assembly: AssemblyTitle("Aegis Monitoring Plugin for .NET")]
 [assembly: AssemblyDescription("Simple Aegis event-monitoring tools")]
 [assembly: AssemblyConfiguration("")]
@@ -693,9 +694,11 @@ using System.Runtime.InteropServices;
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
+
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
+
 [assembly: Guid("687a614f-0265-4726-a494-7ee358c111b8")]
 
 // Version information for an assembly consists of the following four values:
@@ -708,5 +711,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
+
 [assembly: AssemblyVersion("1.0.5.0")]
 [assembly: AssemblyFileVersion("1.0.5.0")]

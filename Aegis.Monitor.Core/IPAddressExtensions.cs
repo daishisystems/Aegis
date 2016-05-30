@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -675,28 +675,36 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Net;
+
 namespace Aegis.Monitor.Core
 {
-    /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to
-    ///     encapsulate user-specific metadata that the Aegis platform can aggregate
-    ///     and process in order to identify patterns in traffic.
-    /// </summary>
-    public class AegisEvent
+    public static class IPAddressExtensions
     {
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        public string IPAddress { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        public string Path { get; set; }
-
-        /// <summary>Time is a string-based translation of the event time.</summary>
-        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        public string Time { get; set; }
-
-        public override string ToString()
+        /// <summary>
+        ///     <see cref="IsPrivate" /> determines whether or not <see cref="ipAddress" />
+        ///     falls within a private IP range.
+        /// </summary>
+        /// <param name="ipAddress">The <see cref="IPAddress" /> that is to be validated.</param>
+        /// <returns>A <see cref="bool" /> indicating <c>true</c>, if
+        ///     <see cref="ipAddress" /> falls within a private IP range.</returns>
+        public static bool IsPrivate(this IPAddress ipAddress)
         {
-            return $"IP address:   {IPAddress}";
+            var splitIPAddress = ipAddress.ToString()
+                .Split(new[] {"."}, StringSplitOptions.RemoveEmptyEntries);
+
+            int[] parsedIPAddress =
+            {
+                int.Parse(splitIPAddress[0]),
+                int.Parse(splitIPAddress[1]), int.Parse(splitIPAddress[2]),
+                int.Parse(splitIPAddress[3])
+            };
+
+            return parsedIPAddress[0] == 10 ||
+                   (parsedIPAddress[0] == 192 && parsedIPAddress[1] == 168) ||
+                   (parsedIPAddress[0] == 172 && parsedIPAddress[1] >= 16 &&
+                    parsedIPAddress[1] <= 31);
         }
     }
 }

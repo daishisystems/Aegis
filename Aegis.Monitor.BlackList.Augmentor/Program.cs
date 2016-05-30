@@ -17,7 +17,8 @@ namespace Aegis.Monitor.BlackList.Augmentor
                 ))
             {
                 connection.Open();
-                Console.WriteLine("Connected successfully.");
+                Console.WriteLine("Connected successfully...");
+                Console.ForegroundColor = ConsoleColor.Green;
 
                 SelectRows(connection);
 
@@ -28,27 +29,44 @@ namespace Aegis.Monitor.BlackList.Augmentor
 
         public static void SelectRows(C.SqlConnection connection)
         {
+            Console.Clear();
+
             using (var command = new C.SqlCommand())
             {
                 command.Connection = connection;
                 command.CommandType = D.CommandType.Text;
                 command.CommandText = @"  
                 
-                SELECT  
-                IPAddress
-                FROM  
-                dbo.BlackList
+                    SELECT * FROM	(
+
+	                    SELECT 
+		                    IPAddress, 
+		                    COUNT(IPAddress) AS HyperActivity, 
+		                    SUM(Total) AS TotalNumHits, 
+		                    SUM(Total)/COUNT(IPAddress) AS AVGNumHits
+	                    FROM dbo.StreamingAnalyticsOutput
+	                    WHERE ServerDateTime >= GETDATE() - 1
+	                    GROUP BY IPAddress
+
+				                    ) AS BlackList
+
+                    WHERE HyperActivity > 1
+                    AND AVGNumHits >= 60
+                    ORDER BY TotalNumHits DESC;                    
 
                 ";
 
                 var reader = command.ExecuteReader();
-                
+
                 while (reader.Read())
                 {
                     var ipAddress = reader.GetString(0);
 
                     try
                     {
+
+
+
                         var request = WebRequest.Create(
                             "http://freegeoip.net/json/" + ipAddress);
 
@@ -65,12 +83,14 @@ namespace Aegis.Monitor.BlackList.Augmentor
                         r.Close();
                         response.Close();
 
-                        if (
-                            location.CountryName.ToLowerInvariant()
-                                .Trim()
-                                .Equals("ireland"))
+                        var countryIdentifier =
+                            location.CountryName.ToLowerInvariant().Trim();
+
+                        if (countryIdentifier.Equals("ireland") ||
+                            countryIdentifier.Equals("ie") ||
+                            countryIdentifier.Equals("ire"))
                         {
-                            Console.WriteLine("{0} is Irish", ipAddress);
+                            Console.WriteLine("{0}", ipAddress);
                         }
                     }
                     catch (Exception e)

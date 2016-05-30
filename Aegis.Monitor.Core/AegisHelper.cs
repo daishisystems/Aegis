@@ -716,7 +716,7 @@ namespace Aegis.Monitor.Core
 
         /// <summary>
         ///     <see cref="TryParseIPAddressFromHeader" /> parses a value pertaining to an
-        ///     <see cref="IPAddress" /> pertaining to <see cref="headerName" /> in
+        ///     <see cref="IPAddress" /> pertaining to <see cref="headerName" />.
         /// </summary>
         /// <param name="headerName">
         ///     <see cref="headerName" /> is the name of the HTTP header that contains the
