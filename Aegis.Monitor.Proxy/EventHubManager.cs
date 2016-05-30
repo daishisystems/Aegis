@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -674,34 +674,31 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System;
+using Microsoft.ServiceBus.Messaging;
 
-using System.Net;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Aegis.Monitor.Core.Tests
+namespace Aegis.Monitor.Proxy
 {
-    [TestClass]
-    public class IPAddressExtensionMethodsTests
+    /// <summary>
+    ///     EventHubManager is a Singleton that ensures that only 1 instance of
+    ///     <see cref="EventHubClient" /> is leveraged throughout the application,
+    ///     across all sessions. This in turn ensures that the same underlying TCP and
+    ///     AMQP components are referenced across all running threads. The point is to
+    ///     minimise the number of open connections, and to reuse any existing
+    ///     connections insofar as possible.
+    /// </summary>
+    internal sealed class EventHubManager
     {
-        [TestMethod]
-        public void PrivateIPAddressIsDetermined()
+        private static readonly Lazy<EventHubManager> Lazy =
+            new Lazy<EventHubManager>(() => new EventHubManager());
+
+        public EventHubClient EventHubClient;
+
+        private EventHubManager()
         {
-            IPAddress[] privateIPAddresses =
-            {
-                IPAddress.Parse("10.0.0.0"),
-                IPAddress.Parse("172.16.0.0"),
-                IPAddress.Parse("192.168.0.0"),
-                IPAddress.Parse("10.255.255.255"),
-                IPAddress.Parse("172.31.255.255"),
-                IPAddress.Parse("192.168.255.255")
-            };
 
-            foreach (var privateIPAddress in privateIPAddresses)
-            {
-                var isPrivate = privateIPAddress.IsPrivate();
-
-                Assert.IsTrue(isPrivate);
-            }
         }
+
+        public static EventHubManager Instance => Lazy.Value;
     }
 }
