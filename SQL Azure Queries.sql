@@ -142,3 +142,6 @@ SELECT * FROM	(
 WHERE HyperActivity > 1
 AND AVGNumHits >= 60
 ORDER BY TotalNumHits DESC;
+
+SELECT LowerIPAddress, UpperIPAddress
+FROM dbo.WhiteList;
