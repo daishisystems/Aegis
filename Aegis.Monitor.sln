@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Logger.Humans
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.BlackList.Augmentor", "Aegis.Monitor.BlackList.Augmentor\Aegis.Monitor.BlackList.Augmentor.csproj", "{7E694AE0-B1BA-40AB-A25B-DA33B6FFDDB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Filter", "Aegis.Monitor.Filter\Aegis.Monitor.Filter.csproj", "{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{7E694AE0-B1BA-40AB-A25B-DA33B6FFDDB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E694AE0-B1BA-40AB-A25B-DA33B6FFDDB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E694AE0-B1BA-40AB-A25B-DA33B6FFDDB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
