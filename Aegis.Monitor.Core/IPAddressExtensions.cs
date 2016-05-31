@@ -706,5 +706,55 @@ namespace Aegis.Monitor.Core
                    (parsedIPAddress[0] == 172 && parsedIPAddress[1] >= 16 &&
                     parsedIPAddress[1] <= 31);
         }
+
+        /// <summary>
+        ///     <see cref="IsInRange" /> determines whether <see cref="ipAddress" /> falls
+        ///     within the IP-range constrained by <see cref="lowerIPAddress" /> and
+        ///     <see cref="upperIPAddress" />.
+        /// </summary>
+        /// <param name="ipAddress">The <see cref="IPAddress" /> to validate.</param>
+        /// <param name="lowerIPAddress">
+        ///     The beginning of the <see cref="IPAddress" />
+        ///     range.
+        /// </param>
+        /// <param name="upperIPAddress">The end of the <see cref="IPAddress" /> range.</param>
+        /// <returns>
+        ///     <c>True</c>, if <see cref="ipAddress" /> falls within the IP-range
+        ///     constrained by <see cref="lowerIPAddress" /> and
+        ///     <see cref="upperIPAddress" />.
+        /// </returns>
+        public static bool IsInRange(this IPAddress ipAddress,
+            IPAddress lowerIPAddress, IPAddress upperIPAddress)
+        {
+            var addressFamily = lowerIPAddress.AddressFamily;
+            var lowerBytes = lowerIPAddress.GetAddressBytes();
+            var upperBytes = upperIPAddress.GetAddressBytes();
+
+            if (ipAddress.AddressFamily != addressFamily)
+            {
+                return false;
+            }
+
+            var addressBytes = ipAddress.GetAddressBytes();
+
+            bool lowerBoundary = true, upperBoundary = true;
+
+            for (var i = 0;
+                i < lowerBytes.Length &&
+                (lowerBoundary || upperBoundary);
+                i++)
+            {
+                if ((lowerBoundary && addressBytes[i] < lowerBytes[i]) ||
+                    (upperBoundary && addressBytes[i] > upperBytes[i]))
+                {
+                    return false;
+                }
+
+                lowerBoundary &= addressBytes[i] == lowerBytes[i];
+                upperBoundary &= addressBytes[i] == upperBytes[i];
+            }
+
+            return true;
+        }
     }
 }

@@ -74,20 +74,20 @@ namespace Aegis.Monitor.Logger.Bots
                         reader.Close();
                         response.Close();
 
-                        if (location.Country.ToLowerInvariant() ==
+                        if (location.CountryName.ToLowerInvariant() ==
                             "united kingdom")
                         {
-                            location.Country = "UK";
+                            location.CountryName = "UK";
                         }
 
-                        if (location.Country.ToLowerInvariant() ==
+                        if (location.CountryName.ToLowerInvariant() ==
                             "united states")
                         {
-                            location.Country = "USA";
+                            location.CountryName = "USA";
                         }
 
                         aegisResult.City = location.City;
-                        aegisResult.Country = location.Country;
+                        aegisResult.Country = location.CountryName;
 
 
                         Thread.Sleep(1000);

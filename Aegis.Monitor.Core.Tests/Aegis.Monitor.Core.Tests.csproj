@@ -67,7 +67,6 @@
     <Compile Include="AegisEventPublisherTests.cs" />
     <Compile Include="IPAddressExtensionMethodsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IPAddressRangeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aegis.Monitor.Core\Aegis.Monitor.Core.csproj">

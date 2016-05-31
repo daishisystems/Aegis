@@ -703,5 +703,14 @@ namespace Aegis.Monitor.Core.Tests
                 Assert.IsTrue(isPrivate);
             }
         }
+
+        [TestMethod]
+        public void IPAddressesAreWithinTheSpecifiedRange()
+        {
+            Assert.IsTrue(
+                IPAddress.Parse("192.168.1.10")
+                    .IsInRange(IPAddress.Parse("192.168.0.0"),
+                        IPAddress.Parse("192.168.255.255")));
+        }
     }
 }
