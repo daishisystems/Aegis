@@ -42,7 +42,7 @@ SELECT * FROM StreamingAnalyticsOutput
 WHERE IPAddress = '86.45.99.229'; /* Eircom */
 
 SELECT * FROM StreamingAnalyticsOutput
-WHERE IPAddress = '83.71.193.244'; /* AWS */
+WHERE IPAddress = '89.101.1.90'; /* AWS */
 
 SELECT IPAddress, COUNT(IPAddress) AS HyperActivity, SUM(Total) as TotalNumHits, SUM(Total)/COUNT(IPAddress) AS AVGNumHits
 FROM StreamingAnalyticsOutput

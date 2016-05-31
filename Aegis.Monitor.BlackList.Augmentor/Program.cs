@@ -64,8 +64,13 @@ namespace Aegis.Monitor.BlackList.Augmentor
 
                     try
                     {
+                        var ipAddressIsPrivate =
+                            IPAddress.Parse(ipAddress).IsPrivate();
 
-
+                        if (ipAddressIsPrivate)
+                        {
+                            continue;
+                        }
 
                         var request = WebRequest.Create(
                             "http://freegeoip.net/json/" + ipAddress);
