@@ -82,7 +82,7 @@ namespace Aegis.Monitor.BlackList.Augmentor
                         var responseFromServer = r.ReadToEnd();
 
                         var location =
-                            JsonConvert.DeserializeObject<Location>(
+                            JsonConvert.DeserializeObject<IPAddressGeoLocation>(
                                 responseFromServer);
 
                         r.Close();

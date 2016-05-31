@@ -679,7 +679,7 @@ using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
-    public class Location
+    public class IPAddressGeoLocation
     {
         public string City { get; set; }
 

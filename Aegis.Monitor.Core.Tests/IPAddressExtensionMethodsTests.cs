@@ -712,5 +712,18 @@ namespace Aegis.Monitor.Core.Tests
                     .IsInRange(IPAddress.Parse("192.168.0.0"),
                         IPAddress.Parse("192.168.255.255")));
         }
+
+        [TestMethod]
+        public void IPAddressGeolocationIsRetrieved()
+        {
+            var ipAddress = IPAddress.Parse("195.27.14.131");
+
+            var ipAddressGeoLocation =
+                ipAddress.GetIPAddressGeoLocationAsync(
+                    "http://freegeoip.net/json");
+
+            Assert.AreEqual("ireland",
+                ipAddressGeoLocation.Result.CountryName.ToLowerInvariant());
+        }
     }
 }

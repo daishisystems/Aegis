@@ -68,7 +68,7 @@ namespace Aegis.Monitor.Logger.Bots
                         var responseFromServer = reader.ReadToEnd();
 
                         var location =
-                            JsonConvert.DeserializeObject<Location>(
+                            JsonConvert.DeserializeObject<IPAddressGeoLocation>(
                                 responseFromServer);
 
                         reader.Close();
