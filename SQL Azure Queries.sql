@@ -44,6 +44,9 @@ WHERE IPAddress = '86.45.99.229'; /* Eircom */
 SELECT * FROM StreamingAnalyticsOutput
 WHERE IPAddress = '89.101.1.90'; /* AWS */
 
+SELECT * FROM StreamingAnalyticsOutput
+WHERE IPAddress = '45.55.239.101'; /* AWS */
+
 SELECT IPAddress, COUNT(IPAddress) AS HyperActivity, SUM(Total) as TotalNumHits, SUM(Total)/COUNT(IPAddress) AS AVGNumHits
 FROM StreamingAnalyticsOutput
 WHERE IPAddress IN (
@@ -127,14 +130,15 @@ SELECT * FROM StreamingAnalyticsOutput
 WHERE Total >= 60;
 
 SELECT * FROM	(
-
+	
 	SELECT 
 		IPAddress, 
 		COUNT(IPAddress) AS HyperActivity, 
-		SUM(Total) AS TotalNumHits, 
-		SUM(Total)/COUNT(IPAddress) AS AVGNumHits
+		SUM(Total) AS TotalNumHits,
+		SUM(Total)/COUNT(IPAddress) AS AVGNumHits,
+		MAX(ServerDateTime) AS LatestServerTime
 	FROM dbo.StreamingAnalyticsOutput
-	WHERE ServerDateTime >= GETDATE() - 1
+	WHERE ServerDateTime >= GETDATE() - 1 /* 1st call - last 24 hours. Subsequent calls - since previous */
 	GROUP BY IPAddress
 
 				) AS BlackList
