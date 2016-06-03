@@ -66,10 +66,10 @@
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="AegisRegistry.cs" />
     <Compile Include="AegisResult.cs" />
-    <Compile Include="BlackList.cs" />
     <Compile Include="BlackListItem.cs" />
     <Compile Include="BlackListLoader.cs" />
     <Compile Include="BlackListsByCountry.cs" />
+    <Compile Include="FilterListByCountry.cs" />
     <Compile Include="IPAddressExtensions.cs" />
     <Compile Include="IPAddressGeoLocation.cs" />
     <Compile Include="NewRelicInsightsAegisEventCache.cs" />

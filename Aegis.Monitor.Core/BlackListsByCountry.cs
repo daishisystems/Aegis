@@ -674,41 +674,43 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="BlackListsByCountry" /> is a <see cref="BlackListByCountry" />
-    ///     container, consisting of a collection of <see cref="BlackListByCountry" />
-    ///     instances.
+    ///     <see cref="BlackListsByCountry" /> is a <see cref="BlackListItem" />
+    ///     container, consisting of a collection of <see cref="BlackListItem" />
+    ///     instances, ordered by <see cref="BlackListItem.Country" />.
     /// </summary>
     public class BlackListsByCountry
     {
         private static readonly Lazy<BlackListsByCountry> Lazy =
             new Lazy<BlackListsByCountry>();
 
-        private readonly Dictionary<string, BlackListByCountry>
+        private readonly Dictionary<string, ConcurrentBag<BlackListItem>>
             _blackListsByCountry;
 
         private BlackListsByCountry()
         {
-            _blackListsByCountry = new Dictionary<string, BlackListByCountry>();
+            _blackListsByCountry =
+                new Dictionary<string, ConcurrentBag<BlackListItem>>();
         }
 
         public static BlackListsByCountry Instance => Lazy.Value;
 
         /// <summary>
-        ///     <see cref="GetAllBlackListsByCountry" /> returns all
-        ///     <see cref="BlackListByCountry" /> instances encapsulated by this instance.
+        ///     <see cref="GetAll" /> returns all
+        ///     <see cref="BlackListItem" /> instances, ordered by
+        ///     <see cref="BlackListItem.Country" />, encapsulated by this instance.
         /// </summary>
-        /// <returns>
-        ///     All <see cref="BlackListByCountry" /> instances encapsulated by this
-        ///     instance.
-        /// </returns>
-        /// <remarks>Returns an collection, if no data-load event has occurred.</remarks>
-        public Dictionary<string, BlackListByCountry> GetAllBlackListsByCountry()
+        /// <returns>All <see cref="BlackListItem" /> instances, ordered by
+        ///     <see cref="BlackListItem.Country" />,encapsulated by this instance.</returns>
+        /// <remarks>Returns an empty collection, if no data-load event has occurred.</remarks>
+        public Dictionary<string, ConcurrentBag<BlackListItem>> GetAll()
         {
             return _blackListsByCountry;
         }

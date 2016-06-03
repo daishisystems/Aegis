@@ -689,7 +689,7 @@ namespace Aegis.Monitor.Core
     public class BlackListLoader
     {
         /// <summary>
-        ///     <see cref="Load" /> should be implemented as a recurring, single-threaded
+        ///     <see cref="Load" /> should be leveraged as a recurring, single-threaded
         ///     event. It is sufficiently abstracted to allow for unit-testing.
         /// </summary>
         /// <param name="blackListsByCountry">
@@ -710,9 +710,9 @@ namespace Aegis.Monitor.Core
             {
                 #region Ignore local IP ranges
 
-                if (blackListItem.IPAddress.IsPrivate())
+                if (!blackListItem.IPAddress.IsPrivate())
                 {
-                    // todo: ignore, check whitelist...
+
                 }
 
                 #endregion
