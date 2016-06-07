@@ -78,6 +78,8 @@
     <Compile Include="NewRelicInsightsTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublishTask.cs" />
+    <Compile Include="WhiteList.cs" />
+    <Compile Include="WhiteListItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Aegis.Monitor.Core.dll.nuspec" />

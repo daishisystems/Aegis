@@ -675,64 +675,50 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="BlackListLoader" /> loads and segments blacklist data from
-    ///     <see cref="Func{TResult}" />, a provider of
-    ///     <see cref="BlackListItem" /> instances.
+    ///     <see cref="WhiteListItem" /> is a single, or range, of
+    ///     <see cref="IPAddress" /> instances that have been flagged as being
+    ///     non-malicious in terms of intent.
     /// </summary>
-    public class BlackListLoader
+    /// <remarks>
+    ///     If both <see cref="LowerIPAddress" /> and
+    ///     <see cref="UpperIPAddress" /> are equal, this instance is considered to be
+    ///     a single <see cref="IPAddress" />. Otherwise, an <see cref="IPAddress" />
+    ///     range is implied, beginning with <see cref="LowerIPAddress" />, and ending
+    ///     with <see cref="UpperIPAddress" />.
+    /// </remarks>
+    public class WhiteListItem
     {
         /// <summary>
-        ///     <see cref="Load" /> should be leveraged as a recurring, single-threaded
-        ///     event. It is sufficiently abstracted to allow for unit-testing.
+        ///     <see cref="LowerIPAddress" /> is the <see cref="IPAddress" /> that marks
+        ///     the beginning <see cref="IPAddress" /> in an <see cref="IPAddress" />
+        ///     range, or it is a single <see cref="IPAddress" />.
         /// </summary>
-        /// <param name="getBlackListItems">
-        ///     <see cref="getBlackListItems" /> is an abstracted
-        ///     <see cref="Func{TResult}" /> that allows
-        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
-        ///     <see cref="BlackListItem.Country" />.
-        /// </returns>
-        public Dictionary<string, List<BlackListItem>> Load(
-            Func<List<BlackListItem>> getBlackListItems)
-        {
-            var blackListsByCountry =
-                new Dictionary<string, List<BlackListItem>>();
+        public IPAddress LowerIPAddress { get; set; }
 
-            foreach (var blackListItem in getBlackListItems())
-            {
-                if (blackListItem.IPAddress.IsPrivate()) continue;
-                /* 
-                    Check the WhiteList
-                    ...
-                */
+        /// <summary>
+        ///     <see cref="UpperIPAddress" /> is the <see cref="IPAddress" /> that marks
+        ///     the end <see cref="IPAddress" /> in an <see cref="IPAddress" />
+        ///     range, or it is a single <see cref="IPAddress" />.
+        /// </summary>
+        public IPAddress UpperIPAddress { get; set; }
 
-                List<BlackListItem> blackListItems;
-
-                var blackListExists =
-                    blackListsByCountry.TryGetValue(
-                        blackListItem.Country.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (!blackListExists)
-                {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(
-                        blackListItem.Country.ToLowerInvariant(),
-                        blackListItems);
-                }
-
-                blackListItems.Add(blackListItem);
-            }
-
-            return blackListsByCountry;
-        }
+        /// <summary>
+        ///     <see cref="IsRange" /> determines whether or not this
+        ///     <see cref="WhiteListItem" /> consists of either a single
+        ///     <see cref="IPAddress" />, or a range of <see cref="IPAddress" /> instances.
+        /// </summary>
+        /// <remarks>
+        ///     If both <see cref="LowerIPAddress" /> and
+        ///     <see cref="UpperIPAddress" /> are equal, this instance is considered to be
+        ///     a single <see cref="IPAddress" />. Otherwise, an <see cref="IPAddress" />
+        ///     range is implied, beginning with <see cref="LowerIPAddress" />, and ending
+        ///     with <see cref="UpperIPAddress" />.
+        /// </remarks>
+        public bool IsRange => LowerIPAddress.Equals(UpperIPAddress);
     }
 }

@@ -676,63 +676,38 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Aegis.Monitor.Core
 {
-    /// <summary>
-    ///     <see cref="BlackListLoader" /> loads and segments blacklist data from
-    ///     <see cref="Func{TResult}" />, a provider of
-    ///     <see cref="BlackListItem" /> instances.
-    /// </summary>
-    public class BlackListLoader
+    public class WhiteList
     {
-        /// <summary>
-        ///     <see cref="Load" /> should be leveraged as a recurring, single-threaded
-        ///     event. It is sufficiently abstracted to allow for unit-testing.
-        /// </summary>
-        /// <param name="getBlackListItems">
-        ///     <see cref="getBlackListItems" /> is an abstracted
-        ///     <see cref="Func{TResult}" /> that allows
-        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
-        ///     <see cref="BlackListItem.Country" />.
-        /// </returns>
-        public Dictionary<string, List<BlackListItem>> Load(
-            Func<List<BlackListItem>> getBlackListItems)
+        private static readonly Lazy<WhiteList> Lazy =
+            new Lazy<WhiteList>();
+
+        private readonly Dictionary<string, ConcurrentBag<WhiteListItem>>
+            _whiteList;
+
+        private WhiteList()
         {
-            var blackListsByCountry =
-                new Dictionary<string, List<BlackListItem>>();
+            _whiteList =
+                new Dictionary<string, ConcurrentBag<WhiteListItem>>();
+        }
 
-            foreach (var blackListItem in getBlackListItems())
-            {
-                if (blackListItem.IPAddress.IsPrivate()) continue;
-                /* 
-                    Check the WhiteList
-                    ...
-                */
+        public static WhiteList Instance => Lazy.Value;
 
-                List<BlackListItem> blackListItems;
-
-                var blackListExists =
-                    blackListsByCountry.TryGetValue(
-                        blackListItem.Country.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (!blackListExists)
-                {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(
-                        blackListItem.Country.ToLowerInvariant(),
-                        blackListItems);
-                }
-
-                blackListItems.Add(blackListItem);
-            }
-
-            return blackListsByCountry;
+        /// <summary>
+        ///     <see cref="GetAll" /> returns all
+        ///     <see cref="BlackListItem" /> instances, ordered by
+        ///     <see cref="BlackListItem.Country" />, encapsulated by this instance.
+        /// </summary>
+        /// <returns>All <see cref="BlackListItem" /> instances, ordered by
+        ///     <see cref="BlackListItem.Country" />,encapsulated by this instance.</returns>
+        /// <remarks>Returns an empty collection, if no data-load event has occurred.</remarks>
+        public Dictionary<string, ConcurrentBag<WhiteListItem>> GetAll()
+        {
+            return _whiteList;
         }
     }
 }
