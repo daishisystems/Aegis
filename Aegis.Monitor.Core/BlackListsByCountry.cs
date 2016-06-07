@@ -685,12 +685,31 @@ namespace Aegis.Monitor.Core
     ///     container, consisting of a collection of <see cref="BlackListItem" />
     ///     instances, segmented by <see cref="BlackListItem.Country" />.
     /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         <see cref="BlackListsByCountry" /> is designed to be modified by a
+    ///         single thread only. All other threads funnel inbound HTTP requests, and
+    ///         are read-only. Therefore, no locking or concurrency is necessary, other
+    ///         than marking the underlying collection of <see cref="BlackListItem" />
+    ///         instances as <c>volatile</c>. Thus, the overhead of locking-mechanisms
+    ///         is avoided.
+    ///     </para>
+    ///     <para>
+    ///         Marking the underlying collection as <c>volatile</c> ensures that
+    ///         consuming processes execute a clean read operation. The data may be
+    ///         slightly stale, however, given the intended recurrence, consuming
+    ///         applications will eventually read the most up-to-date data.
+    ///         Essentially, the delay (no more than a few seconds) is acceptable in
+    ///         terms of retrieving the most up-to-date blacklist.
+    ///     </para>
+    /// </remarks>
     public class BlackListsByCountry
     {
         private static readonly Lazy<BlackListsByCountry> Lazy =
             new Lazy<BlackListsByCountry>();
 
-        private volatile Dictionary<string, List<BlackListItem>> _blackListsByCountry;
+        private volatile Dictionary<string, List<BlackListItem>>
+            _blackListsByCountry;
 
         private BlackListsByCountry()
         {
