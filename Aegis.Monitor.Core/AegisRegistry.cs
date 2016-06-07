@@ -688,31 +688,20 @@ namespace Aegis.Monitor.Core
     {
         public AegisRegistry()
         {
-            var aegisPublishFrequencySeconds =
-                ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
+            // set default value
+            int interval = 10;
+
+            // read interval from settings
+            var aegisPublishFrequencySeconds = ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
 
             if (!string.IsNullOrEmpty(aegisPublishFrequencySeconds))
             {
-                int interval;
-                var canParse = int.TryParse(aegisPublishFrequencySeconds,
-                    out interval);
+                // if the value is wrong it's better to fail
+                interval = int.Parse(aegisPublishFrequencySeconds);
+            }
 
-                if (canParse)
-                {
-                    Schedule<PublishTask>()
-                        .ToRunNow()
-                        .AndEvery(interval)
-                        .Seconds();
-                }
-                else
-                {
-                    Schedule<PublishTask>().ToRunNow().AndEvery(10).Seconds();
-                }
-            }
-            else
-            {
-                Schedule<PublishTask>().ToRunNow().AndEvery(10).Seconds();
-            }
+            // start scheduler
+            this.Schedule<PublishTask>().ToRunNow().AndEvery(interval).Seconds();
         }
     }
 }
