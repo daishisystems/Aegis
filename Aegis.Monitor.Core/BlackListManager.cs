@@ -686,7 +686,7 @@ namespace Aegis.Monitor.Core
     ///     <see cref="Func{TResult}" />, a provider of
     ///     <see cref="BlackListItem" /> instances.
     /// </summary>
-    public class BlackListManager
+    public static class BlackListManager
     {
         /// <summary>
         ///     <see cref="SegmentBlackListByCountry" /> should be leveraged as a
@@ -708,6 +708,15 @@ namespace Aegis.Monitor.Core
         ///     A collection of <see cref="BlackListItem" /> instances, segmented by
         ///     <see cref="BlackListItem.Country" />.
         /// </returns>
+        /// <remarks>
+        ///     Each <see cref="BlackListItem" /> is processed sequentially, during
+        ///     which,
+        ///     <see cref="BlackListItem.IPAddress" /> properties that are determined to be
+        ///     <para>1. Private IP addresses</para>
+        ///     <para>2. Whitelisted IP addresses</para>
+        ///     are ignored. Otherwise, the <see cref="BlackListItem.IPAddress" /> property
+        ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
+        /// </remarks>
         public static Dictionary<string, List<BlackListItem>>
             SegmentBlackListByCountry
             (Func<List<BlackListItem>> getBlackListItems,
@@ -720,14 +729,18 @@ namespace Aegis.Monitor.Core
             {
                 if (blackListItem.IPAddress.IsPrivate()) continue;
 
-                /* 
-                    Check the WhiteList
-
                 if (whiteList != null)
                 {
-                    ...
+                    var ipAddressIsWhiteListed = WhiteListManager
+                        .IPAddressIsWhiteListed(
+                            blackListItem.IPAddress, whiteList.SingleIPAddresses,
+                            whiteList.IPAddressRanges);
+
+                    if (ipAddressIsWhiteListed)
+                    {
+                        continue;
+                    }
                 }
-                */
 
                 List<BlackListItem> blackListItems;
 

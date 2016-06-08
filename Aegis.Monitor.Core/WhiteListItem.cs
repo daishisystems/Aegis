@@ -719,6 +719,9 @@ namespace Aegis.Monitor.Core
         ///     range is implied, beginning with <see cref="LowerIPAddress" />, and ending
         ///     with <see cref="UpperIPAddress" />.
         /// </remarks>
-        public bool IsRange => !LowerIPAddress.Equals(UpperIPAddress);
+        public bool IsRange
+            =>
+                LowerIPAddress != null && UpperIPAddress != null &&
+                !LowerIPAddress.Equals(UpperIPAddress);
     }
 }

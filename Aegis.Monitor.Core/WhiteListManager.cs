@@ -1,10 +1,41 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace Aegis.Monitor.Core
 {
     public static class WhiteListManager
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="singleIPAddresses"></param>
+        /// <param name="ipAddressRanges"></param>
+        /// <param name="getWhiteListedItems"></param>
+        public static void SegmentIPAddressesByType(
+            out HashSet<string> singleIPAddresses,
+            out List<WhiteListItem> ipAddressRanges,
+            Func<List<WhiteListItem>> getWhiteListedItems)
+        {
+            singleIPAddresses = new HashSet<string>();
+            ipAddressRanges = new List<WhiteListItem>();
+
+            var whiteListedIPAddresses = getWhiteListedItems();
+
+            foreach (var whiteListedIPAddress in whiteListedIPAddresses)
+            {
+                if (whiteListedIPAddress.IsRange)
+                {
+                    ipAddressRanges.Add(whiteListedIPAddress);
+                }
+                else
+                {
+                    singleIPAddresses.Add(
+                        whiteListedIPAddress.LowerIPAddress.ToString());
+                }
+            }
+        }
+
         /// <summary>
         ///     <see cref="IPAddressIsWhiteListed" /> determines whether or not
         ///     <see cref="ipAddress" /> is whitelisted.
