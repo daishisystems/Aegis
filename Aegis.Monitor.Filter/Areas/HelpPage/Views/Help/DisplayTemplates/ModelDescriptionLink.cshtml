@@ -4,20 +4,20 @@
     ModelDescription modelDescription = ViewBag.modelDescription;
     if (modelDescription is ComplexTypeModelDescription || modelDescription is EnumTypeModelDescription)
     {
-        if (Model == typeof(Object))
+        if (Model == typeof(object))
         {
             @:Object
         }
         else
         {
-            @Html.ActionLink(modelDescription.Name, "ResourceModel", "Help", new { modelName = modelDescription.Name }, null)
+            @Html.ActionLink(modelDescription.Name, "ResourceModel", "Help", new {modelName = modelDescription.Name}, null)
         }
     }
     else if (modelDescription is CollectionModelDescription)
     {
         var collectionDescription = modelDescription as CollectionModelDescription;
         var elementDescription = collectionDescription.ElementDescription;
-        @:Collection of @Html.DisplayFor(m => elementDescription.ModelType, "ModelDescriptionLink", new { modelDescription = elementDescription })
+        @:Collection of @Html.DisplayFor(m => elementDescription.ModelType, "ModelDescriptionLink", new {modelDescription = elementDescription})
     }
     else
     {

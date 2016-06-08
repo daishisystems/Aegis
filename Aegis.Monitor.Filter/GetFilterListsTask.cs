@@ -677,187 +677,105 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Net;
+using System.Configuration;
+using System.Web.Hosting;
+using Aegis.Monitor.Core;
+using FluentScheduler;
 
-namespace Aegis.Monitor.Core
+namespace Aegis.Monitor.Filter
 {
     /// <summary>
-    ///     <see cref="BlackListManager" /> provides methods that load
-    ///     <see cref="BlackListItem" /> instances from SQL AZure, as well as
-    ///     segmenting those instances into collections, grouped by
-    ///     <see cref="BlackListItem.Country" />.
+    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
+    ///     executes at regular intervals.
     /// </summary>
-    public static class BlackListManager
+    /// <remarks>
+    ///     <see cref="Aegis.Monitor.Core.PublishTask" /> registers with the ASP.NET
+    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
+    ///     seconds.
+    /// </remarks>
+    public class GetFilterListsTask : IJob, IRegisteredObject
     {
-        /// <summary>
-        ///     <see cref="LoadBlackListItemsFromAzure" /> returns a collection of
-        ///     <see cref="BlackListItem" /> instances, loaded directly from Aegis
-        ///     Streaming Analytics in the cloud.
-        /// </summary>
-        /// <param name="connectionString">The SQL Azure connection-string.</param>
-        /// <param name="hyperActivity">
-        ///     The number of times that any given
-        ///     <see cref="IPAddress" /> has exceeded the threshold that defines the number
-        ///     of acceptable HTTP requests per minute.
-        /// </param>
-        /// <param name="avgNumHits">
-        ///     The average number of HTTP requests, issued by any
-        ///     given <see cref="IPAddress" />, in the last 24 hours.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, loaded
-        ///     directly from Aegis Streaming Analytics in the cloud.
-        /// </returns>
-        public static List<BlackListItem> LoadBlackListItemsFromAzure(
-            string connectionString, int hyperActivity, int avgNumHits)
+        private readonly object _lock = new object();
+
+        private volatile bool _shuttingDown;
+
+        public GetFilterListsTask()
         {
-            const string commandText = @"SELECT * FROM	(
+            HostingEnvironment.RegisterObject(this);
+        }
 
-                SELECT
-                    IPAddress,
-                    COUNT(IPAddress)AS HyperActivity,
-                    SUM(Total) AS TotalNumHits,
-                    SUM(Total) / COUNT(IPAddress) AS AVGNumHits,
-                    MAX(ServerDateTime) AS LatestServerTime
-
-                FROM dbo.BlackList
-
-                WHERE ServerDateTime >= GETDATE() - 1
-
-                GROUP BY IPAddress  
-
-				            ) AS BlackList
-
-            WHERE HyperActivity > @HYPERACTIVITY
-            AND AVGNumHits >= @AVGNUMHITS
-            ORDER BY TotalNumHits DESC;";
-
-            using (
-                var connection =
-                    new SqlConnection(connectionString))
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
+        {
+            // Locking here will wait for the lock in Execute to be released until this code can continue.
+            lock (_lock)
             {
-                var command = new SqlCommand(commandText,
-                    connection);
-                command.Parameters.Add("@HYPERACTIVITY",
-                    SqlDbType.Int);
-                command.Parameters["@HYPERACTIVITY"].Value = hyperActivity;
-
-                command.Parameters.Add("@AVGNUMHITS", SqlDbType.Int);
-                command.Parameters["@AVGNUMHITS"].Value = avgNumHits;
-
-                connection.Open();
-
-                var reader = command.ExecuteReader();
-
-                var blackListItems = new List<BlackListItem>();
-
-                while (reader.Read())
-                {
-                    blackListItems.Add(new BlackListItem
-                    {
-                        IPAddress = IPAddress.Parse(reader.GetString(0)),
-                        HyperActivity = reader.GetInt32(1),
-                        TotalNumHits = reader.GetInt32(2),
-                        AvgNumHits = reader.GetInt32(3),
-                        LatestServerTime = reader.GetDateTime(4)
-                    });
-                }
-
-                return blackListItems;
+                _shuttingDown = true;
             }
+
+            HostingEnvironment.UnregisterObject(this);
         }
 
         /// <summary>
-        ///     <para>
-        ///         <see cref="SegmentBlackListByCountry" /> should be leveraged as a
-        ///         recurring, single-threaded event. It is sufficiently abstracted to
-        ///         allow for unit-testing.
-        ///     </para>
-        ///     <para>
-        ///         <see cref="SegmentBlackListByCountry" /> loads and segments blacklist
-        ///         data from
-        ///         <see cref="Func{TResult}" />, a provider of
-        ///         <see cref="BlackListItem" /> instances.
-        ///     </para>
+        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
+        ///     Aegis. It intergrates both lists and provides up-to-date collections of
+        ///     malicious, and excempt <see cref="IPAddress" /> metadata.
         /// </summary>
-        /// <param name="getBlackListItems">
-        ///     <see cref="getBlackListItems" /> is an abstracted
-        ///     <see cref="Func{TResult}" /> that allows
-        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
-        /// </param>
-        /// <param name="whiteList">
-        ///     If explicitly specified, a <see cref="WhiteList" />
-        ///     prevents any whitelisted <see cref="IPAddress" /> instances from being
-        ///     added to the <see cref="BlackListItem" /> collection returned by this
-        ///     method.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
-        ///     <see cref="BlackListItem.Country" />.
-        /// </returns>
         /// <remarks>
-        ///     Each <see cref="BlackListItem" /> is processed sequentially, during
-        ///     which,
-        ///     <see cref="BlackListItem.IPAddress" /> properties that are determined to be
-        ///     <para>1. Private IP addresses</para>
-        ///     <para>2. Whitelisted IP addresses</para>
-        ///     are ignored. Otherwise, the <see cref="BlackListItem.IPAddress" /> property
-        ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
+        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
+        ///     blacklist metadata pertaining to malicious activity that occurred within
+        ///     the last 24 hours.
         /// </remarks>
-        public static Dictionary<string, List<BlackListItem>>
-            SegmentBlackListByCountry
-            (Func<List<BlackListItem>> getBlackListItems,
-                WhiteList whiteList = null)
+        public void Execute()
         {
-            var blackListsByCountry =
-                new Dictionary<string, List<BlackListItem>>();
-
-            foreach (var blackListItem in getBlackListItems())
+            lock (_lock)
             {
-                if (blackListItem.IPAddress.IsPrivate()) continue;
+                if (_shuttingDown)
+                    return;
 
-                if (whiteList != null)
+                try
                 {
-                    var ipAddressIsWhiteListed = WhiteListManager
-                        .IPAddressIsWhiteListed(
-                            blackListItem.IPAddress, whiteList.SingleIPAddresses,
-                            whiteList.IPAddressRanges);
+                    var sqlAzureConnectionString =
+                        ConfigurationManager.ConnectionStrings[
+                            "SQLAzureConnectionString"].ConnectionString;
 
-                    if (ipAddressIsWhiteListed)
-                    {
-                        continue;
-                    }
+                    HashSet<string> singleWhiteListedIPAddresses;
+                    List<WhiteListItem> whiteListedIPAddressRanges;
+
+                    WhiteListManager.SegmentIPAddressesByType(
+                        out singleWhiteListedIPAddresses,
+                        out whiteListedIPAddressRanges,
+                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
+                            sqlAzureConnectionString));
+
+                    WhiteList.Instance.SingleIPAddresses =
+                        singleWhiteListedIPAddresses;
+                    WhiteList.Instance.IPAddressRanges =
+                        whiteListedIPAddressRanges;
+
+                    var hyperActivity =
+                        int.Parse(
+                            ConfigurationManager.AppSettings["HyperActivity"]);
+
+                    var avgNumHits =
+                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
+
+                    BlackList.Instance.BlackListsByCountry =
+                        BlackListManager.SegmentBlackListByCountry(
+                            () =>
+                                BlackListManager.LoadBlackListItemsFromAzure(
+                                    sqlAzureConnectionString, hyperActivity,
+                                    avgNumHits), WhiteList.Instance);
                 }
-
-                List<BlackListItem> blackListItems;
-
-                // todo: Add to remarks, add cache
-
-                var ipAddressGeoLocation =
-                    blackListItem.IPAddress.GetIPAddressGeoLocationAsync(
-                        "http://freegeoip.net/json").Result;
-
-                blackListItem.Country = ipAddressGeoLocation.CountryName;
-
-                var blackListExists =
-                    blackListsByCountry.TryGetValue(
-                        blackListItem.Country.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (!blackListExists)
+                catch (Exception)
                 {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(
-                        blackListItem.Country.ToLowerInvariant(),
-                        blackListItems);
+                    // Fail silently and ignore errors for POC
                 }
-
-                blackListItems.Add(blackListItem);
             }
-
-            return blackListsByCountry;
         }
     }
 }

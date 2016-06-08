@@ -826,7 +826,8 @@ namespace Aegis.Monitor.Proxy.Controllers
                                 PartitionKey = partitionKey
                             });
 
-                if (EventHubManager.Instance.EventHubClient == null || EventHubManager.Instance.EventHubClient.IsClosed)
+                if (EventHubManager.Instance.EventHubClient == null ||
+                    EventHubManager.Instance.EventHubClient.IsClosed)
                 {
                     EventHubManager.Instance.EventHubClient =
                         EventHubClient.CreateFromConnectionString(

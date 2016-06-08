@@ -1,8 +1,7 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Net;
 using Aegis.Monitor.Core;
-using Newtonsoft.Json;
 using D = System.Data; // System.Data.dll  
 using C = System.Data.SqlClient; // System.Data.dll  
 
@@ -12,96 +11,67 @@ namespace Aegis.Monitor.BlackList.Augmentor
     {
         private static void Main(string[] args)
         {
-            using (var connection = new C.SqlConnection(
-                "Server=tcp:w5d1j5qels.database.windows.net,1433;Database=AegisTrafficDB;User ID=mooney@w5d1j5qels;Password=M3c54n1c4L;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;"
-                ))
+            var connectionString =
+                "Server=tcp:w5d1j5qels.database.windows.net,1433;Database=AegisTrafficDB;User ID=mooney@w5d1j5qels;Password=M3c54n1c4L;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;";
+
+            var commandText = @"SELECT * FROM	(
+
+                SELECT
+                    IPAddress,
+                    COUNT(IPAddress)AS HyperActivity,
+                    SUM(Total) AS TotalNumHits,
+                    SUM(Total) / COUNT(IPAddress) AS AVGNumHits,
+                    MAX(ServerDateTime) AS LatestServerTime
+
+                FROM dbo.BlackList
+
+                WHERE ServerDateTime >= GETDATE() - 1
+
+                GROUP BY IPAddress  
+
+				            ) AS BlackList
+
+            WHERE HyperActivity > @HYPERACTIVITY
+            AND AVGNumHits >= @AVGNUMHITS
+            ORDER BY TotalNumHits DESC;";
+
+            using (var connection = new C.SqlConnection(connectionString))
             {
-                connection.Open();
-                Console.WriteLine("Connected successfully...");
-                Console.ForegroundColor = ConsoleColor.Green;
+                var command = new C.SqlCommand(commandText, connection);
+                command.Parameters.Add("@HYPERACTIVITY", D.SqlDbType.Int);
+                command.Parameters["@HYPERACTIVITY"].Value = 1;
 
-                SelectRows(connection);
+                command.Parameters.Add("@AVGNUMHITS", D.SqlDbType.Int);
+                command.Parameters["@AVGNUMHITS"].Value = 60;
 
-                Console.WriteLine("Press any key to finish...");
-                Console.ReadKey(true);
-            }
-        }
-
-        public static void SelectRows(C.SqlConnection connection)
-        {
-            Console.Clear();
-
-            using (var command = new C.SqlCommand())
-            {
-                command.Connection = connection;
-                command.CommandType = D.CommandType.Text;
-                command.CommandText = @"  
-                
-                    SELECT * FROM	(
-
-	                    SELECT 
-		                    IPAddress, 
-		                    COUNT(IPAddress) AS HyperActivity, 
-		                    SUM(Total) AS TotalNumHits, 
-		                    SUM(Total)/COUNT(IPAddress) AS AVGNumHits
-	                    FROM dbo.StreamingAnalyticsOutput
-	                    WHERE ServerDateTime >= GETDATE() - 1
-	                    GROUP BY IPAddress
-
-				                    ) AS BlackList
-
-                    WHERE HyperActivity > 1
-                    AND AVGNumHits >= 60
-                    ORDER BY TotalNumHits DESC;                    
-
-                ";
-
-                var reader = command.ExecuteReader();
-
-                while (reader.Read())
+                try
                 {
-                    var ipAddress = reader.GetString(0);
+                    connection.Open();
 
-                    try
+                    var reader = command.ExecuteReader();
+
+                    var blackListItems = new List<BlackListItem>();
+
+                    while (reader.Read())
                     {
-                        var ipAddressIsPrivate =
-                            IPAddress.Parse(ipAddress).IsPrivate();
-
-                        if (ipAddressIsPrivate)
+                        blackListItems.Add(new BlackListItem
                         {
-                            continue;
-                        }
-
-                        var request = WebRequest.Create(
-                            "http://freegeoip.net/json/" + ipAddress);
-
-                        var response = request.GetResponse();
-                        var dataStream = response.GetResponseStream();
-
-                        var r = new StreamReader(dataStream);
-                        var responseFromServer = r.ReadToEnd();
-
-                        var location =
-                            JsonConvert.DeserializeObject<IPAddressGeoLocation>(
-                                responseFromServer);
-
-                        r.Close();
-                        response.Close();
-
-                        var countryIdentifier =
-                            location.CountryName.ToLowerInvariant().Trim();
-
-                        if (countryIdentifier.Equals("ireland") ||
-                            countryIdentifier.Equals("ie") ||
-                            countryIdentifier.Equals("ire"))
-                        {
-                            Console.WriteLine("{0}", ipAddress);
-                        }
+                            IPAddress = IPAddress.Parse(reader.GetString(0)),
+                            HyperActivity = reader.GetInt32(1),
+                            TotalNumHits = reader.GetInt32(2),
+                            AvgNumHits = reader.GetInt32(3),
+                            LatestServerTime = reader.GetDateTime(4)
+                        });
                     }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
+
+                    Console.WriteLine(
+                        $"Returned {blackListItems.Count} BlackList items");
+                    Console.ReadLine();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.ReadLine();
                 }
             }
         }

@@ -16,24 +16,21 @@ namespace Aegis.Monitor.Core.Tests
                 {
                     new BlackListItem
                     {
-                        Country = "Ireland",
                         IPAddress = IPAddress.Parse("195.27.14.131")
                     },
                     new BlackListItem
                     {
-                        Country = "Ireland",
                         IPAddress = IPAddress.Parse("195.27.14.131")
 
                     },
                     new BlackListItem
                     {
-                        Country = "United Kingdom",
                         IPAddress = IPAddress.Parse("195.27.14.131")
-
                     }
                 };
 
-            var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(getBlackListItems);
+            var blackListsByCountry =
+                BlackListManager.SegmentBlackListByCountry(getBlackListItems);
 
             List<BlackListItem> irishBlackListItems;
             var irishListExists =
@@ -41,15 +38,7 @@ namespace Aegis.Monitor.Core.Tests
                     out irishBlackListItems);
 
             Assert.IsTrue(irishListExists);
-            Assert.AreEqual(2, irishBlackListItems.Count);
-
-            List<BlackListItem> ukBlackListItems;
-            var ukListExists =
-                blackListsByCountry.TryGetValue("united kingdom",
-                    out ukBlackListItems);
-
-            Assert.IsTrue(ukListExists);
-            Assert.AreEqual(1, ukBlackListItems.Count);
+            Assert.AreEqual(3, irishBlackListItems.Count);
         }
     }
 }

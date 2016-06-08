@@ -1,8 +1,6 @@
 namespace Aegis.Monitor.SampleApp.Areas.HelpPage
 {
-    /// <summary>
-    /// Indicates whether the sample is used for request or response
-    /// </summary>
+    /// <summary>Indicates whether the sample is used for request or response</summary>
     public enum SampleDirection
     {
         Request = 0,

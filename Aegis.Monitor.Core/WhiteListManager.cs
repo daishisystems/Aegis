@@ -1,14 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Net;
 
 namespace Aegis.Monitor.Core
 {
+    /// <summary>
+    ///     <see cref="WhiteListManager" /> contains methods to load, manage, and
+    ///     interrogate <see cref="WhiteListItem" /> metadata.
+    /// </summary>
     public static class WhiteListManager
     {
         /// <summary>
-        /// 
+        ///     <see cref="LoadWhiteListItemsFromAzure" /> returns a collection of
+        ///     <see cref="WhiteListItem" /> instances.
         /// </summary>
+        /// <param name="connectionString">The SQL Azure connection-string.</param>
+        /// <returns>A collection of <see cref="WhiteListItem" /> instances.</returns>
+        public static List<WhiteListItem> LoadWhiteListItemsFromAzure(
+            string connectionString)
+        {
+            const string commandText = @"
+                SELECT LowerIPAddress, UpperIPAddress
+                FROM dbo.WhiteList;";
+
+            using (
+                var connection =
+                    new SqlConnection(connectionString))
+            {
+                var command = new SqlCommand(commandText,
+                    connection);
+
+                connection.Open();
+
+                var reader = command.ExecuteReader();
+
+                var whiteListItems = new List<WhiteListItem>();
+
+                while (reader.Read())
+                {
+                    whiteListItems.Add(new WhiteListItem
+                    {
+                        LowerIPAddress = IPAddress.Parse(reader.GetString(0)),
+                        UpperIPAddress = IPAddress.Parse(reader.GetString(1))
+                    });
+                }
+
+                return whiteListItems;
+            }
+        }
+
+        /// <summary></summary>
         /// <param name="singleIPAddresses"></param>
         /// <param name="ipAddressRanges"></param>
         /// <param name="getWhiteListedItems"></param>

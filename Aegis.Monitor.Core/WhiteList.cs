@@ -675,7 +675,6 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 
@@ -707,12 +706,15 @@ namespace Aegis.Monitor.Core
     /// </remarks>
     public class WhiteList
     {
-        private static readonly Lazy<WhiteList> Lazy =
-            new Lazy<WhiteList>();
 
         private volatile List<WhiteListItem> _ipAddressRanges;
 
         private volatile HashSet<string> _singleIPAddresses;
+
+        static WhiteList()
+        {
+
+        }
 
         private WhiteList()
         {
@@ -738,6 +740,6 @@ namespace Aegis.Monitor.Core
             set { _ipAddressRanges = value; }
         }
 
-        public static WhiteList Instance => Lazy.Value;
+        public static WhiteList Instance { get; } = new WhiteList();
     }
 }

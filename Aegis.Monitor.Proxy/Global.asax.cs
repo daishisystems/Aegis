@@ -22,7 +22,8 @@ namespace Aegis.Monitor.Proxy
             #region New Relic
 
             var newRelicInsightsIsEnabled =
-                AegisHelper.IsEnabledInConfigFile("AegisNewRelicInsightsIsEnabled");
+                AegisHelper.IsEnabledInConfigFile(
+                    "AegisNewRelicInsightsIsEnabled");
 
             if (!newRelicInsightsIsEnabled) return;
 

@@ -137,7 +137,7 @@ SELECT * FROM	(
 		SUM(Total) AS TotalNumHits,
 		SUM(Total)/COUNT(IPAddress) AS AVGNumHits,
 		MAX(ServerDateTime) AS LatestServerTime
-	FROM dbo.StreamingAnalyticsOutput
+	FROM dbo.BlackList
 	WHERE ServerDateTime >= GETDATE() - 1 /* 1st call - last 24 hours. Subsequent calls - since previous */
 	GROUP BY IPAddress
 
@@ -147,5 +147,5 @@ WHERE HyperActivity > 1
 AND AVGNumHits >= 60
 ORDER BY TotalNumHits DESC;
 
-SELECT LowerIPAddress, UpperIPAddress
+SELECT '[' + LowerIPAddress + ']', '[' + UpperIPAddress + ']'
 FROM dbo.WhiteList;

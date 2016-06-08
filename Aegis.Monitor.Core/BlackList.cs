@@ -675,7 +675,6 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
 
 namespace Aegis.Monitor.Core
@@ -700,16 +699,19 @@ namespace Aegis.Monitor.Core
     ///         slightly stale, however, given the intended recurrence, consuming
     ///         applications will eventually read the most up-to-date data.
     ///         Essentially, the delay (no more than a few seconds) is acceptable in
-    ///         terms of retrieving the most up-to-date <see cref="BlackList"/>.
+    ///         terms of retrieving the most up-to-date <see cref="BlackList" />.
     ///     </para>
     /// </remarks>
     public class BlackList
     {
-        private static readonly Lazy<BlackList> Lazy =
-            new Lazy<BlackList>();
 
         private volatile Dictionary<string, List<BlackListItem>>
             _blackListsByCountry;
+
+        static BlackList()
+        {
+
+        }
 
         private BlackList()
         {
@@ -727,6 +729,6 @@ namespace Aegis.Monitor.Core
             set { _blackListsByCountry = value; }
         }
 
-        public static BlackList Instance => Lazy.Value;
+        public static BlackList Instance { get; } = new BlackList();
     }
 }

@@ -96,7 +96,7 @@ namespace Aegis.Monitor.Logger.Bots
                                 .Index("traffic")
                                 .Type("good")
                             );
-                        
+
                         Console.WriteLine("Flagged event as bot.");
                     }
                 }
