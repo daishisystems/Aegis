@@ -6,10 +6,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Aegis.Monitor.Core.Tests
 {
     [TestClass]
-    public class BlackListLoaderTests
+    public class BlackListManagerTests
     {
         [TestMethod]
-        public void BlackListsByCountryIsLoaded()
+        public void BlackListsAreSegmentedByCountry()
         {
             Func<List<BlackListItem>> getBlackListItems =
                 () => new List<BlackListItem>
@@ -33,9 +33,7 @@ namespace Aegis.Monitor.Core.Tests
                     }
                 };
 
-            var blackListLoader = new BlackListLoader();
-
-            var blackListsByCountry = blackListLoader.Load(getBlackListItems);
+            var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(getBlackListItems);
 
             List<BlackListItem> irishBlackListItems;
             var irishListExists =

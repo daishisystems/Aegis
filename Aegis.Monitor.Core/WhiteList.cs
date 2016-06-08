@@ -676,38 +676,68 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Monitor.Core
 {
+    /// <summary>
+    ///     <see cref="WhiteList" /> is a <see cref="WhiteListItem" />
+    ///     container, consisting of a collection of <see cref="WhiteListItem" />
+    ///     instances, divided into 2 distinct categories; single
+    ///     <see cref="IPAddress" /> instances, and <see cref="IPAddress" /> ranges.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         <see cref="WhiteList" /> is designed to be modified by a single thread
+    ///         only. All other threads funnel inbound HTTP requests, and are
+    ///         read-only. Therefore, no locking or concurrency is necessary, other
+    ///         than marking the underlying collections of <see cref="WhiteListItem" />
+    ///         instances as <c>volatile</c>. Thus, the overhead of locking-mechanisms
+    ///         is avoided.
+    ///     </para>
+    ///     <para>
+    ///         Marking the underlying collections as <c>volatile</c> ensures that
+    ///         consuming processes execute a clean read operation. The data may be
+    ///         slightly stale, however, given the intended recurrence, consuming
+    ///         applications will eventually read the most up-to-date data.
+    ///         Essentially, the delay (no more than a few seconds) is acceptable in
+    ///         terms of retrieving the most up-to-date <see cref="WhiteList" />.
+    ///     </para>
+    /// </remarks>
     public class WhiteList
     {
         private static readonly Lazy<WhiteList> Lazy =
             new Lazy<WhiteList>();
 
-        private readonly Dictionary<string, ConcurrentBag<WhiteListItem>>
-            _whiteList;
+        private volatile List<WhiteListItem> _ipAddressRanges;
+
+        private volatile HashSet<string> _singleIPAddresses;
 
         private WhiteList()
         {
-            _whiteList =
-                new Dictionary<string, ConcurrentBag<WhiteListItem>>();
+            _singleIPAddresses = new HashSet<string>();
+            _ipAddressRanges = new List<WhiteListItem>();
+        }
+
+        /// <summary>
+        ///     <see cref="SingleIPAddresses" /> is a simple collection of string-based IP
+        ///     addresses.
+        /// </summary>
+        public HashSet<string> SingleIPAddresses {
+            get { return _singleIPAddresses; }
+            set { _singleIPAddresses = value; }
+        }
+
+        /// <summary>
+        ///     <see cref="IPAddressRanges" /> is a collection of <see cref="IPAddress" />
+        ///     instances that define a range of IP addresses.
+        /// </summary>
+        public List<WhiteListItem> IPAddressRanges {
+            get { return _ipAddressRanges; }
+            set { _ipAddressRanges = value; }
         }
 
         public static WhiteList Instance => Lazy.Value;
-
-        /// <summary>
-        ///     <see cref="GetAll" /> returns all
-        ///     <see cref="BlackListItem" /> instances, ordered by
-        ///     <see cref="BlackListItem.Country" />, encapsulated by this instance.
-        /// </summary>
-        /// <returns>All <see cref="BlackListItem" /> instances, ordered by
-        ///     <see cref="BlackListItem.Country" />,encapsulated by this instance.</returns>
-        /// <remarks>Returns an empty collection, if no data-load event has occurred.</remarks>
-        public Dictionary<string, ConcurrentBag<WhiteListItem>> GetAll()
-        {
-            return _whiteList;
-        }
     }
 }

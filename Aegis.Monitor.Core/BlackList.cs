@@ -681,58 +681,52 @@ using System.Collections.Generic;
 namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="BlackListLoader" /> loads and segments blacklist data from
-    ///     <see cref="Func{TResult}" />, a provider of
-    ///     <see cref="BlackListItem" /> instances.
+    ///     <see cref="BlackList" /> is a <see cref="BlackListItem" />
+    ///     container, consisting of a collection of <see cref="BlackListItem" />
+    ///     instances, segmented by <see cref="BlackListItem.Country" />.
     /// </summary>
-    public class BlackListLoader
+    /// <remarks>
+    ///     <para>
+    ///         <see cref="BlackList" /> is designed to be modified by a single thread
+    ///         only. All other threads funnel inbound HTTP requests, and are
+    ///         read-only. Therefore, no locking or concurrency is necessary, other
+    ///         than marking the underlying collection of <see cref="BlackListItem" />
+    ///         instances as <c>volatile</c>. Thus, the overhead of locking-mechanisms
+    ///         is avoided.
+    ///     </para>
+    ///     <para>
+    ///         Marking the underlying collection as <c>volatile</c> ensures that
+    ///         consuming processes execute a clean read operation. The data may be
+    ///         slightly stale, however, given the intended recurrence, consuming
+    ///         applications will eventually read the most up-to-date data.
+    ///         Essentially, the delay (no more than a few seconds) is acceptable in
+    ///         terms of retrieving the most up-to-date <see cref="BlackList"/>.
+    ///     </para>
+    /// </remarks>
+    public class BlackList
     {
-        /// <summary>
-        ///     <see cref="Load" /> should be leveraged as a recurring, single-threaded
-        ///     event. It is sufficiently abstracted to allow for unit-testing.
-        /// </summary>
-        /// <param name="getBlackListItems">
-        ///     <see cref="getBlackListItems" /> is an abstracted
-        ///     <see cref="Func{TResult}" /> that allows
-        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
-        ///     <see cref="BlackListItem.Country" />.
-        /// </returns>
-        public Dictionary<string, List<BlackListItem>> Load(
-            Func<List<BlackListItem>> getBlackListItems)
+        private static readonly Lazy<BlackList> Lazy =
+            new Lazy<BlackList>();
+
+        private volatile Dictionary<string, List<BlackListItem>>
+            _blackListsByCountry;
+
+        private BlackList()
         {
-            var blackListsByCountry =
+            _blackListsByCountry =
                 new Dictionary<string, List<BlackListItem>>();
-
-            foreach (var blackListItem in getBlackListItems())
-            {
-                if (blackListItem.IPAddress.IsPrivate()) continue;
-                /* 
-                    Check the WhiteList
-                    ...
-                */
-
-                List<BlackListItem> blackListItems;
-
-                var blackListExists =
-                    blackListsByCountry.TryGetValue(
-                        blackListItem.Country.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (!blackListExists)
-                {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(
-                        blackListItem.Country.ToLowerInvariant(),
-                        blackListItems);
-                }
-
-                blackListItems.Add(blackListItem);
-            }
-
-            return blackListsByCountry;
         }
+
+        /// <summary>
+        ///     <see cref="BlackListsByCountry" /> is the underlying collection of
+        ///     <see cref="BlackListItem" />
+        ///     instances, segmented by <see cref="BlackListItem.Country" />.
+        /// </summary>
+        public Dictionary<string, List<BlackListItem>> BlackListsByCountry {
+            get { return _blackListsByCountry; }
+            set { _blackListsByCountry = value; }
+        }
+
+        public static BlackList Instance => Lazy.Value;
     }
 }

@@ -677,56 +677,77 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="BlackListsByCountry" /> is a <see cref="BlackListItem" />
-    ///     container, consisting of a collection of <see cref="BlackListItem" />
-    ///     instances, segmented by <see cref="BlackListItem.Country" />.
+    ///     <see cref="BlackListManager" /> loads and segments blacklist data from
+    ///     <see cref="Func{TResult}" />, a provider of
+    ///     <see cref="BlackListItem" /> instances.
     /// </summary>
-    /// <remarks>
-    ///     <para>
-    ///         <see cref="BlackListsByCountry" /> is designed to be modified by a
-    ///         single thread only. All other threads funnel inbound HTTP requests, and
-    ///         are read-only. Therefore, no locking or concurrency is necessary, other
-    ///         than marking the underlying collection of <see cref="BlackListItem" />
-    ///         instances as <c>volatile</c>. Thus, the overhead of locking-mechanisms
-    ///         is avoided.
-    ///     </para>
-    ///     <para>
-    ///         Marking the underlying collection as <c>volatile</c> ensures that
-    ///         consuming processes execute a clean read operation. The data may be
-    ///         slightly stale, however, given the intended recurrence, consuming
-    ///         applications will eventually read the most up-to-date data.
-    ///         Essentially, the delay (no more than a few seconds) is acceptable in
-    ///         terms of retrieving the most up-to-date blacklist.
-    ///     </para>
-    /// </remarks>
-    public class BlackListsByCountry
+    public class BlackListManager
     {
-        private static readonly Lazy<BlackListsByCountry> Lazy =
-            new Lazy<BlackListsByCountry>();
-
-        private volatile Dictionary<string, List<BlackListItem>>
-            _blackListsByCountry;
-
-        private BlackListsByCountry()
-        {
-            _blackListsByCountry =
-                new Dictionary<string, List<BlackListItem>>();
-        }
-
         /// <summary>
-        ///     <see cref="Inner" /> is the underlying collection of
-        ///     <see cref="BlackListItem" />
-        ///     instances, segmented by <see cref="BlackListItem.Country" />.
+        ///     <see cref="SegmentBlackListByCountry" /> should be leveraged as a
+        ///     recurring, single-threaded event. It is sufficiently abstracted to allow
+        ///     for unit-testing.
         /// </summary>
-        public Dictionary<string, List<BlackListItem>> Inner {
-            get { return _blackListsByCountry; }
-            set { _blackListsByCountry = value; }
-        }
+        /// <param name="getBlackListItems">
+        ///     <see cref="getBlackListItems" /> is an abstracted
+        ///     <see cref="Func{TResult}" /> that allows
+        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
+        /// </param>
+        /// <param name="whiteList">
+        ///     If explicitly specified, a <see cref="WhiteList" />
+        ///     prevents any whitelisted <see cref="IPAddress" /> instances from being
+        ///     added to the <see cref="BlackListItem" /> collection returned by this
+        ///     method.
+        /// </param>
+        /// <returns>
+        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
+        ///     <see cref="BlackListItem.Country" />.
+        /// </returns>
+        public static Dictionary<string, List<BlackListItem>>
+            SegmentBlackListByCountry
+            (Func<List<BlackListItem>> getBlackListItems,
+                WhiteList whiteList = null)
+        {
+            var blackListsByCountry =
+                new Dictionary<string, List<BlackListItem>>();
 
-        public static BlackListsByCountry Instance => Lazy.Value;
+            foreach (var blackListItem in getBlackListItems())
+            {
+                if (blackListItem.IPAddress.IsPrivate()) continue;
+
+                /* 
+                    Check the WhiteList
+
+                if (whiteList != null)
+                {
+                    ...
+                }
+                */
+
+                List<BlackListItem> blackListItems;
+
+                var blackListExists =
+                    blackListsByCountry.TryGetValue(
+                        blackListItem.Country.ToLowerInvariant(),
+                        out blackListItems);
+
+                if (!blackListExists)
+                {
+                    blackListItems = new List<BlackListItem>();
+                    blackListsByCountry.Add(
+                        blackListItem.Country.ToLowerInvariant(),
+                        blackListItems);
+                }
+
+                blackListItems.Add(blackListItem);
+            }
+
+            return blackListsByCountry;
+        }
     }
 }
