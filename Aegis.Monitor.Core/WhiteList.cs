@@ -706,7 +706,6 @@ namespace Aegis.Monitor.Core
     /// </remarks>
     public class WhiteList
     {
-
         private volatile List<WhiteListItem> _ipAddressRanges;
 
         private volatile HashSet<string> _singleIPAddresses;

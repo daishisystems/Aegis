@@ -704,7 +704,6 @@ namespace Aegis.Monitor.Core
     /// </remarks>
     public class BlackList
     {
-
         private volatile Dictionary<string, List<BlackListItem>>
             _blackListsByCountry;
 

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using Aegis.Monitor.Core;
 using Newtonsoft.Json;
@@ -13,16 +15,24 @@ namespace Aegis.Monitor.Filter.Controllers
     public class ValuesController : ApiController
     {
         // GET api/values
-        public List<IPAddressGeoLocation> Get()
+        public IEnumerable<string> Get()
         {
-            using (var connection = new C.SqlConnection(
-                "Server=tcp:w5d1j5qels.database.windows.net,1433;Database=AegisTrafficDB;User ID=mooney@w5d1j5qels;Password=M3c54n1c4L;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;"
-                ))
-            {
-                connection.Open();
+            List<BlackListItem> irishBlackList;
 
-                return SelectRows(connection);
+            var irishBlackListExists =
+                BlackList.Instance.BlackListsByCountry.TryGetValue("ireland",
+                    out irishBlackList);
+
+            if (!irishBlackListExists)
+            {
+                throw new HttpResponseException(
+                    Request.CreateErrorResponse(HttpStatusCode.NotFound,
+                        "Irish blacklist does not exist."));
             }
+
+            return
+                irishBlackList.Select(
+                    blackListItem => blackListItem.IPAddress.ToString());
         }
 
         // GET api/values/5
