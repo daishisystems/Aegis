@@ -677,7 +677,6 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 
 namespace Aegis.Monitor.Core
 {
