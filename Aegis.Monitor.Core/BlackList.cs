@@ -676,7 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Monitor.Core
 {
@@ -731,6 +733,21 @@ namespace Aegis.Monitor.Core
         ///     <see cref="BlackListItem" />
         ///     instances, segmented by <see cref="BlackListItem.Country" />.
         /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         ToDo: Change type to <see cref="ConcurrentDictionary{TKey,TValue}" />
+        ///         in order to avoid a race condition, should overlapping processes
+        ///         attempt to add the same key. Use
+        ///         <see cref="ConcurrentDictionary{TKey,TValue}.TryGetValue" />.
+        ///     </para>
+        ///     <para>
+        ///         ToDO: Change <see cref="List{T}"></see> to
+        ///         <see cref="ConcurrentDictionary{TKey,TValue}" />/> in order to avoid a
+        ///         race condition, should overlapping processes attempt to add the same
+        ///         key. This ensures that duplicates will not result. Use
+        ///         <see cref="ConcurrentDictionary{TKey,TValue}.AddOrUpdate" />.
+        ///     </para>
+        /// </remarks>
         public Dictionary<string, List<BlackListItem>> BlackListsByCountry {
             get { return _blackListsByCountry; }
             set { _blackListsByCountry = value; }
