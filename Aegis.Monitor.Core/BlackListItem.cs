@@ -725,5 +725,17 @@ namespace Aegis.Monitor.Core
         ///     request metadata in each 1-minute interval.
         /// </summary>
         public DateTime LatestServerTime { get; set; }
+
+        /// <summary>
+        ///     <see cref="RawIPAddress" /> returns <see cref="IPAddress" />' raw,
+        ///     string-based format.
+        /// </summary>
+        /// <remarks>
+        ///     <see cref="RawIPAddress" /> is primarily used for display purposes,
+        ///     when viewing <see cref="BlackListItem" /> instances in, for example, web
+        ///     browsers, where <see cref="IPAddress" /> properties are expressed as
+        ///     <see cref="int" />.
+        /// </remarks>
+        public string RawIPAddress => IPAddress.ToString();
     }
 }

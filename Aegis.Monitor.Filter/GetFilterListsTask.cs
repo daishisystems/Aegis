@@ -678,6 +678,8 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
+using System.Net;
 using System.Web.Hosting;
 using Aegis.Monitor.Core;
 using FluentScheduler;

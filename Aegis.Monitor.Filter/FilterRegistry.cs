@@ -689,8 +689,8 @@ namespace Aegis.Monitor.Filter
         {
             Schedule<GetFilterListsTask>()
                 .ToRunNow()
-                .AndEvery(8)
-                .Hours();
+                .AndEvery(20)
+                .Minutes();
         }
     }
 }
