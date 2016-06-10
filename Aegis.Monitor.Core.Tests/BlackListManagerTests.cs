@@ -11,26 +11,28 @@ namespace Aegis.Monitor.Core.Tests
         [TestMethod]
         public void BlackListsAreSegmentedByCountry()
         {
+            var ipAddress = "195.27.14.131";
+
             Func<List<BlackListItem>> getBlackListItems =
                 () => new List<BlackListItem>
                 {
                     new BlackListItem
                     {
-                        IPAddress = IPAddress.Parse("195.27.14.131")
-                    },
-                    new BlackListItem
-                    {
-                        IPAddress = IPAddress.Parse("195.27.14.131")
-
-                    },
-                    new BlackListItem
-                    {
-                        IPAddress = IPAddress.Parse("195.27.14.131")
+                        IPAddress = IPAddress.Parse(ipAddress)
                     }
                 };
 
             var blackListsByCountry =
-                BlackListManager.SegmentBlackListByCountry(getBlackListItems);
+                BlackListManager.SegmentBlackListByCountry(getBlackListItems, string.Empty, null,
+                    new Dictionary<string, IPAddressGeoLocation>
+                    {
+                        {
+                            ipAddress, new IPAddressGeoLocation
+                            {
+                                CountryName = "Ireland"
+                            }
+                        }
+                    });
 
             List<BlackListItem> irishBlackListItems;
             var irishListExists =
@@ -38,7 +40,7 @@ namespace Aegis.Monitor.Core.Tests
                     out irishBlackListItems);
 
             Assert.IsTrue(irishListExists);
-            Assert.AreEqual(3, irishBlackListItems.Count);
+            Assert.AreEqual(1, irishBlackListItems.Count);
         }
     }
 }

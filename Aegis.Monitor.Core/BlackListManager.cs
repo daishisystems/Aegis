@@ -787,11 +787,22 @@ namespace Aegis.Monitor.Core
         ///     <see cref="Func{TResult}" /> that allows
         ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
         /// </param>
+        /// <param name="geoLocationProviderURI">
+        ///     The geo-location provider
+        ///     <see cref="Uri" />, used to retrieve <see cref="IPAddressGeoLocation" />
+        ///     metadata for any given <see cref="IPAddress" />.
+        /// </param>
         /// <param name="whiteList">
         ///     If explicitly specified, a <see cref="WhiteList" />
         ///     prevents any whitelisted <see cref="IPAddress" /> instances from being
         ///     added to the <see cref="BlackListItem" /> collection returned by this
         ///     method.
+        /// </param>
+        /// <param name="ipAddressGeoLocations">
+        ///     A collection of
+        ///     <see cref="IPAddressGeoLocation" /> instances, cached, so that
+        ///     <see cref="IPAddress" /> lookups are not necessary upon every retrieval of
+        ///     blacklisted metadata.
         /// </param>
         /// <returns>
         ///     A collection of <see cref="BlackListItem" /> instances, segmented by
@@ -807,9 +818,10 @@ namespace Aegis.Monitor.Core
         ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
         /// </remarks>
         public static Dictionary<string, List<BlackListItem>>
-            SegmentBlackListByCountry
-            (Func<List<BlackListItem>> getBlackListItems,
-                WhiteList whiteList = null)
+            SegmentBlackListByCountry(Func<List<BlackListItem>> getBlackListItems,
+                string geoLocationProviderURI,
+                WhiteList whiteList = null,
+                Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations = null)
         {
             var blackListsByCountry =
                 new Dictionary<string, List<BlackListItem>>();
@@ -832,25 +844,43 @@ namespace Aegis.Monitor.Core
                 }
 
                 List<BlackListItem> blackListItems;
+                IPAddressGeoLocation ipAddressGeoLocation;
 
-                // todo: Add to remarks, add cache
+                var rawIPAddress = blackListItem.IPAddress.ToString();
 
-                var ipAddressGeoLocation =
-                    blackListItem.IPAddress.GetIPAddressGeoLocationAsync(
-                        "http://freegeoip.net/json").Result;
+                if (ipAddressGeoLocations != null)
+                {
+                    var ipAddressGeoLocationIsCached =
+                        ipAddressGeoLocations.TryGetValue(rawIPAddress, out ipAddressGeoLocation);
 
-                blackListItem.Country = ipAddressGeoLocation.CountryName;
+                    if (!ipAddressGeoLocationIsCached)
+                    {
+                        ipAddressGeoLocation =
+                            blackListItem.IPAddress.GetIPAddressGeoLocationAsync(
+                                geoLocationProviderURI).Result;
+
+                        ipAddressGeoLocations.Add(rawIPAddress, ipAddressGeoLocation);
+                    }
+                }
+                else
+                {
+                    ipAddressGeoLocation =
+                        blackListItem.IPAddress.GetIPAddressGeoLocationAsync(geoLocationProviderURI)
+                            .Result;
+                }
+
+                blackListItem.Country = ipAddressGeoLocation.CountryName.ToLowerInvariant();
 
                 var blackListExists =
                     blackListsByCountry.TryGetValue(
-                        blackListItem.Country.ToLowerInvariant(),
+                        blackListItem.Country,
                         out blackListItems);
 
                 if (!blackListExists)
                 {
                     blackListItems = new List<BlackListItem>();
                     blackListsByCountry.Add(
-                        blackListItem.Country.ToLowerInvariant(),
+                        blackListItem.Country,
                         blackListItems);
                 }
 
