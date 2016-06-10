@@ -704,22 +704,6 @@ namespace Aegis.Monitor.Filter
             HostingEnvironment.RegisterObject(this);
         }
 
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
-        }
-
         /// <summary>
         ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
         ///     Aegis. It intergrates both lists and provides up-to-date collections of
@@ -764,18 +748,52 @@ namespace Aegis.Monitor.Filter
                     var avgNumHits =
                         int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
 
+                    var geoLocationProviderURI =
+                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
+
+                    int ipAddressGeoLocationCacheAge;
+                    var cachedIPAddressGeoLocations =
+                        BlackList.Instance.GetCachedIPAddressGeoLocations(
+                            out ipAddressGeoLocationCacheAge);
+
+                    var ipAddressGeoLocationCacheMaxAge =
+                        int.Parse(
+                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
+
+                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
+                    {
+                        cachedIPAddressGeoLocations.Clear();
+                    }
+
                     BlackList.Instance.BlackListsByCountry =
                         BlackListManager.SegmentBlackListByCountry(
                             () =>
                                 BlackListManager.LoadBlackListItemsFromAzure(
                                     sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), WhiteList.Instance);
+                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
+                            cachedIPAddressGeoLocations);
                 }
                 catch (Exception)
                 {
                     // Fail silently and ignore errors for POC
                 }
             }
+        }
+
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
+        {
+            // Locking here will wait for the lock in Execute to be released until this code can continue.
+            lock (_lock)
+            {
+                _shuttingDown = true;
+            }
+
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

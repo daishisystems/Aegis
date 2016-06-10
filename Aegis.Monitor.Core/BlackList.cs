@@ -675,7 +675,9 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Monitor.Core
 {
@@ -707,6 +709,9 @@ namespace Aegis.Monitor.Core
         private volatile Dictionary<string, List<BlackListItem>>
             _blackListsByCountry;
 
+        private Dictionary<string, IPAddressGeoLocation> _cachedIPAddressGeoLocations;
+        private DateTime _ipAddressGeoLocationLastUpdated;
+
         static BlackList()
         {
 
@@ -716,6 +721,10 @@ namespace Aegis.Monitor.Core
         {
             _blackListsByCountry =
                 new Dictionary<string, List<BlackListItem>>();
+
+            _ipAddressGeoLocationLastUpdated = DateTime.Now;
+
+            _cachedIPAddressGeoLocations = new Dictionary<string, IPAddressGeoLocation>();
         }
 
         /// <summary>
@@ -729,5 +738,47 @@ namespace Aegis.Monitor.Core
         }
 
         public static BlackList Instance { get; } = new BlackList();
+
+        /// <summary>
+        ///     <see cref="GetCachedIPAddressGeoLocations" /> returns a collection of
+        ///     <see cref="IPAddressGeoLocation" /> instances, cached, so that
+        ///     <see cref="IPAddress" /> lookups are not necessary upon every retrieval of
+        ///     blacklisted metadata.
+        /// </summary>
+        /// <param name="cacheAgeInDays">The age of the cache, in days.</param>
+        /// <returns>
+        ///     <see cref="Dictionary{TIPAddress,TIPAddressGeoLocation}" /> that represents
+        ///     a list of <see cref="IPAddress" /> raw keys, and associated
+        ///     <see cref="IPAddressGeoLocation" /> instances.
+        /// </returns>
+        /// <remarks>
+        ///     The collection of <see cref="IPAddressGeoLocation" /> instances should
+        ///     be purged at regular intervals, to allow for
+        ///     <see cref="IPAddress" /> rotation and global DNS refresh.
+        /// </remarks>
+        public Dictionary<string, IPAddressGeoLocation> GetCachedIPAddressGeoLocations(
+            out int cacheAgeInDays)
+        {
+            cacheAgeInDays = (DateTime.Now - _ipAddressGeoLocationLastUpdated).Days;
+
+            return _cachedIPAddressGeoLocations;
+        }
+
+        /// <summary>
+        ///     <see cref="SetCachedIPAddressGeoLocations" /> assigns
+        ///     <see cref="ipAddressGeoLocations" /> to this instance' internal cache of
+        ///     <see cref="IPAddressGeoLocation" /> instances.
+        /// </summary>
+        /// <param name="ipAddressGeoLocations">
+        ///     The <see cref="ipAddressGeoLocations" /> to
+        ///     add to this instance' internal cache of <see cref="IPAddressGeoLocation" />
+        ///     instances.
+        /// </param>
+        public void SetCachedIPAddressGeoLocations(
+            Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations)
+        {
+            _ipAddressGeoLocationLastUpdated = DateTime.Now;
+            _cachedIPAddressGeoLocations = ipAddressGeoLocations;
+        }
     }
 }
