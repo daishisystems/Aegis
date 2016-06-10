@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using Microsoft.ServiceBus.Messaging;
+using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Proxy
 {
@@ -694,12 +695,63 @@ namespace Aegis.Monitor.Proxy
             new Lazy<EventHubManager>(() => new EventHubManager());
 
         public EventHubClient EventHubClient;
+        public static EventHubManager Instance => Lazy.Value;
 
         private EventHubManager()
         {
-
         }
 
-        public static EventHubManager Instance => Lazy.Value;
+        public bool IsInitialized()
+        {
+            return this.EventHubClient != null && this.EventHubClient.IsClosed == false;
+        }
+
+        /// <summary>
+        /// Initialize Hub connection only once. Unless connection is close then initialize it again.
+        /// 
+        /// Use singleton double-check pattern to minimize number of locks.
+        /// </summary>
+        public void Initialize()
+        {
+            if (this.IsInitialized())
+            {
+                return;
+            }
+
+            // we can lock on instance as this instance is already a singleton class
+            lock (this)
+            {
+                if (this.IsInitialized())
+                {
+                    return;
+                }
+
+                this.DoInitialize();
+            }
+        }
+
+        private void DoInitialize()
+        {
+            // read settings
+            string eventHubName, eventHubConnectionString;
+
+            if (!AegisHelper.TryParseAppSetting("AegisEventHubName", out eventHubName))
+            {
+                throw new Exception("Event Hub AegisEventHubName could not be parsed.");
+            }
+
+            if (!AegisHelper.TryParseAppSetting("AegisEventHubConnectionString", out eventHubConnectionString))
+            {
+                throw new Exception("Event Hub AegisEventHubConnectionString could not be parsed.");
+            }
+
+            // initialize hub client
+            if (this.EventHubClient == null || this.EventHubClient.IsClosed)
+            {
+                this.EventHubClient = EventHubClient.CreateFromConnectionString(
+                        eventHubConnectionString,
+                        eventHubName);
+            }
+        }
     }
 }
