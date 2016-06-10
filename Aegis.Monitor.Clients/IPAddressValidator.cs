@@ -675,32 +675,33 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-namespace Aegis.Monitor.Core
+using System.Collections.Concurrent;
+using Aegis.Monitor.Core;
+
+namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to encapsulate
-    ///     user-specific metadata that the Aegis platform can aggregate and process in
-    ///     order to identify patterns in traffic.
-    ///     <para>
-    ///         Todo: Split each project into individual GitHub repositories, and
-    ///         drop sample projects.
-    ///     </para>
+    ///     <see cref="IPAddressValidator" /> determines whether or not any given IP
+    ///     address is valid, within the context of IP address blacklisting.
     /// </summary>
-    public class AegisEvent
+    public static class IPAddressValidator
     {
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        public string IPAddress { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        public string Path { get; set; }
-
-        /// <summary>Time is a string-based translation of the event time.</summary>
-        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        public string Time { get; set; }
-
-        public override string ToString()
+        /// <summary>
+        ///     <see cref="IPAddressIsBlacklisted" /> determines whether or not
+        ///     <see cref="ipAddress" /> is contained within <see cref="blackList" />, a
+        ///     collection of blacklisted metadata.
+        /// </summary>
+        /// <param name="ipAddress">The IP address to validate.</param>
+        /// <param name="blackList">The collection of blacklist metadata to refer.</param>
+        /// <param name="blackListItem">
+        ///     A <see cref="BlackListItem" />, returned if
+        ///     <see cref="ipAddress" /> is blacklisted.
+        /// </param>
+        /// <returns><c>True</c>, if <see cref="ipAddress" /> is blacklisted.</returns>
+        public static bool IPAddressIsBlacklisted(string ipAddress,
+            ConcurrentDictionary<string, BlackListItem> blackList, out BlackListItem blackListItem)
         {
-            return $"IP address:   {IPAddress}";
+            return blackList.TryGetValue(ipAddress, out blackListItem);
         }
     }
 }
