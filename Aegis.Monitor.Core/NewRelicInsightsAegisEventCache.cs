@@ -717,6 +717,7 @@ namespace Aegis.Monitor.Core
         ///     The cache is drained, regardless of whether or not the operation is
         ///     successful. Specifying a <see cref="batchSize" /> of
         ///     <see cref="int.MaxValue" /> ensures that the entire cache is drained.
+        ///     <para>This method should not be 'async void'.</para>
         /// </remarks>
         public static async void Publish(int batchSize)
         {
