@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlackListLoader.cs" />
+    <Compile Include="BlackListManager.cs" />
     <Compile Include="HTTPRequestMetadata.cs" />
     <Compile Include="HTTPRequestMetadataException.cs" />
     <Compile Include="HTTPRequestMetadataValidator.cs" />

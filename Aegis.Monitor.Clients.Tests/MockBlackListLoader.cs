@@ -674,42 +674,43 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Net;
 
-namespace Aegis.Monitor.Clients
+using System.Collections.Generic;
+using System.Net;
+using Aegis.Monitor.Core;
+
+namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
-    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
-    ///     issuing HTTP requests, such as specifying a web proxy, etc.
+    ///     <see cref="MockBlackListLoader" />returns a dummy collection of
+    ///     <see cref="BlackListItem" /> instances, suitable for test.
     /// </summary>
-    public class HTTPRequestMetadata
+    internal class MockBlackListLoader : BlackListLoader
     {
-        /// <summary>
-        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
-        ///     request.
-        /// </summary>
-        public Uri URI { get; set; }
 
         /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
+        ///     <see cref="BlackListLoader.Load" /> loads a collection of
+        ///     <see cref="BlackListItem" />
+        ///     instances, suitable for test.
         /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="TimeOutInMilliseconds" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public uint TimeOutInMilliseconds { get; set; }
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        public override IEnumerable<BlackListItem> Load()
+        {
+            return new List<BlackListItem>
+            {
+                new BlackListItem
+                {
+                    IPAddress = IPAddress.Parse("10.0.0.1")
+                },
+                new BlackListItem
+                {
+                    IPAddress = IPAddress.Parse("10.0.0.2")
+                },
+                new BlackListItem
+                {
+                    IPAddress = IPAddress.Parse("10.0.0.2")
+                }
+            };
+        }
     }
 }

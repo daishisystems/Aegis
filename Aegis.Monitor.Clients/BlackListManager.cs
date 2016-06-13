@@ -674,42 +674,43 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Net;
+
+using System.Collections.Concurrent;
+using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
-    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
-    ///     issuing HTTP requests, such as specifying a web proxy, etc.
+    ///     <see cref="BlackListManager" /> returns a collection of
+    ///     <see cref="BlackListItem" /> instances and formats them in a manner
+    ///     suitable for index.
     /// </summary>
-    public class HTTPRequestMetadata
+    public class BlackListManager
     {
         /// <summary>
-        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
-        ///     request.
+        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
+        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
+        ///     manner suitable for index.
         /// </summary>
-        public Uri URI { get; set; }
+        /// <param name="blackListLoader">
+        ///     Formats a collection of
+        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
+        /// </param>
+        /// <returns>
+        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
+        ///     <see cref="BlackListItem" /> instances.
+        /// </returns>
+        public static ConcurrentDictionary<string, BlackListItem> Load(
+            BlackListLoader blackListLoader)
+        {
+            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
+            foreach (var blackListItem in blackListLoader.Load())
+            {
+                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+            }
 
-        /// <summary>
-        ///     <see cref="TimeOutInMilliseconds" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public uint TimeOutInMilliseconds { get; set; }
+            return indexedBlackList;
+        }
     }
 }

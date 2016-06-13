@@ -674,42 +674,23 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Net;
+
+using System.Collections.Generic;
+using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
-    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
-    ///     issuing HTTP requests, such as specifying a web proxy, etc.
+    ///     <see cref="BlackListLoader" /> loads a collection of
+    ///     <see cref="BlackListItem" /> instances.
     /// </summary>
-    public class HTTPRequestMetadata
+    public abstract class BlackListLoader
     {
         /// <summary>
-        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
-        ///     request.
+        ///     <see cref="Load" /> loads a collection of <see cref="BlackListItem" />
+        ///     instances.
         /// </summary>
-        public Uri URI { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="TimeOutInMilliseconds" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public uint TimeOutInMilliseconds { get; set; }
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        public abstract IEnumerable<BlackListItem> Load();
     }
 }

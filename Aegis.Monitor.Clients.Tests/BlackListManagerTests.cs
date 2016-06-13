@@ -674,42 +674,36 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System;
-using System.Net;
 
-namespace Aegis.Monitor.Clients
+using System.Collections.Concurrent;
+using Aegis.Monitor.Core;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
-    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
-    ///     issuing HTTP requests, such as specifying a web proxy, etc.
+    ///     <see cref="BlackListManagerTests" /> ensures that logic pertaining to
+    ///     <see cref="BlackListManager" /> instances executes correctly.
     /// </summary>
-    public class HTTPRequestMetadata
+    [TestClass]
+    public class BlackListManagerTests
     {
         /// <summary>
-        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
-        ///     request.
-        /// </summary>
-        public Uri URI { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
+        ///     <see cref="BlackListManagerFormatsBlackListItemsForIndexing" /> ensures
+        ///     that <see cref="BlackListManager" /> instances format returned
+        ///     <see cref="BlackListItem" /> collections in a manner suitable for indexing.
         /// </summary>
         /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
+        ///     The returned collection of <see cref="BlackListItem" /> instances
+        ///     should be loaded into a <see cref="ConcurrentDictionary{TKey,TValue}" />,
+        ///     where each key is the associated <see cref="BlackListItem.IPAddress" />.
         /// </remarks>
-        public WebProxy WebProxy { get; set; }
+        [TestMethod]
+        public void BlackListManagerFormatsBlackListItemsForIndexing()
+        {
+            var indexedBlackList = BlackListManager.Load(new MockBlackListLoader());
 
-        /// <summary>
-        ///     <see cref="TimeOutInMilliseconds" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public uint TimeOutInMilliseconds { get; set; }
+            Assert.AreEqual(2, indexedBlackList.Count);
+        }
     }
 }
