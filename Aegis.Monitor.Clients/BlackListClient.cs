@@ -675,86 +675,47 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Web.Http;
+using System.Collections.Concurrent;
 using Aegis.Monitor.Core;
-using Jil;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="AegisBlackListLoader" /> loads the most up-to-date collection of
-    ///     <see cref="BlackListItem" /> instances from the cloud-based Aegis Filter.
+    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
+    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
+    ///     black-list in memory, providing a thread-safe collection of black-list
+    ///     metadata for query.
     /// </summary>
-    public class AegisBlackListLoader : BlackListLoader
+    public class BlackListClient
     {
-        /// <summary>
-        ///     <see cref="BlackListLoader.Load" /> loads a collection of
-        ///     <see cref="BlackListItem" />
-        ///     instances.
-        /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
-        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
-        ///     metadata.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        /// <remarks>
-        ///     <para>
-        ///         Throws a <see cref="HTTPRequestMetadataException" /> if
-        ///         <see cref="httpRequestMetadata" /> is invalid.
-        ///     </para>
-        ///     <para>
-        ///         Throws a <see cref="HttpResponseException" /> if HTTP connectivity
-        ///         problems exist between this instance and Aegis in the cloud.
-        ///     </para>
-        ///     <para>ToDo: Inject <see cref="HTTPRequestMetadataValidator" />.</para>
-        /// </remarks>
-        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        private readonly ConcurrentDictionary<string, BlackListItem> _blackList;
+
+        static BlackListClient()
         {
-            HTTPRequestMetadataException httpRequestMetadataException;
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            if (!httpRequestMetadataIsValid)
-            {
-                throw httpRequestMetadataException;
-            }
-
-            HttpClientHandler httpClientHandler;
-
-            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
-                out httpClientHandler))
-            {
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
-
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpResponseException(response.StatusCode);
-
-                var blackListMetadata = response.Content.ReadAsStringAsync().Result;
-
-                using (var reader = new StringReader(blackListMetadata))
-                {
-                    var options = new Options(dateFormat: DateTimeFormat.ISO8601);
-                    return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
-                }
-            }
         }
 
-        // ToDo: Async equivalent...
+        private BlackListClient()
+        {
+            _blackList = new ConcurrentDictionary<string, BlackListItem>();
+        }
+
+        public static BlackListClient Instance { get; } = new BlackListClient();
+
+        /// <summary>
+        ///     <see cref="Initialise" /> begins a recurring task that continously polls
+        ///     Aegis for the most up-to-date black-list, and retains a copy of this
+        ///     black-list in memory, providing a thread-safe collection of black-list
+        ///     metadata for query.
+        /// </summary>
+        public void Initialise()
+        {
+            // Start the recurring task
+
+            // Recurring task must refer to static instance of this, 
+            // due to parameterless constructor constraint.
+
+            // Todo: build sample app to test the concept
+        }
     }
 }

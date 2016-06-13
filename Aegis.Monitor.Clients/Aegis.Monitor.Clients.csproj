@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AegisBlackListLoader.cs" />
+    <Compile Include="BlackListClient.cs" />
     <Compile Include="BlackListLoader.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="HTTPClientFactory.cs" />

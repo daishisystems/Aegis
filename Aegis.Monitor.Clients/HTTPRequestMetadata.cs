@@ -716,7 +716,7 @@ namespace Aegis.Monitor.Clients
         ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
         ///     the <see cref="Timeout" /> property in this instance.
         /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
+        public bool UseNonDefaultTimeout { get; set; } //ToDo: Test both combinations for validity.
 
         /// <summary>
         ///     <see cref="Empty" /> returns a non-initialised
