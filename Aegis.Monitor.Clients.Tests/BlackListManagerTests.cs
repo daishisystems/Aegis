@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
 using Aegis.Monitor.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -705,6 +706,26 @@ namespace Aegis.Monitor.Clients.Tests
                 HTTPRequestMetadata.Empty(), new HTTPClientFactory());
 
             Assert.AreEqual(2, indexedBlackList.Count);
+        }
+
+        /// <summary>
+        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResource" />
+        ///     ensures that a black-list is correctly loaded from an active web resource.
+        /// </summary>
+        /// <remarks>
+        ///     Aegis black-listing is mocked at http://mockable.io, to simulate an
+        ///     active web resource.
+        /// </remarks>
+        [TestMethod]
+        public void BlackListManagerCorrectlyLoadsDataFromActiveWebResource()
+        {
+            var blackList = BlackListManager.Load(new AegisBlackListLoader(),
+                new HTTPRequestMetadata
+                {
+                    URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
+                }, new HTTPClientFactory());
+
+            Assert.AreEqual(2, blackList.Count);
         }
     }
 }

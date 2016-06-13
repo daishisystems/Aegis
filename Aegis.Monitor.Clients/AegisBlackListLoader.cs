@@ -686,10 +686,10 @@ using Jil;
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="AzureBlackListLoader" /> loads the most up-to-date collection of
-    ///     <see cref="BlackListItem" /> instances from the Azure-based Aegis Filter.
+    ///     <see cref="AegisBlackListLoader" /> loads the most up-to-date collection of
+    ///     <see cref="BlackListItem" /> instances from the cloud-based Aegis Filter.
     /// </summary>
-    public class AzureBlackListLoader : BlackListLoader
+    public class AegisBlackListLoader : BlackListLoader
     {
         /// <summary>
         ///     <see cref="BlackListLoader.Load" /> loads a collection of
@@ -707,8 +707,14 @@ namespace Aegis.Monitor.Clients
         /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
         /// <remarks>
-        ///     Throws a <see cref="HTTPRequestMetadataException" /> if
-        ///     <see cref="httpRequestMetadata" /> is invalid.
+        ///     <para>
+        ///         Throws a <see cref="HTTPRequestMetadataException" /> if
+        ///         <see cref="httpRequestMetadata" /> is invalid.
+        ///     </para>
+        ///     <para>
+        ///         Throws a <see cref="HttpResponseException" /> if HTTP connectivity
+        ///         problems exist between this instance and Aegis in the cloud.
+        ///     </para>
         /// </remarks>
         public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
             HTTPClientFactory httpClientFactory)
@@ -742,7 +748,8 @@ namespace Aegis.Monitor.Clients
 
                 using (var reader = new StringReader(blackListMetadata))
                 {
-                    return JSON.Deserialize<IEnumerable<BlackListItem>>(reader);
+                    var options = new Options(dateFormat: DateTimeFormat.ISO8601);
+                    return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
                 }
             }
         }

@@ -61,7 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AzureBlackListLoader.cs" />
+    <Compile Include="AegisBlackListLoader.cs" />
     <Compile Include="BlackListLoader.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="HTTPClientFactory.cs" />

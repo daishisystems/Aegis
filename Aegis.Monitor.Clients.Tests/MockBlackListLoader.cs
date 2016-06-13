@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using Aegis.Monitor.Core;
 
@@ -711,15 +710,15 @@ namespace Aegis.Monitor.Clients.Tests
             {
                 new BlackListItem
                 {
-                    IPAddress = IPAddress.Parse("10.0.0.1")
+                    RawIPAddress = "10.0.0.1"
                 },
                 new BlackListItem
                 {
-                    IPAddress = IPAddress.Parse("10.0.0.2")
+                    RawIPAddress = "10.0.0.2"
                 },
                 new BlackListItem
                 {
-                    IPAddress = IPAddress.Parse("10.0.0.2")
+                    RawIPAddress = "10.0.0.2"
                 }
             };
         }

@@ -755,9 +755,12 @@ namespace Aegis.Monitor.Core
 
                 while (reader.Read())
                 {
+                    var rawIPAddress = reader.GetString(0);
+
                     blackListItems.Add(new BlackListItem
                     {
-                        IPAddress = IPAddress.Parse(reader.GetString(0)),
+                        IPAddress = IPAddress.Parse(rawIPAddress),
+                        RawIPAddress = rawIPAddress,
                         HyperActivity = reader.GetInt32(1),
                         TotalNumHits = reader.GetInt32(2),
                         AvgNumHits = reader.GetInt32(3),

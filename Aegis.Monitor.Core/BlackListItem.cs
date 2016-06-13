@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Net;
+using System.Runtime.Serialization;
 
 namespace Aegis.Monitor.Core
 {
@@ -690,6 +691,12 @@ namespace Aegis.Monitor.Core
         ///     <see cref="IPAddress" /> is an <see cref="IPAddress" /> that has been
         ///     flagged as having malicious intent.
         /// </summary>
+        /// <remarks>
+        ///     ToDo: If new, populate with <see cref="RawIPAddress" /> and add unit
+        ///     test. IPAddress will not survive serialisation intact, without
+        ///     parameterless constructor.
+        /// </remarks>
+        [IgnoreDataMember]
         public IPAddress IPAddress { get; set; }
 
         /// <summary>
@@ -731,11 +738,12 @@ namespace Aegis.Monitor.Core
         ///     string-based format.
         /// </summary>
         /// <remarks>
-        ///     <see cref="RawIPAddress" /> is primarily used for display purposes,
-        ///     when viewing <see cref="BlackListItem" /> instances in, for example, web
-        ///     browsers, where <see cref="IPAddress" /> properties are expressed as
+        ///     <see cref="RawIPAddress" /> is primarily used for display and serialisation
+        ///     purposes, when viewing <see cref="BlackListItem" /> instances in, for
+        ///     example, web browsers, where <see cref="IPAddress" /> properties are
+        ///     expressed as
         ///     <see cref="int" />.
         /// </remarks>
-        public string RawIPAddress => IPAddress.ToString();
+        public string RawIPAddress { get; set; }
     }
 }
