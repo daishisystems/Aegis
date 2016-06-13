@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="AegisEventPublisherTests.cs" />
     <Compile Include="IPAddressExtensionMethodsTests.cs" />
+    <Compile Include="MemoryCacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BlackListManagerTests.cs" />
     <Compile Include="WhiteListItemTests.cs" />

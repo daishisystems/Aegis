@@ -692,16 +692,14 @@ namespace Aegis.Monitor.Core
     /// </summary>
     public static class NewRelicInsightsAegisEventCache
     {
-
-        private static readonly ConcurrentQueue<NewRelicInsightsAegisEvent>
-            Events =
-                new ConcurrentQueue<NewRelicInsightsAegisEvent>();
+        private static readonly MemoryCache<NewRelicInsightsAegisEvent> Events = 
+                                    new MemoryCache<NewRelicInsightsAegisEvent>(1000000);
 
         /// <summary>Add enqueues a <see cref="NewRelicInsightsAegisEvent" /> to the cache.</summary>
         /// <param name="event">The <see cref="NewRelicInsightsAegisEvent" /> to enqueue.</param>
         public static void Add(NewRelicInsightsAegisEvent @event)
         {
-            Events.Enqueue(@event);
+            Events.Add(@event);
         }
 
         /// <summary>
@@ -721,116 +719,20 @@ namespace Aegis.Monitor.Core
         /// </remarks>
         public static async void Publish(int batchSize)
         {
-            bool notEmpty;
-            var batch = new List<NewRelicInsightsAegisEvent>();
+            Events.Process(batchSize, OnPublish);
+        }
 
-            do
-            {
-                NewRelicInsightsAegisEvent @event;
-                notEmpty = Events.TryDequeue(out @event);
-
-                if (notEmpty)
-                {
-                    batch.Add(@event);
-                }
-
-            } while (notEmpty && batch.Count < batchSize);
-
-            if (batch.Count.Equals(0))
-            {
-                return;
-            }
-
-            WebResponse response = null;
-
+        public static bool OnPublish(List<NewRelicInsightsAegisEvent> items)
+        {
             try
             {
-                string newRelicAccountID;
-
-                var newRelicAccountIDIsAvailable =
-                    AegisHelper.TryParseAppSetting("AegisNewRelicAccountID",
-                        out newRelicAccountID);
-
-                if (!newRelicAccountIDIsAvailable) return;
-
-                var newRelicURI =
-                    string.Concat(
-                        "https://insights-collector.newrelic.com/v1/accounts/",
-                        newRelicAccountID, "/events");
-
-                var request = WebRequest.Create(newRelicURI);
-                request.Method = "POST";
-                request.ContentType = "application/json";
-
-                string proxyAddress;
-
-                var proxyAddressIsAvailable =
-                    AegisHelper.TryParseAppSetting("Proxy",
-                        out proxyAddress);
-
-                if (proxyAddressIsAvailable)
-                {
-                    request.Proxy = new WebProxy(proxyAddress);
-                }
-
-                string aegisNewRelicTimeoutMilliseconds;
-
-                var aegisNewRelicTimeoutMillisecondsIsAvailable =
-                    AegisHelper.TryParseAppSetting(
-                        "AegisNewRelicTimeoutMilliseconds",
-                        out aegisNewRelicTimeoutMilliseconds);
-
-                if (aegisNewRelicTimeoutMillisecondsIsAvailable)
-                {
-                    int timeout;
-
-                    var canParse =
-                        int.TryParse(
-                            aegisNewRelicTimeoutMilliseconds,
-                            out timeout);
-
-                    /* 
-                    Approx. 1 second less than publish interval
-                    to ensure that no overlap occurs, preventing 
-                    multiple simultaneous threads running concurrently. 
-                    */
-                    request.Timeout = canParse ? timeout : 4000;
-                }
-                else
-                {
-                    request.Timeout = 4000;
-                }
-
-                var postData = JsonConvert.SerializeObject(batch);
-                var byteArray = Encoding.UTF8.GetBytes(postData);
-
-                string newRelicAPIKey;
-
-                var newRelicAPIKeyIsAvailable =
-                    AegisHelper.TryParseAppSetting("AegisNewRelicAPIKey",
-                        out newRelicAPIKey);
-
-                if (!newRelicAPIKeyIsAvailable) return;
-
-                var newRelicAPIKeyHeader = string.Concat("X-Insert-Key: ",
-                    newRelicAPIKey);
-
-                var headers = request.Headers;
-                headers.Add(newRelicAPIKeyHeader);
-
-                var dataStream = await request.GetRequestStreamAsync();
-                await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
-
-                dataStream.Close();
-                response = await request.GetResponseAsync();
+                WebRequestHelper.SendToNewRelicInsight(items);
+                return true;
             }
             catch (Exception)
             {
-                // Fail silently until a fallback mechanism exists.
-            }
-            finally
-            {
-                response?.Close();
+                // fail silently until a fallback mechanism exists.
+                return false;
             }
         }
     }
