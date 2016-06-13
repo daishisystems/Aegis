@@ -675,34 +675,61 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Net;
+using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="HTTPClientFactoryTests" /> ensures that logic pertaining to
+    ///     <see cref="HTTPClientFactory" /> executes correctly.
     /// </summary>
     [TestClass]
-    public class HTTPRequestMetadataTests
+    public class HTTPClientFactoryTests
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="HTTPClientWithProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with the specified proxy
+        ///     server.
         /// </summary>
         [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        public void HTTPClientWithProxyIsCreated()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                WebProxy = new WebProxy(new Uri("http://localhost"))
+            };
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpClientHandler httpClientHandler;
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
+            var httpClientFactory = new HTTPClientFactory();
+            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsTrue(httpClientHandler.UseProxy);
+            Assert.AreEqual(httpRequestMetadata.WebProxy, httpClientHandler.Proxy);
+        }
+
+        /// <summary>
+        ///     <see cref="HTTPClientWithNonDefaultTimeoutIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with a non-default timeout.
+        /// </summary>
+        [TestMethod]
+        public void HTTPClientWithNonDefaultTimeoutIsCreated()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                UseNonDefaultTimeout = true,
+                Timeout = new TimeSpan(0, 0, 5)
+            };
+
+            HttpClientHandler httpClientHandler;
+
+            var httpClientFactory = new HTTPClientFactory();
+            var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.AreEqual(httpRequestMetadata.Timeout, httpClient.Timeout);
         }
     }
 }

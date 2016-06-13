@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients.Tests
@@ -691,10 +692,20 @@ namespace Aegis.Monitor.Clients.Tests
         /// <summary>
         ///     <see cref="BlackListLoader.Load" /> loads a collection of
         ///     <see cref="BlackListItem" />
-        ///     instances, suitable for test.
+        ///     instances.
         /// </summary>
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
+        ///     metadata.
+        /// </param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public override IEnumerable<BlackListItem> Load()
+        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
         {
             return new List<BlackListItem>
             {

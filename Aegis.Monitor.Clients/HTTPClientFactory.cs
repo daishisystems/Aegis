@@ -675,34 +675,62 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net.Http;
 
-namespace Aegis.Monitor.Clients.Tests
+namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="HTTPClientFactory" /> creates an instance of
+    ///     <see cref="HttpClient" />, based on an instance of
+    ///     <see cref="HTTPRequestMetadata" />.
     /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
+    public class HTTPClientFactory
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="Create" /> creates an instance of
+        ///     <see cref="HttpClient" />, based on an instance of
+        ///     <see cref="HTTPRequestMetadata" />.
         /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" /> used
+        ///     to create a <see cref="HttpClient" /> instance.
+        /// </param>
+        /// <param name="httpClientHandler">
+        ///     The <see cref="HttpClientHandler" /> that acts
+        ///     as an intermediary between <see cref="HttpClient" /> and
+        ///     <see cref="HTTPRequestMetadata" />, during creation of a
+        ///     <see cref="HttpClient" /> instance.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="HttpClient" />, based on
+        ///     <see cref="httpRequestMetadata" />.
+        /// </returns>
+        public HttpClient Create(HTTPRequestMetadata httpRequestMetadata,
+            out HttpClientHandler httpClientHandler)
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            HttpClient httpClient;
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            if (httpRequestMetadata.WebProxy != null)
+            {
+                httpClientHandler = new HttpClientHandler
+                {
+                    UseProxy = true,
+                    Proxy = httpRequestMetadata.WebProxy
+                };
+                httpClient = new HttpClient(httpClientHandler);
+            }
+            else
+            {
+                httpClientHandler = null;
+                httpClient = new HttpClient();
+            }
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
+            if (httpRequestMetadata.UseNonDefaultTimeout)
+            {
+                httpClient.Timeout = httpRequestMetadata.Timeout;
+            }
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            return httpClient;
         }
     }
 }

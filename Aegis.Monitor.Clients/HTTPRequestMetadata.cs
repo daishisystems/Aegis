@@ -674,6 +674,7 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 using System.Net;
 
@@ -703,13 +704,33 @@ namespace Aegis.Monitor.Clients
         public WebProxy WebProxy { get; set; }
 
         /// <summary>
-        ///     <see cref="TimeOutInMilliseconds" /> allows for a non-default HTTP request
-        ///     timeout.
+        ///     <see cref="Timeout" /> allows for a non-default HTTP request timeout.
         /// </summary>
         /// <remarks>
         ///     This feature is a crumple-zone, ensuring that failed, or slow internet
         ///     connectivity will not create a bottleneck in consuming systems.
         /// </remarks>
-        public uint TimeOutInMilliseconds { get; set; }
+        public TimeSpan Timeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
+        ///     the <see cref="Timeout" /> property in this instance.
+        /// </summary>
+        public bool UseNonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="Empty" /> returns a non-initialised
+        ///     <see cref="HTTPRequestMetadata" /> instance.
+        /// </summary>
+        /// <returns>A non-initialised <see cref="HTTPRequestMetadata" /> instance.</returns>
+        /// <remarks>
+        ///     This method prmotes a more intuitive means of instantiating
+        ///     non-required instances of <see cref="HTTPRequestMetadata" /> in
+        ///     unit-testing scenarios.
+        /// </remarks>
+        public static HTTPRequestMetadata Empty()
+        {
+            return new HTTPRequestMetadata();
+        }
     }
 }

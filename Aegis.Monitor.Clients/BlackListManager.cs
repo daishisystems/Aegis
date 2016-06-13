@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Concurrent;
+using System.Net.Http;
 using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients
@@ -685,7 +686,7 @@ namespace Aegis.Monitor.Clients
     ///     <see cref="BlackListItem" /> instances and formats them in a manner
     ///     suitable for index.
     /// </summary>
-    public class BlackListManager
+    public static class BlackListManager
     {
         /// <summary>
         ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
@@ -696,16 +697,23 @@ namespace Aegis.Monitor.Clients
         ///     Formats a collection of
         ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
         /// </param>
+        /// <param name="httpRequestMetadata"></param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
         /// <returns>
         ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
         ///     <see cref="BlackListItem" /> instances.
         /// </returns>
         public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader)
+            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
         {
             var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
-            foreach (var blackListItem in blackListLoader.Load())
+            foreach (var blackListItem in blackListLoader.Load(
+                httpRequestMetadata, httpClientFactory))
             {
                 indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
             }

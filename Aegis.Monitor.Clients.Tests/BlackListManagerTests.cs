@@ -701,7 +701,8 @@ namespace Aegis.Monitor.Clients.Tests
         [TestMethod]
         public void BlackListManagerFormatsBlackListItemsForIndexing()
         {
-            var indexedBlackList = BlackListManager.Load(new MockBlackListLoader());
+            var indexedBlackList = BlackListManager.Load(new MockBlackListLoader(),
+                HTTPRequestMetadata.Empty(), new HTTPClientFactory());
 
             Assert.AreEqual(2, indexedBlackList.Count);
         }
