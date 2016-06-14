@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Web.Hosting;
 using FluentScheduler;
 
@@ -711,11 +712,18 @@ namespace Aegis.Monitor.Clients
                     NonDefaultTimeout = BlackListClient.Instance.NonDefaultTimeout
                 };
 
-                BlackListClient.Instance.BlackList =
-                    BlackListManager.Load(
-                        new AegisBlackListLoader(),
-                        httpRequestMetadata,
-                        new HTTPClientFactory());
+                try
+                {
+                    BlackListClient.Instance.BlackList =
+                        BlackListManager.Load(
+                            new AegisBlackListLoader(),
+                            httpRequestMetadata,
+                            new HTTPClientFactory());
+                }
+                catch (Exception)
+                {
+                    // ToDo: swallow error in lieu of New Relic Insights Client.
+                }
             }
         }
 
