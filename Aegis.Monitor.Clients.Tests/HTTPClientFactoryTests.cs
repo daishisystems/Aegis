@@ -699,6 +699,7 @@ namespace Aegis.Monitor.Clients.Tests
         {
             var httpRequestMetadata = new HTTPRequestMetadata
             {
+                UseWebProxy = true,
                 WebProxy = new WebProxy(new Uri("http://localhost"))
             };
 
@@ -709,6 +710,25 @@ namespace Aegis.Monitor.Clients.Tests
 
             Assert.IsTrue(httpClientHandler.UseProxy);
             Assert.AreEqual(httpRequestMetadata.WebProxy, httpClientHandler.Proxy);
+        }
+
+        /// <summary>
+        ///     <see cref="HTTPClientWithoutProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with no specified proxy
+        ///     server.
+        /// </summary>
+        [TestMethod]
+        public void HTTPClientWithoutProxyIsCreated()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata();
+
+            HttpClientHandler httpClientHandler;
+
+            var httpClientFactory = new HTTPClientFactory();
+            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.IsNull(httpClientHandler);
+            Assert.IsNotNull(httpRequestMetadata);
         }
 
         /// <summary>

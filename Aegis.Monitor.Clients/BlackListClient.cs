@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Concurrent;
+using System.Net;
 using Aegis.Monitor.Core;
 using FluentScheduler;
 
@@ -690,7 +691,6 @@ namespace Aegis.Monitor.Clients
     /// </summary>
     public class BlackListClient
     {
-        private readonly ConcurrentDictionary<string, BlackListItem> _blackList;
         private int _recurringTaskInterval;
         private string _recurringTaskName;
 
@@ -701,10 +701,16 @@ namespace Aegis.Monitor.Clients
 
         private BlackListClient()
         {
-            _blackList = new ConcurrentDictionary<string, BlackListItem>();
+            BlackList = new ConcurrentDictionary<string, BlackListItem>();
         }
 
         public static BlackListClient Instance { get; } = new BlackListClient();
+
+        /// <summary>
+        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
+        ///     search by IP address.
+        /// </summary>
+        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
 
         /// <summary>
         ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
@@ -739,6 +745,38 @@ namespace Aegis.Monitor.Clients
         ///     is retrieved.
         /// </summary>
         public Uri AegisURI { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
+        ///     <see cref="WebProxy" />.
+        /// </summary>
+        public bool UseWebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
+        ///     issuing HTTP requests.
+        /// </summary>
+        /// <remarks>
+        ///     The feature facilitates HTTP connectivity, even when internet
+        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
+        /// </remarks>
+        public WebProxy WebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
+        ///     <see cref="NonDefaultTimeout" />.
+        /// </summary>
+        public bool UseNonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
+        ///     timeout.
+        /// </summary>
+        /// <remarks>
+        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
+        ///     connectivity will not create a bottleneck in consuming systems.
+        /// </remarks>
+        public TimeSpan NonDefaultTimeout { get; set; }
 
         /// <summary>
         ///     <see cref="Initialise" /> begins a recurring task that continously polls

@@ -702,12 +702,20 @@ namespace Aegis.Monitor.Clients
                 if (_shuttingDown)
                     return;
 
-                var aegisBlackListLoader = new AegisBlackListLoader();
-
                 var httpRequestMetadata = new HTTPRequestMetadata
                 {
-                    URI = BlackListClient.Instance.AegisURI
+                    URI = BlackListClient.Instance.AegisURI,
+                    UseWebProxy = BlackListClient.Instance.UseWebProxy,
+                    WebProxy = BlackListClient.Instance.WebProxy,
+                    UseNonDefaultTimeout = BlackListClient.Instance.UseNonDefaultTimeout,
+                    NonDefaultTimeout = BlackListClient.Instance.NonDefaultTimeout
                 };
+
+                BlackListClient.Instance.BlackList =
+                    BlackListManager.Load(
+                        new AegisBlackListLoader(),
+                        httpRequestMetadata,
+                        new HTTPClientFactory());
             }
         }
 
