@@ -675,34 +675,52 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Net.Http;
+using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="MockBlackListLoader" />returns a dummy collection of
+    ///     <see cref="BlackListItem" /> instances, suitable for test.
     /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
+    internal class MockBlackListLoader : BlackListLoader
     {
+
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="BlackListLoader.Load" /> loads a collection of
+        ///     <see cref="BlackListItem" />
+        ///     instances.
         /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
+        ///     metadata.
+        /// </param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            return new List<BlackListItem>
+            {
+                new BlackListItem
+                {
+                    RawIPAddress = "10.0.0.1"
+                },
+                new BlackListItem
+                {
+                    RawIPAddress = "10.0.0.2"
+                },
+                new BlackListItem
+                {
+                    RawIPAddress = "10.0.0.2"
+                }
+            };
         }
     }
 }

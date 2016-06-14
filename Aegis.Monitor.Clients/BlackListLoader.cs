@@ -675,34 +675,33 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Net.Http;
+using Aegis.Monitor.Core;
 
-namespace Aegis.Monitor.Clients.Tests
+namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="BlackListLoader" /> loads a collection of
+    ///     <see cref="BlackListItem" /> instances.
     /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
+    public abstract class BlackListLoader
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="Load" /> loads a collection of <see cref="BlackListItem" />
+        ///     instances.
         /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata();
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsFalse(httpRequestMetadataIsValid);
-        }
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
+        ///     metadata.
+        /// </param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        public abstract IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory);
     }
 }

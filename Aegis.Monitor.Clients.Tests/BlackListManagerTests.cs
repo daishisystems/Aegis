@@ -675,34 +675,57 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Collections.Concurrent;
+using Aegis.Monitor.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="BlackListManagerTests" /> ensures that logic pertaining to
+    ///     <see cref="BlackListManager" /> instances executes correctly.
     /// </summary>
     [TestClass]
-    public class HTTPRequestMetadataTests
+    public class BlackListManagerTests
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="BlackListManagerFormatsBlackListItemsForIndexing" /> ensures
+        ///     that <see cref="BlackListManager" /> instances format returned
+        ///     <see cref="BlackListItem" /> collections in a manner suitable for indexing.
         /// </summary>
+        /// <remarks>
+        ///     The returned collection of <see cref="BlackListItem" /> instances
+        ///     should be loaded into a <see cref="ConcurrentDictionary{TKey,TValue}" />,
+        ///     where each key is the associated <see cref="BlackListItem.IPAddress" />.
+        /// </remarks>
         [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        public void BlackListManagerFormatsBlackListItemsForIndexing()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            var indexedBlackList = BlackListManager.Load(new MockBlackListLoader(),
+                HTTPRequestMetadata.Empty(), new HTTPClientFactory());
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            Assert.AreEqual(2, indexedBlackList.Count);
+        }
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
+        /// <summary>
+        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResource" />
+        ///     ensures that a black-list is correctly loaded from an active web resource.
+        /// </summary>
+        /// <remarks>
+        ///     Aegis black-listing is mocked at http://mockable.io, to simulate an
+        ///     active web resource.
+        /// </remarks>
+        [TestMethod]
+        public void BlackListManagerCorrectlyLoadsDataFromActiveWebResource()
+        {
+            var blackList = BlackListManager.Load(new AegisBlackListLoader(),
+                new HTTPRequestMetadata
+                {
+                    URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
+                }, new HTTPClientFactory());
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.AreEqual(2, blackList.Count);
         }
     }
 }

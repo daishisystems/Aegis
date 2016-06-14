@@ -675,34 +675,86 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web.Http;
+using Aegis.Monitor.Core;
+using Jil;
 
-namespace Aegis.Monitor.Clients.Tests
+namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="AegisBlackListLoader" /> loads the most up-to-date collection of
+    ///     <see cref="BlackListItem" /> instances from the cloud-based Aegis Filter.
     /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
+    public class AegisBlackListLoader : BlackListLoader
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="BlackListLoader.Load" /> loads a collection of
+        ///     <see cref="BlackListItem" />
+        ///     instances.
         /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
+        ///     metadata.
+        /// </param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        /// <remarks>
+        ///     <para>
+        ///         Throws a <see cref="HTTPRequestMetadataException" /> if
+        ///         <see cref="httpRequestMetadata" /> is invalid.
+        ///     </para>
+        ///     <para>
+        ///         Throws a <see cref="HttpResponseException" /> if HTTP connectivity
+        ///         problems exist between this instance and Aegis in the cloud.
+        ///     </para>
+        ///     <para>ToDo: Inject <see cref="HTTPRequestMetadataValidator" />.</para>
+        /// </remarks>
+        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
-
             HTTPRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
                 HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            if (!httpRequestMetadataIsValid)
+            {
+                throw httpRequestMetadataException;
+            }
+
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
+                out httpClientHandler))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
+
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpResponseException(response.StatusCode);
+
+                var blackListMetadata = response.Content.ReadAsStringAsync().Result;
+
+                using (var reader = new StringReader(blackListMetadata))
+                {
+                    var options = new Options(dateFormat: DateTimeFormat.ISO8601);
+                    return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
+                }
+            }
         }
+
+        // ToDo: Async equivalent...
     }
 }

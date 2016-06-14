@@ -675,34 +675,50 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Concurrent;
+using System.Net.Http;
+using Aegis.Monitor.Core;
 
-namespace Aegis.Monitor.Clients.Tests
+namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="BlackListManager" /> returns a collection of
+    ///     <see cref="BlackListItem" /> instances and formats them in a manner
+    ///     suitable for index.
     /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
+    public static class BlackListManager
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
+        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
+        ///     manner suitable for index.
         /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        /// <param name="blackListLoader">
+        ///     Formats a collection of
+        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
+        /// </param>
+        /// <param name="httpRequestMetadata"></param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
+        /// <returns>
+        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
+        ///     <see cref="BlackListItem" /> instances.
+        /// </returns>
+        public static ConcurrentDictionary<string, BlackListItem> Load(
+            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            foreach (var blackListItem in blackListLoader.Load(
+                httpRequestMetadata, httpClientFactory))
+            {
+                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+            }
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsFalse(httpRequestMetadataIsValid);
+            return indexedBlackList;
         }
     }
 }
