@@ -762,8 +762,9 @@ namespace Aegis.Monitor.Clients
         /// </summary>
         /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
         /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public async Task<IEnumerable<BlackListItem>> LoadAsync(
+        /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
+        ///     instances.</returns>
+        public override async Task<IEnumerable<BlackListItem>> LoadAsync(
             HTTPRequestMetadata httpRequestMetadata,
             HTTPClientFactory httpClientFactory)
         {
