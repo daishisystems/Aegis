@@ -686,10 +686,8 @@ namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.Models
     /// <summary>The model that represents an API displayed on the help page.</summary>
     public class HelpPageApiModel
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="HelpPageApiModel" />
-        ///     class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="HelpPageApiModel" />
+        ///     class.</summary>
         public HelpPageApiModel()
         {
             UriParameters = new Collection<ParameterDescription>();

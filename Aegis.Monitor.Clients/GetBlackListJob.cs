@@ -679,9 +679,6 @@ using System;
 using System.Web.Hosting;
 using FluentScheduler;
 
-// Todo: Build sample app, connected to mockable.io.
-// ToDo: Once tested, create NuGet package.
-
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
