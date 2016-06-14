@@ -679,6 +679,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Web.Http;
 using Aegis.Monitor.Core;
 using Jil;
@@ -755,6 +756,50 @@ namespace Aegis.Monitor.Clients
             }
         }
 
-        // ToDo: Async equivalent...
+        /// <summary>
+        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
+        ///     <see cref="Load" />.
+        /// </summary>
+        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
+        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
+        public async Task<IEnumerable<BlackListItem>> LoadAsync(
+            HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
+        {
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            if (!httpRequestMetadataIsValid)
+            {
+                throw httpRequestMetadataException;
+            }
+
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
+                out httpClientHandler))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = await httpClient.GetAsync(httpRequestMetadata.URI);
+
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpResponseException(response.StatusCode);
+
+                var blackListMetadata = await response.Content.ReadAsStringAsync();
+
+                using (var reader = new StringReader(blackListMetadata))
+                {
+                    var options = new Options(dateFormat: DateTimeFormat.ISO8601);
+                    return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
+                }
+            }
+        }
     }
 }
