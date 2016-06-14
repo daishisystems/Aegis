@@ -675,6 +675,9 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Net;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Monitor.Clients.Tests
@@ -703,6 +706,114 @@ namespace Aegis.Monitor.Clients.Tests
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
+        }
+
+        /// <summary>
+        ///     <see cref="WebProxyIsSetWhenUseProxyIsSpecified" /> ensures that a a valid
+        ///     <see cref="WebProxy" /> is instantiated when the
+        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> property is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void WebProxyIsSetWhenUseProxyIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                URI = new Uri("http://localhost"),
+                UseWebProxy = true,
+                WebProxy = new WebProxy()
+            };
+
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsTrue(httpRequestMetadataIsValid);
+            Assert.IsNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="NullWebProxyReturnsExceptionWhenUseProxyIsSpecified" /> ensures
+        ///     that a
+        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
+        ///     <see cref="HTTPRequestMetadata.WebProxy" />, when
+        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void NullWebProxyReturnsExceptionWhenUseProxyIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                URI = new Uri("http://localhost"),
+                UseWebProxy = true
+            };
+
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsInstanceOfType(httpRequestMetadataException,
+                typeof(HTTPRequestMetadataException));
+        }
+
+        /// <summary>
+        ///     <see cref="TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified" /> ensures that
+        ///     a a valid
+        ///     <see cref="TimeSpan" /> is instantiated when the
+        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> property is
+        ///     <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                URI = new Uri("http://localhost"),
+                UseNonDefaultTimeout = true,
+                NonDefaultTimeout = new TimeSpan(0, 0, 5)
+            };
+
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsTrue(httpRequestMetadataIsValid);
+            Assert.IsNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified" />
+        ///     ensures that a
+        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
+        ///     <see cref="Timeout" />, when
+        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                URI = new Uri("http://localhost"),
+                UseNonDefaultTimeout = true
+            };
+
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsInstanceOfType(httpRequestMetadataException,
+                typeof(HTTPRequestMetadataException));
         }
     }
 }

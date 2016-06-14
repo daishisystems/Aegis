@@ -675,6 +675,8 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
@@ -720,6 +722,24 @@ namespace Aegis.Monitor.Clients
             if (httpRequestMetadata.URI == null)
             {
                 httpRequestMetadataException = new HTTPRequestMetadataException("No URI specified.");
+
+                return false;
+            }
+
+            if (httpRequestMetadata.UseWebProxy && httpRequestMetadata.WebProxy == null)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException("UseProxy is true, but no proxy is specified.");
+
+                return false;
+            }
+
+            if (httpRequestMetadata.UseNonDefaultTimeout &&
+                httpRequestMetadata.NonDefaultTimeout == TimeSpan.Zero)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException(
+                        "UseNonDefaultTimeout is true, but no timeout is specified.");
 
                 return false;
             }

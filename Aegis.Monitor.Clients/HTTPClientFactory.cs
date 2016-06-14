@@ -727,7 +727,7 @@ namespace Aegis.Monitor.Clients
 
             if (httpRequestMetadata.UseNonDefaultTimeout)
             {
-                httpClient.Timeout = httpRequestMetadata.Timeout;
+                httpClient.Timeout = httpRequestMetadata.NonDefaultTimeout;
             }
 
             return httpClient;

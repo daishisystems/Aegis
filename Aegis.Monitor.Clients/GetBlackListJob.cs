@@ -702,7 +702,12 @@ namespace Aegis.Monitor.Clients
                 if (_shuttingDown)
                     return;
 
-                // Get black-list
+                var aegisBlackListLoader = new AegisBlackListLoader();
+
+                var httpRequestMetadata = new HTTPRequestMetadata
+                {
+                    URI = BlackListClient.Instance.AegisURI
+                };
             }
         }
 

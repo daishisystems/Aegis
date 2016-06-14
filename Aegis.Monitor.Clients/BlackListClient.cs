@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
 using Aegis.Monitor.Core;
 using FluentScheduler;
@@ -732,6 +733,12 @@ namespace Aegis.Monitor.Clients
             get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
             set { _recurringTaskInterval = value; }
         }
+
+        /// <summary>
+        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
+        ///     is retrieved.
+        /// </summary>
+        public Uri AegisURI { get; set; }
 
         /// <summary>
         ///     <see cref="Initialise" /> begins a recurring task that continously polls

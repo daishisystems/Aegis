@@ -687,7 +687,6 @@ namespace Aegis.Monitor.Clients.Tests
     /// </summary>
     internal class MockBlackListLoader : BlackListLoader
     {
-
         /// <summary>
         ///     <see cref="BlackListLoader.Load" /> loads a collection of
         ///     <see cref="BlackListItem" />

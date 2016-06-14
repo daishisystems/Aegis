@@ -721,7 +721,7 @@ namespace Aegis.Monitor.Clients.Tests
             var httpRequestMetadata = new HTTPRequestMetadata
             {
                 UseNonDefaultTimeout = true,
-                Timeout = new TimeSpan(0, 0, 5)
+                NonDefaultTimeout = new TimeSpan(0, 0, 5)
             };
 
             HttpClientHandler httpClientHandler;
@@ -729,7 +729,7 @@ namespace Aegis.Monitor.Clients.Tests
             var httpClientFactory = new HTTPClientFactory();
             var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
-            Assert.AreEqual(httpRequestMetadata.Timeout, httpClient.Timeout);
+            Assert.AreEqual(httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
         }
     }
 }
