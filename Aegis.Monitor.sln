@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients", "Ae
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients.Tests", "Aegis.Monitor.Clients.Tests\Aegis.Monitor.Clients.Tests.csproj", "{AA848544-258D-4B0B-A18A-0994B2324D31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients.SampleApp", "Aegis.Monitor.Clients.SampleApp\Aegis.Monitor.Clients.SampleApp.csproj", "{FD708AED-F2A9-49F7-9447-915140EB125A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD708AED-F2A9-49F7-9447-915140EB125A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD708AED-F2A9-49F7-9447-915140EB125A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD708AED-F2A9-49F7-9447-915140EB125A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD708AED-F2A9-49F7-9447-915140EB125A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

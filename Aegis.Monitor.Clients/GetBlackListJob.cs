@@ -679,6 +679,9 @@ using System;
 using System.Web.Hosting;
 using FluentScheduler;
 
+// Todo: Build sample app, connected to mockable.io.
+// ToDo: Once tested, create NuGet package.
+
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
@@ -722,7 +725,7 @@ namespace Aegis.Monitor.Clients
                 }
                 catch (Exception)
                 {
-                    // ToDo: swallow error in lieu of New Relic Insights Client.
+                    // ToDo: swallow error in lieu of New Relic Insights Client. Final step.
                 }
             }
         }

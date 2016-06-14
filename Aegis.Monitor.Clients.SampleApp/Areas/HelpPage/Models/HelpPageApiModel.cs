@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -675,137 +675,93 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Net.Http.Headers;
+using System.Web.Http.Description;
+using Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.ModelDescriptions;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.Models
 {
-    /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListClient
+    /// <summary>The model that represents an API displayed on the help page.</summary>
+    public class HelpPageApiModel
     {
-
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="HelpPageApiModel" />
+        ///     class.
+        /// </summary>
+        public HelpPageApiModel()
         {
-
+            UriParameters = new Collection<ParameterDescription>();
+            SampleRequests = new Dictionary<MediaTypeHeaderValue, object>();
+            SampleResponses = new Dictionary<MediaTypeHeaderValue, object>();
+            ErrorMessages = new Collection<string>();
         }
 
-        private BlackListClient()
-        {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
+        /// <summary>Gets or sets the <see cref="ApiDescription" /> that describes the API.</summary>
+        public ApiDescription ApiDescription { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the <see cref="ParameterDescription" /> collection that
+        ///     describes the URI parameters for the API.
+        /// </summary>
+        public Collection<ParameterDescription> UriParameters { get; private set; }
+
+        /// <summary>Gets or sets the documentation for the request.</summary>
+        public string RequestDocumentation { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the <see cref="ModelDescription" /> that describes the
+        ///     request body.
+        /// </summary>
+        public ModelDescription RequestModelDescription { get; set; }
+
+        /// <summary>Gets the request body parameter descriptions.</summary>
+        public IList<ParameterDescription> RequestBodyParameters {
+            get { return GetParameterDescriptions(RequestModelDescription); }
         }
 
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
         /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
+        ///     Gets or sets the <see cref="ModelDescription" /> that describes the
+        ///     resource.
         /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
+        public ModelDescription ResourceDescription { get; set; }
 
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
+        /// <summary>Gets the resource property descriptions.</summary>
+        public IList<ParameterDescription> ResourceProperties {
+            get { return GetParameterDescriptions(ResourceDescription); }
+        }
 
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+        /// <summary>Gets the sample requests associated with the API.</summary>
+        public IDictionary<MediaTypeHeaderValue, object> SampleRequests { get; private set; }
+
+        /// <summary>Gets the sample responses associated with the API.</summary>
+        public IDictionary<MediaTypeHeaderValue, object> SampleResponses { get; private set; }
+
+        /// <summary>Gets the error messages associated with this model.</summary>
+        public Collection<string> ErrorMessages { get; private set; }
+
+        private static IList<ParameterDescription> GetParameterDescriptions(
+            ModelDescription modelDescription)
+        {
+            var complexTypeModelDescription = modelDescription as ComplexTypeModelDescription;
+            if (complexTypeModelDescription != null)
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                return complexTypeModelDescription.Properties;
             }
-            set { _recurringTaskName = value; }
-        }
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
+            var collectionModelDescription = modelDescription as CollectionModelDescription;
+            if (collectionModelDescription != null)
+            {
+                complexTypeModelDescription =
+                    collectionModelDescription.ElementDescription as ComplexTypeModelDescription;
+                if (complexTypeModelDescription != null)
+                {
+                    return complexTypeModelDescription.Properties;
+                }
+            }
 
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
-        {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
-        }
-
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            return null;
         }
     }
 }

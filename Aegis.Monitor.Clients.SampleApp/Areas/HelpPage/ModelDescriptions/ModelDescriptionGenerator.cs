@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -676,136 +676,475 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Web.Http;
+using System.Web.Http.Description;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.ModelDescriptions
 {
-    /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListClient
+    /// <summary>Generates model descriptions for given types.</summary>
+    public class ModelDescriptionGenerator
     {
-
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        // Modify this to support more data annotation attributes.
+        private readonly IDictionary<Type, Func<object, string>> AnnotationTextGenerator = new Dictionary
+            <Type, Func<object, string>>
         {
-
-        }
-
-        private BlackListClient()
-        {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+            {typeof(RequiredAttribute), a => "Required"},
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                typeof(RangeAttribute), a =>
+                {
+                    var range = (RangeAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture,
+                        "Range: inclusive between {0} and {1}", range.Minimum, range.Maximum);
+                }
+            },
+            {
+                typeof(MaxLengthAttribute), a =>
+                {
+                    var maxLength = (MaxLengthAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture, "Max length: {0}",
+                        maxLength.Length);
+                }
+            },
+            {
+                typeof(MinLengthAttribute), a =>
+                {
+                    var minLength = (MinLengthAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture, "Min length: {0}",
+                        minLength.Length);
+                }
+            },
+            {
+                typeof(StringLengthAttribute), a =>
+                {
+                    var strLength = (StringLengthAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture,
+                        "String length: inclusive between {0} and {1}", strLength.MinimumLength,
+                        strLength.MaximumLength);
+                }
+            },
+            {
+                typeof(DataTypeAttribute), a =>
+                {
+                    var dataType = (DataTypeAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture, "Data type: {0}",
+                        dataType.CustomDataType ?? dataType.DataType.ToString());
+                }
+            },
+            {
+                typeof(RegularExpressionAttribute), a =>
+                {
+                    var regularExpression = (RegularExpressionAttribute) a;
+                    return string.Format(CultureInfo.CurrentCulture,
+                        "Matching regular expression pattern: {0}", regularExpression.Pattern);
+                }
             }
-            set { _recurringTaskName = value; }
-        }
+        };
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        // Modify this to add more default documentations.
+        private readonly IDictionary<Type, string> DefaultTypeDocumentation = new Dictionary
+            <Type, string>
         {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
+            {typeof(short), "integer"},
+            {typeof(int), "integer"},
+            {typeof(long), "integer"},
+            {typeof(ushort), "unsigned integer"},
+            {typeof(uint), "unsigned integer"},
+            {typeof(ulong), "unsigned integer"},
+            {typeof(byte), "byte"},
+            {typeof(char), "character"},
+            {typeof(sbyte), "signed byte"},
+            {typeof(Uri), "URI"},
+            {typeof(float), "decimal number"},
+            {typeof(double), "decimal number"},
+            {typeof(decimal), "decimal number"},
+            {typeof(string), "string"},
+            {typeof(Guid), "globally unique identifier"},
+            {typeof(TimeSpan), "time interval"},
+            {typeof(DateTime), "date"},
+            {typeof(DateTimeOffset), "date"},
+            {typeof(bool), "boolean"}
+        };
+
+        private readonly Lazy<IModelDocumentationProvider> _documentationProvider;
+
+        public ModelDescriptionGenerator(HttpConfiguration config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
+
+            _documentationProvider =
+                new Lazy<IModelDocumentationProvider>(
+                    () => config.Services.GetDocumentationProvider() as IModelDocumentationProvider);
+            GeneratedModels =
+                new Dictionary<string, ModelDescription>(StringComparer.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
+        public Dictionary<string, ModelDescription> GeneratedModels { get; }
+
+        private IModelDocumentationProvider DocumentationProvider {
+            get { return _documentationProvider.Value; }
+        }
+
+        public ModelDescription GetOrCreateModelDescription(Type modelType)
         {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            if (modelType == null)
+            {
+                throw new ArgumentNullException("modelType");
+            }
+
+            var underlyingType = Nullable.GetUnderlyingType(modelType);
+            if (underlyingType != null)
+            {
+                modelType = underlyingType;
+            }
+
+            ModelDescription modelDescription;
+            var modelName = ModelNameHelper.GetModelName(modelType);
+            if (GeneratedModels.TryGetValue(modelName, out modelDescription))
+            {
+                if (modelType != modelDescription.ModelType)
+                {
+                    throw new InvalidOperationException(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            "A model description could not be created. Duplicate model name '{0}' was found for types '{1}' and '{2}'. " +
+                            "Use the [ModelName] attribute to change the model name for at least one of the types so that it has a unique name.",
+                            modelName,
+                            modelDescription.ModelType.FullName,
+                            modelType.FullName));
+                }
+
+                return modelDescription;
+            }
+
+            if (DefaultTypeDocumentation.ContainsKey(modelType))
+            {
+                return GenerateSimpleTypeModelDescription(modelType);
+            }
+
+            if (modelType.IsEnum)
+            {
+                return GenerateEnumTypeModelDescription(modelType);
+            }
+
+            if (modelType.IsGenericType)
+            {
+                var genericArguments = modelType.GetGenericArguments();
+
+                if (genericArguments.Length == 1)
+                {
+                    var enumerableType = typeof(IEnumerable<>).MakeGenericType(genericArguments);
+                    if (enumerableType.IsAssignableFrom(modelType))
+                    {
+                        return GenerateCollectionModelDescription(modelType, genericArguments[0]);
+                    }
+                }
+                if (genericArguments.Length == 2)
+                {
+                    var dictionaryType = typeof(IDictionary<,>).MakeGenericType(genericArguments);
+                    if (dictionaryType.IsAssignableFrom(modelType))
+                    {
+                        return GenerateDictionaryModelDescription(modelType, genericArguments[0],
+                            genericArguments[1]);
+                    }
+
+                    var keyValuePairType = typeof(KeyValuePair<,>).MakeGenericType(genericArguments);
+                    if (keyValuePairType.IsAssignableFrom(modelType))
+                    {
+                        return GenerateKeyValuePairModelDescription(modelType, genericArguments[0],
+                            genericArguments[1]);
+                    }
+                }
+            }
+
+            if (modelType.IsArray)
+            {
+                var elementType = modelType.GetElementType();
+                return GenerateCollectionModelDescription(modelType, elementType);
+            }
+
+            if (modelType == typeof(NameValueCollection))
+            {
+                return GenerateDictionaryModelDescription(modelType, typeof(string), typeof(string));
+            }
+
+            if (typeof(IDictionary).IsAssignableFrom(modelType))
+            {
+                return GenerateDictionaryModelDescription(modelType, typeof(object), typeof(object));
+            }
+
+            if (typeof(IEnumerable).IsAssignableFrom(modelType))
+            {
+                return GenerateCollectionModelDescription(modelType, typeof(object));
+            }
+
+            return GenerateComplexTypeModelDescription(modelType);
+        }
+
+        // Change this to provide different name for the member.
+        private static string GetMemberName(MemberInfo member, bool hasDataContractAttribute)
+        {
+            var jsonProperty = member.GetCustomAttribute<JsonPropertyAttribute>();
+            if (jsonProperty != null && !string.IsNullOrEmpty(jsonProperty.PropertyName))
+            {
+                return jsonProperty.PropertyName;
+            }
+
+            if (hasDataContractAttribute)
+            {
+                var dataMember = member.GetCustomAttribute<DataMemberAttribute>();
+                if (dataMember != null && !string.IsNullOrEmpty(dataMember.Name))
+                {
+                    return dataMember.Name;
+                }
+            }
+
+            return member.Name;
+        }
+
+        private static bool ShouldDisplayMember(MemberInfo member, bool hasDataContractAttribute)
+        {
+            var jsonIgnore = member.GetCustomAttribute<JsonIgnoreAttribute>();
+            var xmlIgnore = member.GetCustomAttribute<XmlIgnoreAttribute>();
+            var ignoreDataMember = member.GetCustomAttribute<IgnoreDataMemberAttribute>();
+            var nonSerialized = member.GetCustomAttribute<NonSerializedAttribute>();
+            var apiExplorerSetting = member.GetCustomAttribute<ApiExplorerSettingsAttribute>();
+
+            var hasMemberAttribute = member.DeclaringType.IsEnum
+                ? member.GetCustomAttribute<EnumMemberAttribute>() != null
+                : member.GetCustomAttribute<DataMemberAttribute>() != null;
+
+            // Display member only if all the followings are true:
+            // no JsonIgnoreAttribute
+            // no XmlIgnoreAttribute
+            // no IgnoreDataMemberAttribute
+            // no NonSerializedAttribute
+            // no ApiExplorerSettingsAttribute with IgnoreApi set to true
+            // no DataContractAttribute without DataMemberAttribute or EnumMemberAttribute
+            return jsonIgnore == null &&
+                   xmlIgnore == null &&
+                   ignoreDataMember == null &&
+                   nonSerialized == null &&
+                   (apiExplorerSetting == null || !apiExplorerSetting.IgnoreApi) &&
+                   (!hasDataContractAttribute || hasMemberAttribute);
+        }
+
+        private string CreateDefaultDocumentation(Type type)
+        {
+            string documentation;
+            if (DefaultTypeDocumentation.TryGetValue(type, out documentation))
+            {
+                return documentation;
+            }
+            if (DocumentationProvider != null)
+            {
+                documentation = DocumentationProvider.GetDocumentation(type);
+            }
+
+            return documentation;
+        }
+
+        private void GenerateAnnotations(MemberInfo property, ParameterDescription propertyModel)
+        {
+            var annotations = new List<ParameterAnnotation>();
+
+            var attributes = property.GetCustomAttributes();
+            foreach (var attribute in attributes)
+            {
+                Func<object, string> textGenerator;
+                if (AnnotationTextGenerator.TryGetValue(attribute.GetType(), out textGenerator))
+                {
+                    annotations.Add(
+                        new ParameterAnnotation
+                        {
+                            AnnotationAttribute = attribute,
+                            Documentation = textGenerator(attribute)
+                        });
+                }
+            }
+
+            // Rearrange the annotations
+            annotations.Sort((x, y) =>
+            {
+                // Special-case RequiredAttribute so that it shows up on top
+                if (x.AnnotationAttribute is RequiredAttribute)
+                {
+                    return -1;
+                }
+                if (y.AnnotationAttribute is RequiredAttribute)
+                {
+                    return 1;
+                }
+
+                // Sort the rest based on alphabetic order of the documentation
+                return string.Compare(x.Documentation, y.Documentation,
+                    StringComparison.OrdinalIgnoreCase);
+            });
+
+            foreach (var annotation in annotations)
+            {
+                propertyModel.Annotations.Add(annotation);
+            }
+        }
+
+        private CollectionModelDescription GenerateCollectionModelDescription(Type modelType,
+            Type elementType)
+        {
+            var collectionModelDescription = GetOrCreateModelDescription(elementType);
+            if (collectionModelDescription != null)
+            {
+                return new CollectionModelDescription
+                {
+                    Name = ModelNameHelper.GetModelName(modelType),
+                    ModelType = modelType,
+                    ElementDescription = collectionModelDescription
+                };
+            }
+
+            return null;
+        }
+
+        private ModelDescription GenerateComplexTypeModelDescription(Type modelType)
+        {
+            var complexModelDescription = new ComplexTypeModelDescription
+            {
+                Name = ModelNameHelper.GetModelName(modelType),
+                ModelType = modelType,
+                Documentation = CreateDefaultDocumentation(modelType)
+            };
+
+            GeneratedModels.Add(complexModelDescription.Name, complexModelDescription);
+            var hasDataContractAttribute = modelType.GetCustomAttribute<DataContractAttribute>() !=
+                                           null;
+            var properties = modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in properties)
+            {
+                if (ShouldDisplayMember(property, hasDataContractAttribute))
+                {
+                    var propertyModel = new ParameterDescription
+                    {
+                        Name = GetMemberName(property, hasDataContractAttribute)
+                    };
+
+                    if (DocumentationProvider != null)
+                    {
+                        propertyModel.Documentation =
+                            DocumentationProvider.GetDocumentation(property);
+                    }
+
+                    GenerateAnnotations(property, propertyModel);
+                    complexModelDescription.Properties.Add(propertyModel);
+                    propertyModel.TypeDescription =
+                        GetOrCreateModelDescription(property.PropertyType);
+                }
+            }
+
+            var fields = modelType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in fields)
+            {
+                if (ShouldDisplayMember(field, hasDataContractAttribute))
+                {
+                    var propertyModel = new ParameterDescription
+                    {
+                        Name = GetMemberName(field, hasDataContractAttribute)
+                    };
+
+                    if (DocumentationProvider != null)
+                    {
+                        propertyModel.Documentation = DocumentationProvider.GetDocumentation(field);
+                    }
+
+                    complexModelDescription.Properties.Add(propertyModel);
+                    propertyModel.TypeDescription = GetOrCreateModelDescription(field.FieldType);
+                }
+            }
+
+            return complexModelDescription;
+        }
+
+        private DictionaryModelDescription GenerateDictionaryModelDescription(Type modelType,
+            Type keyType, Type valueType)
+        {
+            var keyModelDescription = GetOrCreateModelDescription(keyType);
+            var valueModelDescription = GetOrCreateModelDescription(valueType);
+
+            return new DictionaryModelDescription
+            {
+                Name = ModelNameHelper.GetModelName(modelType),
+                ModelType = modelType,
+                KeyModelDescription = keyModelDescription,
+                ValueModelDescription = valueModelDescription
+            };
+        }
+
+        private EnumTypeModelDescription GenerateEnumTypeModelDescription(Type modelType)
+        {
+            var enumDescription = new EnumTypeModelDescription
+            {
+                Name = ModelNameHelper.GetModelName(modelType),
+                ModelType = modelType,
+                Documentation = CreateDefaultDocumentation(modelType)
+            };
+            var hasDataContractAttribute = modelType.GetCustomAttribute<DataContractAttribute>() !=
+                                           null;
+            foreach (var field in modelType.GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (ShouldDisplayMember(field, hasDataContractAttribute))
+                {
+                    var enumValue = new EnumValueDescription
+                    {
+                        Name = field.Name,
+                        Value = field.GetRawConstantValue().ToString()
+                    };
+                    if (DocumentationProvider != null)
+                    {
+                        enumValue.Documentation = DocumentationProvider.GetDocumentation(field);
+                    }
+                    enumDescription.Values.Add(enumValue);
+                }
+            }
+            GeneratedModels.Add(enumDescription.Name, enumDescription);
+
+            return enumDescription;
+        }
+
+        private KeyValuePairModelDescription GenerateKeyValuePairModelDescription(Type modelType,
+            Type keyType, Type valueType)
+        {
+            var keyModelDescription = GetOrCreateModelDescription(keyType);
+            var valueModelDescription = GetOrCreateModelDescription(valueType);
+
+            return new KeyValuePairModelDescription
+            {
+                Name = ModelNameHelper.GetModelName(modelType),
+                ModelType = modelType,
+                KeyModelDescription = keyModelDescription,
+                ValueModelDescription = valueModelDescription
+            };
+        }
+
+        private ModelDescription GenerateSimpleTypeModelDescription(Type modelType)
+        {
+            var simpleModelDescription = new SimpleTypeModelDescription
+            {
+                Name = ModelNameHelper.GetModelName(modelType),
+                ModelType = modelType,
+                Documentation = CreateDefaultDocumentation(modelType)
+            };
+            GeneratedModels.Add(simpleModelDescription.Name, simpleModelDescription);
+
+            return simpleModelDescription;
         }
     }
 }

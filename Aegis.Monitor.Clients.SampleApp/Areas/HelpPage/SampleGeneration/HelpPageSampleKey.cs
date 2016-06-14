@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -676,136 +676,166 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Net.Http.Headers;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage
 {
-    /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListClient
+    /// <summary>This is used to identify the place where the sample should be applied.</summary>
+    public class HelpPageSampleKey
     {
-
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        /// <summary>Creates a new <see cref="HelpPageSampleKey" /> based on media type.</summary>
+        /// <param name="mediaType">The media type.</param>
+        public HelpPageSampleKey(MediaTypeHeaderValue mediaType)
         {
-
-        }
-
-        private BlackListClient()
-        {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+            if (mediaType == null)
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                throw new ArgumentNullException("mediaType");
             }
-            set { _recurringTaskName = value; }
+
+            ActionName = string.Empty;
+            ControllerName = string.Empty;
+            MediaType = mediaType;
+            ParameterNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
+        ///     Creates a new <see cref="HelpPageSampleKey" /> based on media type and
+        ///     CLR type.
         /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        /// <param name="mediaType">The media type.</param>
+        /// <param name="type">The CLR type.</param>
+        public HelpPageSampleKey(MediaTypeHeaderValue mediaType, Type type)
+            : this(mediaType)
         {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            ParameterType = type;
         }
 
         /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
+        ///     Creates a new <see cref="HelpPageSampleKey" /> based on
+        ///     <see cref="SampleDirection" />, controller name, action name and parameter
+        ///     names.
         /// </summary>
-        public void ShutDown()
+        /// <param name="sampleDirection">The <see cref="SampleDirection" />.</param>
+        /// <param name="controllerName">Name of the controller.</param>
+        /// <param name="actionName">Name of the action.</param>
+        /// <param name="parameterNames">The parameter names.</param>
+        public HelpPageSampleKey(SampleDirection sampleDirection, string controllerName,
+            string actionName, IEnumerable<string> parameterNames)
         {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            if (!Enum.IsDefined(typeof(SampleDirection), sampleDirection))
+            {
+                throw new InvalidEnumArgumentException("sampleDirection", (int) sampleDirection,
+                    typeof(SampleDirection));
+            }
+            if (controllerName == null)
+            {
+                throw new ArgumentNullException("controllerName");
+            }
+            if (actionName == null)
+            {
+                throw new ArgumentNullException("actionName");
+            }
+            if (parameterNames == null)
+            {
+                throw new ArgumentNullException("parameterNames");
+            }
+
+            ControllerName = controllerName;
+            ActionName = actionName;
+            ParameterNames = new HashSet<string>(parameterNames, StringComparer.OrdinalIgnoreCase);
+            SampleDirection = sampleDirection;
+        }
+
+        /// <summary>
+        ///     Creates a new <see cref="HelpPageSampleKey" /> based on media type,
+        ///     <see cref="SampleDirection" />, controller name, action name and parameter
+        ///     names.
+        /// </summary>
+        /// <param name="mediaType">The media type.</param>
+        /// <param name="sampleDirection">The <see cref="SampleDirection" />.</param>
+        /// <param name="controllerName">Name of the controller.</param>
+        /// <param name="actionName">Name of the action.</param>
+        /// <param name="parameterNames">The parameter names.</param>
+        public HelpPageSampleKey(MediaTypeHeaderValue mediaType, SampleDirection sampleDirection,
+            string controllerName, string actionName, IEnumerable<string> parameterNames)
+            : this(sampleDirection, controllerName, actionName, parameterNames)
+        {
+            if (mediaType == null)
+            {
+                throw new ArgumentNullException("mediaType");
+            }
+
+            MediaType = mediaType;
+        }
+
+        /// <summary>Gets the name of the controller.</summary>
+        /// <value>The name of the controller.</value>
+        public string ControllerName { get; }
+
+        /// <summary>Gets the name of the action.</summary>
+        /// <value>The name of the action.</value>
+        public string ActionName { get; }
+
+        /// <summary>Gets the media type.</summary>
+        /// <value>The media type.</value>
+        public MediaTypeHeaderValue MediaType { get; }
+
+        /// <summary>Gets the parameter names.</summary>
+        public HashSet<string> ParameterNames { get; }
+
+        public Type ParameterType { get; }
+
+        /// <summary>Gets the <see cref="SampleDirection" />.</summary>
+        public SampleDirection? SampleDirection { get; }
+
+        public override bool Equals(object obj)
+        {
+            var otherKey = obj as HelpPageSampleKey;
+            if (otherKey == null)
+            {
+                return false;
+            }
+
+            return
+                string.Equals(ControllerName, otherKey.ControllerName,
+                    StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(ActionName, otherKey.ActionName, StringComparison.OrdinalIgnoreCase) &&
+                (MediaType == otherKey.MediaType ||
+                 (MediaType != null && MediaType.Equals(otherKey.MediaType))) &&
+                ParameterType == otherKey.ParameterType &&
+                SampleDirection == otherKey.SampleDirection &&
+                ParameterNames.SetEquals(otherKey.ParameterNames);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = ControllerName.ToUpperInvariant().GetHashCode() ^
+                           ActionName.ToUpperInvariant().GetHashCode();
+            if (MediaType != null)
+            {
+                hashCode ^= MediaType.GetHashCode();
+            }
+            if (SampleDirection != null)
+            {
+                hashCode ^= SampleDirection.GetHashCode();
+            }
+            if (ParameterType != null)
+            {
+                hashCode ^= ParameterType.GetHashCode();
+            }
+            foreach (var parameterName in ParameterNames)
+            {
+                hashCode ^= parameterName.ToUpperInvariant().GetHashCode();
+            }
+
+            return hashCode;
         }
     }
 }

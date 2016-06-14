@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -676,136 +676,42 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     This represents an image sample on the help page. There's a display
+    ///     template named ImageSample associated with this class.
     /// </summary>
-    public class BlackListClient
+    public class ImageSample
     {
-
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        /// <summary>Initializes a new instance of the <see cref="ImageSample" /> class.</summary>
+        /// <param name="src">The URL of an image.</param>
+        public ImageSample(string src)
         {
-
-        }
-
-        private BlackListClient()
-        {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+            if (src == null)
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                throw new ArgumentNullException("src");
             }
-            set { _recurringTaskName = value; }
+            Src = src;
         }
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
+        public string Src { get; }
 
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        public override bool Equals(object obj)
         {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
+            var other = obj as ImageSample;
+            return other != null && Src == other.Src;
         }
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
+        public override int GetHashCode()
         {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            return Src.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Src;
         }
     }
 }

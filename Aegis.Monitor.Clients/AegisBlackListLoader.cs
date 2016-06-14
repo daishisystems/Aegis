@@ -692,6 +692,8 @@ namespace Aegis.Monitor.Clients
     /// </summary>
     public class AegisBlackListLoader : BlackListLoader
     {
+        // ToDo: Inject<see cref="HTTPRequestMetadataValidator" />.
+
         /// <summary>
         ///     <see cref="BlackListLoader.Load" /> loads a collection of
         ///     <see cref="BlackListItem" />
@@ -716,7 +718,6 @@ namespace Aegis.Monitor.Clients
         ///         Throws a <see cref="HttpResponseException" /> if HTTP connectivity
         ///         problems exist between this instance and Aegis in the cloud.
         ///     </para>
-        ///     <para>ToDo: Inject <see cref="HTTPRequestMetadataValidator" />.</para>
         /// </remarks>
         public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
             HTTPClientFactory httpClientFactory)

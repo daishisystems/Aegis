@@ -675,137 +675,41 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace Aegis.Monitor.Clients
-{
-    /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListClient
-    {
+// General Information about an assembly is controlled through the following
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
+[assembly: AssemblyTitle("Aegis.Monitor.Clients.SampleApp")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Aegis.Monitor.Clients.SampleApp")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
-        static BlackListClient()
-        {
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
+// COM, set the ComVisible attribute to true on that type.
 
-        }
+[assembly: ComVisible(false)]
 
-        private BlackListClient()
-        {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
+// The following GUID is for the ID of the typelib if this project is exposed to COM
 
-        public static BlackListClient Instance { get; } = new BlackListClient();
+[assembly: Guid("598d1528-a745-4a0d-9e20-9f29c71dcbfc")]
 
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers
+// by using the '*' as shown below:
 
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
-            {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
-            }
-            set { _recurringTaskName = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
-        {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
-        }
-
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
-        }
-    }
-}
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

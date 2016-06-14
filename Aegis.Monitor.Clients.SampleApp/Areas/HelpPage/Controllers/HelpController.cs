@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -675,137 +675,63 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using System.Web.Http;
+using System.Web.Mvc;
+using Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.ModelDescriptions;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.SampleApp.Areas.HelpPage.Controllers
 {
-    /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListClient
+    /// <summary>The controller that will handle requests for the help page.</summary>
+    public class HelpController : Controller
     {
+        private const string ErrorViewName = "Error";
 
-        private volatile bool _hasStarted;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        public HelpController()
+            : this(GlobalConfiguration.Configuration)
         {
-
         }
 
-        private BlackListClient()
+        public HelpController(HttpConfiguration config)
         {
-            BlackList = new ConcurrentDictionary<string, BlackListItem>();
+            Configuration = config;
         }
 
-        public static BlackListClient Instance { get; } = new BlackListClient();
+        public HttpConfiguration Configuration { get; }
 
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
+        public ActionResult Index()
+        {
+            ViewBag.DocumentationProvider = Configuration.Services.GetDocumentationProvider();
+            return View(Configuration.Services.GetApiExplorer().ApiDescriptions);
+        }
 
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+        public ActionResult Api(string apiId)
+        {
+            if (!string.IsNullOrEmpty(apiId))
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                var apiModel = Configuration.GetHelpPageApiModel(apiId);
+                if (apiModel != null)
+                {
+                    return View(apiModel);
+                }
             }
-            set { _recurringTaskName = value; }
+
+            return View(ErrorViewName);
         }
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        public TimeSpan NonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        public ActionResult ResourceModel(string modelName)
         {
-            JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
-        }
+            if (!string.IsNullOrEmpty(modelName))
+            {
+                var modelDescriptionGenerator = Configuration.GetModelDescriptionGenerator();
+                ModelDescription modelDescription;
+                if (modelDescriptionGenerator.GeneratedModels.TryGetValue(modelName,
+                    out modelDescription))
+                {
+                    return View(modelDescription);
+                }
+            }
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            return View(ErrorViewName);
         }
     }
 }
