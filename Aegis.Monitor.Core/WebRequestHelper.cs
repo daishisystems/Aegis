@@ -677,72 +677,163 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Net;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
-    /// <summary>
-    ///     AegisEventCache is an in-memory cache that retains a collection of
-    ///     <see cref="AegisEvent" /> instances in a static capacity.
-    /// </summary>
-    /// <remarks>
-    ///     <para>AegisEventCache should be instantiated upon application-startup.</para>
-    ///     <para>
-    ///         Application pool recycling or hardware failure will result in loss of
-    ///         data. This is not a concern, as <see cref="AegisEvent" /> instances are
-    ///         not critical in terms of retaining application resilience; a certain
-    ///         degree of data-loss is acceptable.
-    ///     </para>
-    /// </remarks>
-    /// <threadsafety static="true" instance="false">
-    ///     <see cref="AegisEvent" /> instances are added in a thread-safe manner.
-    ///     <see cref="AegisEventPublisher" /> will execute at regular intervals,
-    ///     during which, AegisEventCache will be purged. This will not introduce
-    ///     mutually-exclusive locking related issues, as per
-    ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
-    ///     post.
-    /// </threadsafety>
-    public class AegisEventCache
+    public class WebRequestHelper
     {
-        /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private static readonly MemoryCache<AegisEvent> Events = new MemoryCache<AegisEvent>(1000000);
-
-        /// <summary>
-        ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
-        ///     cache.
-        /// </summary>
-        /// <param name="event">
-        ///     <see cref="@event" /> is an instance of
-        ///     <see cref="AegisEvent" />.
-        /// </param>
-        /// <remarks>
-        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
-        /// </remarks>
-        public static void Add(AegisEvent @event)
+        public static void SendToProxy(List<AegisEvent> items)
         {
-            Events.Add(@event);
+            if (items.Count == 0)
+            {
+                return;
+            }
+
+            var aegisProxyAddress = ConfigurationManager.AppSettings["AegisProxy"];
+            var proxyAddress = ConfigurationManager.AppSettings["Proxy"];
+
+            if (string.IsNullOrEmpty(aegisProxyAddress))
+            {
+                // TODO: Is this expected logic?
+                return;
+            }
+
+            var request = WebRequest.Create(aegisProxyAddress);
+            request.Method = "POST";
+
+            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+
+            var aegisPublishTimeoutMilliseconds = ConfigurationManager.AppSettings["AegisPublishTimeoutMilliseconds"];
+
+            if (!string.IsNullOrEmpty(aegisPublishTimeoutMilliseconds))
+            {
+                int timeout;
+                var canParse = int.TryParse(aegisPublishTimeoutMilliseconds, out timeout);
+
+                /* 
+                Approx. 1 second less than publish interval
+                to ensure that no overlap occurs, preventing 
+                multiple simultaneous threads running concurrently. 
+                */
+                request.Timeout = canParse ? timeout : 9000;
+            }
+            else
+            {
+                request.Timeout = 9000;
+            }
+
+            if (!string.IsNullOrEmpty(proxyAddress))
+            {
+                request.Proxy = new WebProxy(proxyAddress);
+            }
+
+            var postData = "=" + JsonConvert.SerializeObject(items);
+            var byteArray = Encoding.UTF8.GetBytes(postData);
+
+            request.ContentLength = byteArray.Length;
+            var dataStream = request.GetRequestStream();
+
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+
+            request.GetResponse();
         }
 
-        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
-        /// <param name="batchSize">
-        ///     <see cref="batchSize" /> determines the number of
-        ///     <see cref="AegisEvent" /> instances to publish per batch.
-        /// </param>
-        public static void Relay(int batchSize)
+        public static async void SendToNewRelicInsight(List<NewRelicInsightsAegisEvent> items)
         {
-            Events.Process(batchSize, OnPublish);
-        }
+            WebResponse response = null;
 
-        public static bool OnPublish(List<AegisEvent> items)
-        {
             try
             {
-                WebRequestHelper.SendToProxy(items);
-                return true;
+                string newRelicAccountID;
+
+                var newRelicAccountIDIsAvailable =
+                    AegisHelper.TryParseAppSetting("AegisNewRelicAccountID",
+                        out newRelicAccountID);
+
+                if (!newRelicAccountIDIsAvailable)
+                {
+                    return;
+                }
+
+                var newRelicURI =
+                    string.Concat(
+                        "https://insights-collector.newrelic.com/v1/accounts/",
+                        newRelicAccountID, "/events");
+
+                var request = WebRequest.Create(newRelicURI);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+
+                string proxyAddress;
+
+                var proxyAddressIsAvailable =
+                    AegisHelper.TryParseAppSetting("Proxy",
+                        out proxyAddress);
+
+                if (proxyAddressIsAvailable)
+                {
+                    request.Proxy = new WebProxy(proxyAddress);
+                }
+
+                string aegisNewRelicTimeoutMilliseconds;
+
+                var aegisNewRelicTimeoutMillisecondsIsAvailable =
+                    AegisHelper.TryParseAppSetting(
+                        "AegisNewRelicTimeoutMilliseconds",
+                        out aegisNewRelicTimeoutMilliseconds);
+
+                if (aegisNewRelicTimeoutMillisecondsIsAvailable)
+                {
+                    int timeout;
+
+                    var canParse =
+                        int.TryParse(
+                            aegisNewRelicTimeoutMilliseconds,
+                            out timeout);
+
+                    /* 
+                    Approx. 1 second less than publish interval
+                    to ensure that no overlap occurs, preventing 
+                    multiple simultaneous threads running concurrently. 
+                    */
+                    request.Timeout = canParse ? timeout : 4000;
+                }
+                else
+                {
+                    request.Timeout = 4000;
+                }
+
+                var postData = JsonConvert.SerializeObject(items);
+                var byteArray = Encoding.UTF8.GetBytes(postData);
+
+                string newRelicAPIKey;
+
+                var newRelicAPIKeyIsAvailable =
+                    AegisHelper.TryParseAppSetting("AegisNewRelicAPIKey",
+                        out newRelicAPIKey);
+
+                if (!newRelicAPIKeyIsAvailable) return;
+
+                var newRelicAPIKeyHeader = string.Concat("X-Insert-Key: ",
+                    newRelicAPIKey);
+
+                var headers = request.Headers;
+                headers.Add(newRelicAPIKeyHeader);
+
+                var dataStream = await request.GetRequestStreamAsync();
+                await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
+
+                dataStream.Close();
+                response = await request.GetResponseAsync();
             }
-            catch (Exception)
+            finally
             {
-                // failed silently and ignore for POC
-                return false;
+                response?.Close();
             }
         }
     }

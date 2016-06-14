@@ -676,74 +676,93 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Aegis.Monitor.Core
 {
-    /// <summary>
-    ///     AegisEventCache is an in-memory cache that retains a collection of
-    ///     <see cref="AegisEvent" /> instances in a static capacity.
-    /// </summary>
-    /// <remarks>
-    ///     <para>AegisEventCache should be instantiated upon application-startup.</para>
-    ///     <para>
-    ///         Application pool recycling or hardware failure will result in loss of
-    ///         data. This is not a concern, as <see cref="AegisEvent" /> instances are
-    ///         not critical in terms of retaining application resilience; a certain
-    ///         degree of data-loss is acceptable.
-    ///     </para>
-    /// </remarks>
-    /// <threadsafety static="true" instance="false">
-    ///     <see cref="AegisEvent" /> instances are added in a thread-safe manner.
-    ///     <see cref="AegisEventPublisher" /> will execute at regular intervals,
-    ///     during which, AegisEventCache will be purged. This will not introduce
-    ///     mutually-exclusive locking related issues, as per
-    ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
-    ///     post.
-    /// </threadsafety>
-    public class AegisEventCache
+    public class MemoryCache<T>
     {
-        /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private static readonly MemoryCache<AegisEvent> Events = new MemoryCache<AegisEvent>(1000000);
+        private readonly int countLimit;
+        private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
+        private readonly List<T> dataToProcess = new List<T>();
+        private readonly object lockProcess = new object();
+
+        public MemoryCache(int countLimit)
+        {
+            this.countLimit = countLimit;
+        }
 
         /// <summary>
-        ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
-        ///     cache.
+        /// Add new item to the cache. It's a non-blocking method.
         /// </summary>
-        /// <param name="event">
-        ///     <see cref="@event" /> is an instance of
-        ///     <see cref="AegisEvent" />.
-        /// </param>
-        /// <remarks>
-        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
-        /// </remarks>
-        public static void Add(AegisEvent @event)
+        /// <param name="item"></param>
+        /// <returns>true if queue max limit is reached otherwise false</returns>
+        public bool Add(T item)
         {
-            Events.Add(@event);
-        }
+            // add item to the queue
+            this.data.Enqueue(item);
 
-        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
-        /// <param name="batchSize">
-        ///     <see cref="batchSize" /> determines the number of
-        ///     <see cref="AegisEvent" /> instances to publish per batch.
-        /// </param>
-        public static void Relay(int batchSize)
-        {
-            Events.Process(batchSize, OnPublish);
-        }
-
-        public static bool OnPublish(List<AegisEvent> items)
-        {
-            try
+            // if queue is too big then remove an old item
+            if (this.data.Count > this.countLimit)
             {
-                WebRequestHelper.SendToProxy(items);
+                T itemRemoved;
+                this.data.TryDequeue(out itemRemoved);
                 return true;
             }
-            catch (Exception)
+
+            return false;
+        }
+
+        /// <summary>
+        /// Process cached data. This is lock-like method and only one publishing is allowed at the time.
+        /// Adding new items is never blocked.
+        /// </summary>
+        /// <param name="batchSize">Maximum number of items to process</param>
+        /// <param name="processorFunc">Function to process data</param>
+        /// <returns>Number of processed items</returns>
+        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
+        {
+            lock (this.lockProcess)
             {
-                // failed silently and ignore for POC
-                return false;
+                return this.DoProcess(batchSize, processorFunc);
             }
+        }
+
+        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
+        {
+            // add items to process
+            while (this.dataToProcess.Count < batchSize)
+            {
+                T item;
+                if (!this.data.TryDequeue(out item))
+                {
+                    break;
+                }
+
+                this.dataToProcess.Add(item);
+            }
+
+            // ignore empty set
+            if (this.dataToProcess.Count == 0)
+            {
+                return 0;
+            }
+
+            // take only first batchSize number of items to process
+            var batchItems = this.dataToProcess.Take(batchSize).ToList();
+
+            // process data
+            if (!processorFunc(batchItems))
+            {
+                // error in processing so do not remove items
+                return 0;
+            }
+
+            // process succeeded so remove items from the queue
+            this.dataToProcess.RemoveRange(0, batchItems.Count);
+            return batchItems.Count;
         }
     }
 }
