@@ -675,38 +675,30 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Generic;
 using System.Web.Http;
+using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients.SampleApp.Controllers
 {
     public class ValuesController : ApiController
     {
-        // GET api/values
-        public IEnumerable<string> Get()
+        [Route("validate/{ipAddress}")]
+        public string Get(string ipAddress)
         {
-            return new[] {"value1", "value2"};
-        }
+            ipAddress = ipAddress.Replace('_', '.');
 
-        // GET api/values/5
-        public string Get(int id)
-        {
-            return "value";
-        }
+            BlackListItem blackListItem;
 
-        // POST api/values
-        public void Post([FromBody] string value)
-        {
-        }
+            var ipAddressIsBlackListed = IPAddressValidator.IPAddressIsBlacklisted(
+                ipAddress,
+                BlackListClient.Instance.BlackList,
+                out blackListItem);
 
-        // PUT api/values/5
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        public void Delete(int id)
-        {
+            if (ipAddressIsBlackListed)
+            {
+                return ipAddress + " is black-listed.";
+            }
+            return ipAddress + " is not black-listed.";
         }
     }
 }
