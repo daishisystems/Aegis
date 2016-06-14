@@ -675,82 +675,50 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-using Aegis.Monitor.Core;
+using System.Web.Hosting;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     <see cref="GetBlackListJob" /> is a recurring task that continously polls
+    ///     Aegis for the most up-to-date black-list, and retains a copy of this
+    ///     black-list in memory.
     /// </summary>
-    public class BlackListClient
+    internal class GetBlackListJob : IJob, IRegisteredObject
     {
-        private readonly ConcurrentDictionary<string, BlackListItem> _blackList;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
+        private readonly object _lock = new object();
 
-        static BlackListClient()
-        {
-
-        }
-
-        private BlackListClient()
-        {
-            _blackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
+        private bool _shuttingDown;
 
         /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
+        ///     <see cref="Execute" /> invokes a process that returns the most up-to-date
+        ///     black-list from Aegis.
         /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
+        public void Execute()
+        {
+            lock (_lock)
             {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
+                if (_shuttingDown)
+                    return;
+
+                // Get black-list
             }
-            set { _recurringTaskName = value; }
         }
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
         {
-            JobManager.Initialize(new GetBlackListRegistry());
-        }
+            lock (_lock)
+            {
+                _shuttingDown = true;
+            }
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            JobManager.RemoveJob(RecurringTaskName);
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

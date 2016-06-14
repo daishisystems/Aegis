@@ -59,6 +59,7 @@
     <Compile Include="HTTPRequestMetadataTests.cs" />
     <Compile Include="BlackListManagerTests.cs" />
     <Compile Include="HTTPClientFactoryTests.cs" />
+    <Compile Include="BlackListClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aegis.Monitor.Clients\Aegis.Monitor.Clients.csproj">

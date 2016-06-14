@@ -675,82 +675,24 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-using Aegis.Monitor.Core;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
+    ///     initialises a recurring task that continously polls Aegis for the most
+    ///     up-to-date black-list
     /// </summary>
-    public class BlackListClient
+    internal class GetBlackListRegistry : Registry
     {
-        private readonly ConcurrentDictionary<string, BlackListItem> _blackList;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
+        public GetBlackListRegistry()
         {
-
-        }
-
-        private BlackListClient()
-        {
-            _blackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
-            {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
-            }
-            set { _recurringTaskName = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
-        }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
-        {
-            JobManager.Initialize(new GetBlackListRegistry());
-        }
-
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            JobManager.RemoveJob(RecurringTaskName);
+            Schedule<GetBlackListJob>()
+                .WithName(BlackListClient.Instance.RecurringTaskName)
+                .ToRunNow()
+                .AndEvery(BlackListClient.Instance.RecurringTaskInterval)
+                .Minutes();
         }
     }
 }
