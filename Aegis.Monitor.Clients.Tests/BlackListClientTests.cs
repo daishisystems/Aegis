@@ -675,82 +675,63 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-using Aegis.Monitor.Core;
-using FluentScheduler;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Clients
+namespace Aegis.Monitor.Clients.Tests
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     <see cref="BlackListClientTests" /> ensures that logic pertaining to
+    ///     <see cref="BlackListClient" /> instances is executed correctly.
     /// </summary>
-    public class BlackListClient
+    [TestClass]
+    public class BlackListClientTests
     {
-        private readonly ConcurrentDictionary<string, BlackListItem> _blackList;
-        private int _recurringTaskInterval;
-        private string _recurringTaskName;
-
-        static BlackListClient()
-        {
-
-        }
-
-        private BlackListClient()
-        {
-            _blackList = new ConcurrentDictionary<string, BlackListItem>();
-        }
-
-        public static BlackListClient Instance { get; } = new BlackListClient();
-
         /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
+        ///     <see cref="DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
+        ///     that a default <see cref="BlackListClient.RecurringTaskName" /> is
+        ///     assigned, if one is not provided.
         /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        public string RecurringTaskName {
-            get
-            {
-                return string.IsNullOrEmpty(_recurringTaskName)
-                    ? "GetBlackListJob"
-                    : _recurringTaskName;
-            }
-            set { _recurringTaskName = value; }
+        [TestMethod]
+        public void DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided()
+        {
+            Assert.AreEqual("GetBlackListJob", BlackListClient.Instance.RecurringTaskName);
         }
 
         /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
-        ///     executed.
+        ///     <see cref="DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
+        ///     ensures that a default <see cref="BlackListClient.RecurringTaskInterval" />
+        ///     is assigned, if one is not provided.
         /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
-            set { _recurringTaskInterval = value; }
+        [TestMethod]
+        public void DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
+        {
+            Assert.AreEqual(1, BlackListClient.Instance.RecurringTaskInterval);
         }
 
         /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
+        ///     <see cref="CustomRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
+        ///     that a custom <see cref="BlackListClient.RecurringTaskName" /> is assigned,
+        ///     when provided.
         /// </summary>
-        public void Initialise()
+        [TestMethod]
+        public void CustomRecurringTaskNameIsAssignedIfOneIsNotProvided()
         {
-            JobManager.Initialize(new GetBlackListRegistry());
+            BlackListClient.Instance.RecurringTaskName = "Custom";
+
+            Assert.AreEqual("Custom", BlackListClient.Instance.RecurringTaskName);
         }
 
         /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
-        ///     Aegis for the most up-to-date black-list.
+        ///     <see cref="CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
+        ///     ensures that a custom <see cref="BlackListClient.RecurringTaskInterval" />
+        ///     is assigned, when provided.
         /// </summary>
-        public void ShutDown()
+        [TestMethod]
+        public void CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
         {
-            JobManager.RemoveJob(RecurringTaskName);
+            BlackListClient.Instance.RecurringTaskInterval = 5;
+
+            Assert.AreEqual(5, BlackListClient.Instance.RecurringTaskInterval);
         }
     }
 }
