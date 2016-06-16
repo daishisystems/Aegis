@@ -694,6 +694,12 @@ namespace Aegis.Monitor.Clients
         public Uri URI { get; set; }
 
         /// <summary>
+        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
+        ///     <see cref="WebProxy" />.
+        /// </summary>
+        public bool UseWebProxy { get; set; }
+
+        /// <summary>
         ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
         ///     issuing HTTP requests.
         /// </summary>
@@ -704,19 +710,20 @@ namespace Aegis.Monitor.Clients
         public WebProxy WebProxy { get; set; }
 
         /// <summary>
-        ///     <see cref="Timeout" /> allows for a non-default HTTP request timeout.
+        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
+        ///     <see cref="NonDefaultTimeout" />.
+        /// </summary>
+        public bool UseNonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
+        ///     timeout.
         /// </summary>
         /// <remarks>
         ///     This feature is a crumple-zone, ensuring that failed, or slow internet
         ///     connectivity will not create a bottleneck in consuming systems.
         /// </remarks>
-        public TimeSpan Timeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     the <see cref="Timeout" /> property in this instance.
-        /// </summary>
-        public bool UseNonDefaultTimeout { get; set; } //ToDo: Test both combinations for validity.
+        public TimeSpan NonDefaultTimeout { get; set; }
 
         /// <summary>
         ///     <see cref="Empty" /> returns a non-initialised

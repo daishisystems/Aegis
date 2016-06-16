@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Aegis.Monitor.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -720,6 +721,23 @@ namespace Aegis.Monitor.Clients.Tests
         public void BlackListManagerCorrectlyLoadsDataFromActiveWebResource()
         {
             var blackList = BlackListManager.Load(new AegisBlackListLoader(),
+                new HTTPRequestMetadata
+                {
+                    URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
+                }, new HTTPClientFactory());
+
+            Assert.AreEqual(2, blackList.Count);
+        }
+
+        /// <summary>
+        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResourceAsync" />
+        ///     is the asynchronous equivalent of
+        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResource" />.
+        /// </summary>
+        [TestMethod]
+        public async Task BlackListManagerCorrectlyLoadsDataFromActiveWebResourceAsync()
+        {
+            var blackList = await BlackListManager.LoadAsync(new AegisBlackListLoader(),
                 new HTTPRequestMetadata
                 {
                     URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")

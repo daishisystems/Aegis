@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System.Collections.Concurrent;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients
@@ -713,6 +714,31 @@ namespace Aegis.Monitor.Clients
             var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
             foreach (var blackListItem in blackListLoader.Load(
+                httpRequestMetadata, httpClientFactory))
+            {
+                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+            }
+
+            return indexedBlackList;
+        }
+
+        /// <summary>
+        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
+        ///     <see cref="Load" />.
+        /// </summary>
+        /// <param name="blackListLoader">See <see cref="Load" />.</param>
+        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
+        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
+        /// <returns>An indexed <see cref="Task" /> of
+        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
+        ///     <see cref="BlackListItem" /> instances.</returns>
+        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
+            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory)
+        {
+            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
+
+            foreach (var blackListItem in await blackListLoader.LoadAsync(
                 httpRequestMetadata, httpClientFactory))
             {
                 indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);

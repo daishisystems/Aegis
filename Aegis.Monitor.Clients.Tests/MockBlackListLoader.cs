@@ -675,8 +675,10 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients.Tests
@@ -687,7 +689,6 @@ namespace Aegis.Monitor.Clients.Tests
     /// </summary>
     internal class MockBlackListLoader : BlackListLoader
     {
-
         /// <summary>
         ///     <see cref="BlackListLoader.Load" /> loads a collection of
         ///     <see cref="BlackListItem" />
@@ -721,6 +722,20 @@ namespace Aegis.Monitor.Clients.Tests
                     RawIPAddress = "10.0.0.2"
                 }
             };
+        }
+
+        /// <summary>
+        ///     <see cref="BlackListLoader.LoadAsync" /> is the asynchronous equivalent of
+        ///     <see cref="BlackListLoader.Load" />.
+        /// </summary>
+        /// <param name="httpRequestMetadata">See <see cref="BlackListLoader.Load" />.</param>
+        /// <param name="httpClientFactory">See <see cref="BlackListLoader.Load" />.</param>
+        /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
+        ///     instances.</returns>
+        public override Task<IEnumerable<BlackListItem>> LoadAsync(
+            HTTPRequestMetadata httpRequestMetadata, HTTPClientFactory httpClientFactory)
+        {
+            throw new NotImplementedException();
         }
     }
 }

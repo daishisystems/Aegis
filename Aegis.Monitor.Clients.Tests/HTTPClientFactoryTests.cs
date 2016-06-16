@@ -699,6 +699,7 @@ namespace Aegis.Monitor.Clients.Tests
         {
             var httpRequestMetadata = new HTTPRequestMetadata
             {
+                UseWebProxy = true,
                 WebProxy = new WebProxy(new Uri("http://localhost"))
             };
 
@@ -712,6 +713,25 @@ namespace Aegis.Monitor.Clients.Tests
         }
 
         /// <summary>
+        ///     <see cref="HTTPClientWithoutProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with no specified proxy
+        ///     server.
+        /// </summary>
+        [TestMethod]
+        public void HTTPClientWithoutProxyIsCreated()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata();
+
+            HttpClientHandler httpClientHandler;
+
+            var httpClientFactory = new HTTPClientFactory();
+            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.IsNull(httpClientHandler);
+            Assert.IsNotNull(httpRequestMetadata);
+        }
+
+        /// <summary>
         ///     <see cref="HTTPClientWithNonDefaultTimeoutIsCreated" /> ensures that a
         ///     <see cref="HttpClient" /> instance is created, with a non-default timeout.
         /// </summary>
@@ -721,7 +741,7 @@ namespace Aegis.Monitor.Clients.Tests
             var httpRequestMetadata = new HTTPRequestMetadata
             {
                 UseNonDefaultTimeout = true,
-                Timeout = new TimeSpan(0, 0, 5)
+                NonDefaultTimeout = new TimeSpan(0, 0, 5)
             };
 
             HttpClientHandler httpClientHandler;
@@ -729,7 +749,7 @@ namespace Aegis.Monitor.Clients.Tests
             var httpClientFactory = new HTTPClientFactory();
             var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
-            Assert.AreEqual(httpRequestMetadata.Timeout, httpClient.Timeout);
+            Assert.AreEqual(httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
         }
     }
 }

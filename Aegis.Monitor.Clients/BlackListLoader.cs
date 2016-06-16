@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Aegis.Monitor.Core;
 
 namespace Aegis.Monitor.Clients
@@ -702,6 +703,18 @@ namespace Aegis.Monitor.Clients
         /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
         public abstract IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
+            HTTPClientFactory httpClientFactory);
+
+        /// <summary>
+        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
+        ///     <see cref="Load" />.
+        /// </summary>
+        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
+        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
+        /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
+        ///     instances.</returns>
+        public abstract Task<IEnumerable<BlackListItem>> LoadAsync(
+            HTTPRequestMetadata httpRequestMetadata,
             HTTPClientFactory httpClientFactory);
     }
 }

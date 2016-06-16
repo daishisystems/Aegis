@@ -710,7 +710,7 @@ namespace Aegis.Monitor.Clients
         {
             HttpClient httpClient;
 
-            if (httpRequestMetadata.WebProxy != null)
+            if (httpRequestMetadata.UseWebProxy)
             {
                 httpClientHandler = new HttpClientHandler
                 {
@@ -727,7 +727,7 @@ namespace Aegis.Monitor.Clients
 
             if (httpRequestMetadata.UseNonDefaultTimeout)
             {
-                httpClient.Timeout = httpRequestMetadata.Timeout;
+                httpClient.Timeout = httpRequestMetadata.NonDefaultTimeout;
             }
 
             return httpClient;
