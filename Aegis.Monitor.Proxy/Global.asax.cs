@@ -30,7 +30,7 @@ namespace Aegis.Monitor.Proxy
             try
             {
                 // Start the recurring monitor task
-                TaskManager.Initialize(new NewRelicInsightsRegistry());
+                JobManager.Initialize(new NewRelicInsightsRegistry());
             }
             catch (Exception)
             {

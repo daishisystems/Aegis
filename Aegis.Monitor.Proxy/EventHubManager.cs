@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Microsoft.ServiceBus.Messaging;
 using Aegis.Monitor.Core;
+using Microsoft.ServiceBus.Messaging;
 
 namespace Aegis.Monitor.Proxy
 {
@@ -695,25 +695,26 @@ namespace Aegis.Monitor.Proxy
             new Lazy<EventHubManager>(() => new EventHubManager());
 
         public EventHubClient EventHubClient;
-        public static EventHubManager Instance => Lazy.Value;
 
         private EventHubManager()
         {
         }
 
+        public static EventHubManager Instance => Lazy.Value;
+
         public bool IsInitialized()
         {
-            return this.EventHubClient != null && this.EventHubClient.IsClosed == false;
+            return EventHubClient != null && EventHubClient.IsClosed == false;
         }
 
         /// <summary>
-        /// Initialize Hub connection only once. Unless connection is close then initialize it again.
-        /// 
-        /// Use singleton double-check pattern to minimize number of locks.
+        ///     Initialize Hub connection only once. Unless connection is close then
+        ///     initialize it again. Use singleton double-check pattern to minimize number
+        ///     of locks.
         /// </summary>
         public void Initialize()
         {
-            if (this.IsInitialized())
+            if (IsInitialized())
             {
                 return;
             }
@@ -721,12 +722,12 @@ namespace Aegis.Monitor.Proxy
             // we can lock on instance as this instance is already a singleton class
             lock (this)
             {
-                if (this.IsInitialized())
+                if (IsInitialized())
                 {
                     return;
                 }
 
-                this.DoInitialize();
+                DoInitialize();
             }
         }
 
@@ -740,17 +741,19 @@ namespace Aegis.Monitor.Proxy
                 throw new Exception("Event Hub AegisEventHubName could not be parsed.");
             }
 
-            if (!AegisHelper.TryParseAppSetting("AegisEventHubConnectionString", out eventHubConnectionString))
+            if (
+                !AegisHelper.TryParseAppSetting("AegisEventHubConnectionString",
+                    out eventHubConnectionString))
             {
                 throw new Exception("Event Hub AegisEventHubConnectionString could not be parsed.");
             }
 
             // initialize hub client
-            if (this.EventHubClient == null || this.EventHubClient.IsClosed)
+            if (EventHubClient == null || EventHubClient.IsClosed)
             {
-                this.EventHubClient = EventHubClient.CreateFromConnectionString(
-                        eventHubConnectionString,
-                        eventHubName);
+                EventHubClient = EventHubClient.CreateFromConnectionString(
+                    eventHubConnectionString,
+                    eventHubName);
             }
         }
     }

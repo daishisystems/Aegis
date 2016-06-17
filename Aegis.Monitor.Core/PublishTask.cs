@@ -690,7 +690,7 @@ namespace Aegis.Monitor.Core
     ///     <see cref="PublishTask" /> registers with the ASP.NET process to allow
     ///     graceful shutdown, and offers a wind-down time of up to 90 seconds.
     /// </remarks>
-    public class PublishTask : ITask, IRegisteredObject
+    public class PublishTask : IJob, IRegisteredObject
     {
 
         private readonly int _aegisCacheBatchSize;
@@ -717,22 +717,6 @@ namespace Aegis.Monitor.Core
             }
 
             HostingEnvironment.RegisterObject(this);
-        }
-
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
         }
 
         /// <summary>
@@ -762,6 +746,22 @@ namespace Aegis.Monitor.Core
                     // Fail silently and ignore errors for POC
                 }
             }
+        }
+
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
+        {
+            // Locking here will wait for the lock in Execute to be released until this code can continue.
+            lock (_lock)
+            {
+                _shuttingDown = true;
+            }
+
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

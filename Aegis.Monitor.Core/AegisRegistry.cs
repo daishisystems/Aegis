@@ -689,10 +689,11 @@ namespace Aegis.Monitor.Core
         public AegisRegistry()
         {
             // set default value
-            int interval = 10;
+            var interval = 10;
 
             // read interval from settings
-            var aegisPublishFrequencySeconds = ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
+            var aegisPublishFrequencySeconds =
+                ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
 
             if (!string.IsNullOrEmpty(aegisPublishFrequencySeconds))
             {
@@ -701,7 +702,7 @@ namespace Aegis.Monitor.Core
             }
 
             // start scheduler
-            this.Schedule<PublishTask>().ToRunNow().AndEvery(interval).Seconds();
+            Schedule<PublishTask>().ToRunNow().AndEvery(interval).Seconds();
         }
     }
 }

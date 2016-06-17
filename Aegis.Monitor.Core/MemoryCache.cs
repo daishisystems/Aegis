@@ -694,21 +694,19 @@ namespace Aegis.Monitor.Core
             this.countLimit = countLimit;
         }
 
-        /// <summary>
-        /// Add new item to the cache. It's a non-blocking method.
-        /// </summary>
+        /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
         /// <param name="item"></param>
         /// <returns>true if queue max limit is reached otherwise false</returns>
         public bool Add(T item)
         {
             // add item to the queue
-            this.data.Enqueue(item);
+            data.Enqueue(item);
 
             // if queue is too big then remove an old item
-            if (this.data.Count > this.countLimit)
+            if (data.Count > countLimit)
             {
                 T itemRemoved;
-                this.data.TryDequeue(out itemRemoved);
+                data.TryDequeue(out itemRemoved);
                 return true;
             }
 
@@ -716,42 +714,42 @@ namespace Aegis.Monitor.Core
         }
 
         /// <summary>
-        /// Process cached data. This is lock-like method and only one publishing is allowed at the time.
-        /// Adding new items is never blocked.
+        ///     Process cached data. This is lock-like method and only one publishing
+        ///     is allowed at the time. Adding new items is never blocked.
         /// </summary>
         /// <param name="batchSize">Maximum number of items to process</param>
         /// <param name="processorFunc">Function to process data</param>
         /// <returns>Number of processed items</returns>
         public int Process(int batchSize, Func<List<T>, bool> processorFunc)
         {
-            lock (this.lockProcess)
+            lock (lockProcess)
             {
-                return this.DoProcess(batchSize, processorFunc);
+                return DoProcess(batchSize, processorFunc);
             }
         }
 
         private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
         {
             // add items to process
-            while (this.dataToProcess.Count < batchSize)
+            while (dataToProcess.Count < batchSize)
             {
                 T item;
-                if (!this.data.TryDequeue(out item))
+                if (!data.TryDequeue(out item))
                 {
                     break;
                 }
 
-                this.dataToProcess.Add(item);
+                dataToProcess.Add(item);
             }
 
             // ignore empty set
-            if (this.dataToProcess.Count == 0)
+            if (dataToProcess.Count == 0)
             {
                 return 0;
             }
 
             // take only first batchSize number of items to process
-            var batchItems = this.dataToProcess.Take(batchSize).ToList();
+            var batchItems = dataToProcess.Take(batchSize).ToList();
 
             // process data
             if (!processorFunc(batchItems))
@@ -761,7 +759,7 @@ namespace Aegis.Monitor.Core
             }
 
             // process succeeded so remove items from the queue
-            this.dataToProcess.RemoveRange(0, batchItems.Count);
+            dataToProcess.RemoveRange(0, batchItems.Count);
             return batchItems.Count;
         }
     }

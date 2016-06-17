@@ -17,10 +17,8 @@ namespace Aegis.Monitor.Filter.Controllers
         ///     <see cref="countryName" />.
         /// </summary>
         /// <param name="countryName"></param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances that pertain to
-        ///     <see cref="countryName" />.
-        /// </returns>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances that pertain to
+        ///     <see cref="countryName" />.</returns>
         [Route("blacklist/{countryName}")]
         public IEnumerable<BlackListItem> GetBlackListByCountry(string countryName)
         {

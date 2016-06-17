@@ -675,7 +675,6 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
@@ -707,7 +706,8 @@ namespace Aegis.Monitor.Core
 
             request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
 
-            var aegisPublishTimeoutMilliseconds = ConfigurationManager.AppSettings["AegisPublishTimeoutMilliseconds"];
+            var aegisPublishTimeoutMilliseconds =
+                ConfigurationManager.AppSettings["AegisPublishTimeoutMilliseconds"];
 
             if (!string.IsNullOrEmpty(aegisPublishTimeoutMilliseconds))
             {

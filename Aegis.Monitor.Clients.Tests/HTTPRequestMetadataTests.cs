@@ -690,6 +690,24 @@ namespace Aegis.Monitor.Clients.Tests
     public class HTTPRequestMetadataTests
     {
         /// <summary>
+        ///     <see cref="HTTPRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
+        ///     uninstantiated <see cref="HTTPRequestMetadata" /> instances fail
+        ///     validation.
+        /// </summary>
+        [TestMethod]
+        public void HTTPRequestMetadataValidatorFailsOnNullMetadata()
+        {
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(null,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsNotNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
         ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
         ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
         ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
@@ -757,8 +775,7 @@ namespace Aegis.Monitor.Clients.Tests
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
-            Assert.IsInstanceOfType(httpRequestMetadataException,
-                typeof(HTTPRequestMetadataException));
+            Assert.IsNotNull(httpRequestMetadataException);
         }
 
         /// <summary>
