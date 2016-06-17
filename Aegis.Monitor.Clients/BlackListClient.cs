@@ -681,6 +681,8 @@ using System.Net;
 using Aegis.Monitor.Core;
 using FluentScheduler;
 
+// ToDo: Need to check a wider time-range - 24 hours, for example
+
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
@@ -747,6 +749,8 @@ namespace Aegis.Monitor.Clients
             get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 1; }
             set { _recurringTaskInterval = value; }
         }
+
+        // ToDo: replace with instance of HTTPRequestMetadata. Requires larger refactor.
 
         /// <summary>
         ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list

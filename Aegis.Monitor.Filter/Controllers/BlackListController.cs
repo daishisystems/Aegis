@@ -12,28 +12,43 @@ namespace Aegis.Monitor.Filter.Controllers
     public class BlackListController : ApiController
     {
         /// <summary>
-        ///     <see cref="GetBlackListByCountry" /> returns a collection of
-        ///     <see cref="BlackListItem" /> instances that pertain to
-        ///     <see cref="countryName" />.
+        ///     <see cref="GetBlackList" /> returns a collection of
+        ///     <see cref="BlackListItem" /> instances that pertain to each
+        ///     <see cref="country" />.
         /// </summary>
-        /// <param name="countryName"></param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances that pertain to
-        ///     <see cref="countryName" />.</returns>
-        [Route("blacklist/{countryName}")]
-        public IEnumerable<BlackListItem> GetBlackListByCountry(string countryName)
+        /// <param name="country">
+        ///     The country from which each
+        ///     <see cref="BlackListItem" /> originates.
+        /// </param>
+        /// <returns>
+        ///     A collection of <see cref="BlackListItem" /> instances that pertain to
+        ///     each <see cref="country" />.
+        /// </returns>
+        [Route("blacklist")]
+        public IEnumerable<BlackListItem> GetBlackList([FromUri] string[] country)
         {
-            List<BlackListItem> blackListItems;
+            var blackList = new List<BlackListItem>();
 
-            var blackListExists =
-                BlackList.Instance.BlackListsByCountry.TryGetValue(countryName.ToLowerInvariant(),
-                    out blackListItems);
+            foreach (var c in country)
+            {
+                List<BlackListItem> blackListItems;
 
-            if (!blackListExists)
+                var blackListExists =
+                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
+                        out blackListItems);
+
+                if (blackListExists)
+                {
+                    blackList.AddRange(blackListItems);
+                }
+            }
+
+            if (blackList.Count.Equals(0))
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound);
             }
 
-            return blackListItems;
+            return blackList;
         }
     }
 }
