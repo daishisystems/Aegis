@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Daishi.NewRelic.Insights, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Daishi.NewRelic.1.0.1\lib\net452\Daishi.NewRelic.Insights.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FluentScheduler, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b76503528a14ebd1, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentScheduler.4.1.1\lib\net40\FluentScheduler.dll</HintPath>
       <Private>True</Private>
@@ -68,6 +72,7 @@
   <ItemGroup>
     <Compile Include="AegisBlackListLoader.cs" />
     <Compile Include="BlackListClient.cs" />
+    <Compile Include="BlackListClientErrorNewRelicInsightsEvent.cs" />
     <Compile Include="BlackListLoader.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="GetBlackListJob.cs" />

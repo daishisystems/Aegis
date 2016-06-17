@@ -679,6 +679,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net;
 using Aegis.Monitor.Core;
+using Daishi.NewRelic.Insights;
 using FluentScheduler;
 
 // ToDo: Need to check a wider time-range - 24 hours, for example
@@ -706,6 +707,7 @@ namespace Aegis.Monitor.Clients
         private BlackListClient()
         {
             BlackList = new ConcurrentDictionary<string, BlackListItem>();
+            NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
         }
 
         public static BlackListClient Instance { get; } = new BlackListClient();
@@ -789,6 +791,13 @@ namespace Aegis.Monitor.Clients
         ///     connectivity will not create a bottleneck in consuming systems.
         /// </remarks>
         public TimeSpan NonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
+        ///     properties that pertain to a New Relic Insights event, as well as New Relic
+        ///     Insights connection-specific properties, such as URI, proxy, etc.
+        /// </summary>
+        public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
 
         /// <summary>
         ///     <see cref="Initialise" /> begins a recurring task that continously polls

@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Web.Hosting;
+using Daishi.NewRelic.Insights;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Clients
@@ -720,9 +721,42 @@ namespace Aegis.Monitor.Clients
                             httpRequestMetadata,
                             new HTTPClientFactory());
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
-                    // ToDo: swallow error in lieu of New Relic Insights Client. Final step.
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.AccountID =
+                        BlackListClient.Instance.NewRelicInsightsMetadata.AccountID;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.APIKey =
+                        BlackListClient.Instance.NewRelicInsightsMetadata.APIKey;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.NonDefaultTimeout =
+                        BlackListClient.Instance.NonDefaultTimeout;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseWebProxy =
+                        BlackListClient.Instance.UseWebProxy;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.WebProxy =
+                        BlackListClient.Instance.NewRelicInsightsMetadata.WebProxy;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.URI =
+                        BlackListClient.Instance.NewRelicInsightsMetadata.URI;
+
+                    var blackListClientErrorNewRelicInsightsEvent =
+                        new BlackListClientErrorNewRelicInsightsEvent
+                        {
+                            EventType = "AegisErrors",
+                            ComponentName = "Black-list load-job",
+                            ErrorMessage = exception.Message,
+                            InnerErrorMessage =
+                                exception.InnerException?.Message ?? string.Empty
+                        };
+
+                    try
+                    {
+                        NewRelicInsightsClient.UploadEvents(
+                            new[] {blackListClientErrorNewRelicInsightsEvent},
+                            new HttpClientFactory(),
+                            NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
+                    }
+                    catch (Exception)
+                    {
+                        // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                    }
                 }
             }
         }
