@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AegisEventHub.cs" />
     <Compile Include="AegisHelper.cs" />
     <Compile Include="AegisEvent.cs" />
     <Compile Include="AegisEventCache.cs" />
