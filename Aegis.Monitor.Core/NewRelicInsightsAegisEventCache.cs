@@ -676,11 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace Aegis.Monitor.Core
 {
@@ -692,8 +688,8 @@ namespace Aegis.Monitor.Core
     /// </summary>
     public static class NewRelicInsightsAegisEventCache
     {
-        private static readonly MemoryCache<NewRelicInsightsAegisEvent> Events = 
-                                    new MemoryCache<NewRelicInsightsAegisEvent>(1000000);
+        private static readonly MemoryCache<NewRelicInsightsAegisEvent> Events =
+            new MemoryCache<NewRelicInsightsAegisEvent>(1000000);
 
         /// <summary>Add enqueues a <see cref="NewRelicInsightsAegisEvent" /> to the cache.</summary>
         /// <param name="event">The <see cref="NewRelicInsightsAegisEvent" /> to enqueue.</param>
@@ -717,7 +713,7 @@ namespace Aegis.Monitor.Core
         ///     <see cref="int.MaxValue" /> ensures that the entire cache is drained.
         ///     <para>This method should not be 'async void'.</para>
         /// </remarks>
-        public static async void Publish(int batchSize)
+        public static void Publish(int batchSize)
         {
             Events.Process(batchSize, OnPublish);
         }

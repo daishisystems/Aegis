@@ -689,7 +689,7 @@ namespace Aegis.Monitor.Core
     ///     <see cref="NewRelicInsightsTask" /> registers with the ASP.NET process to
     ///     allow graceful shutdown, and offers a wind-down time of up to 90 seconds.
     /// </remarks>
-    public class NewRelicInsightsTask : ITask, IRegisteredObject
+    public class NewRelicInsightsTask : IJob, IRegisteredObject
     {
 
         private readonly int _batchSize;
@@ -736,22 +736,6 @@ namespace Aegis.Monitor.Core
             HostingEnvironment.RegisterObject(this);
         }
 
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
-        }
-
         /// <summary>
         ///     <see cref="Execute" /> runs at regular intervals, invoking
         ///     <see cref="AegisEventCache.Publish" /> to persist a batch of
@@ -779,6 +763,22 @@ namespace Aegis.Monitor.Core
                     // Fail silently and ignore errors until a fallback solution exists.
                 }
             }
+        }
+
+        /// <summary>Requests a registered object to unregister.</summary>
+        /// <param name="immediate">
+        ///     true to indicate the registered object should
+        ///     unregister from the hosting environment before returning; otherwise, false.
+        /// </param>
+        public void Stop(bool immediate)
+        {
+            // Locking here will wait for the lock in Execute to be released until this code can continue.
+            lock (_lock)
+            {
+                _shuttingDown = true;
+            }
+
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

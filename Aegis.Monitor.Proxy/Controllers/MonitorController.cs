@@ -713,7 +713,7 @@ namespace Aegis.Monitor.Proxy.Controllers
         /// </summary>
         public MonitorController()
         {
-            this.partitionKeys = new[]
+            partitionKeys = new[]
             {
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
@@ -721,8 +721,8 @@ namespace Aegis.Monitor.Proxy.Controllers
                 Guid.NewGuid().ToString()
             };
 
-            this.random = new Random();
-            this.stopwatch = new Stopwatch();
+            random = new Random();
+            stopwatch = new Stopwatch();
         }
 
         /// <summary>
@@ -753,16 +753,18 @@ namespace Aegis.Monitor.Proxy.Controllers
         public HttpResponseMessage Post([FromBody] string value)
         {
             IEnumerable<AegisEventHub> events;
-            this.stopwatch.Start();
+            stopwatch.Start();
 
             // deserialise incoming events and convert to the new data structure
             try
             {
-                events = JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value).Select(x => new AegisEventHub(x));
+                events =
+                    JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value)
+                        .Select(x => new AegisEventHub(x));
             }
             catch (Exception e)
             {
-                this.ReportError("Deserialise Events", e.Message, e.InnerException?.Message);
+                ReportError("Deserialise Events", e.Message, e.InnerException?.Message);
 
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
             }
@@ -774,7 +776,7 @@ namespace Aegis.Monitor.Proxy.Controllers
             }
             catch (Exception e)
             {
-                this.ReportError("Event Hub initialization", e.Message, e.InnerException?.Message);
+                ReportError("Event Hub initialization", e.Message, e.InnerException?.Message);
 
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -782,7 +784,7 @@ namespace Aegis.Monitor.Proxy.Controllers
             // publish events
             try
             {
-                var partitionKey = this.partitionKeys[this.random.Next(0, 4)];
+                var partitionKey = partitionKeys[random.Next(0, 4)];
 
                 var batch =
                     events.Select(
@@ -796,7 +798,7 @@ namespace Aegis.Monitor.Proxy.Controllers
 
                 EventHubManager.Instance.EventHubClient.SendBatch(batch);
 
-                this.stopwatch.Stop();
+                stopwatch.Stop();
 
                 //NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
                 //{
@@ -812,23 +814,24 @@ namespace Aegis.Monitor.Proxy.Controllers
             }
             catch (Exception e)
             {
-                this.ReportError("Publish Events", e.Message, e.InnerException?.Message);
+                ReportError("Publish Events", e.Message, e.InnerException?.Message);
 
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
 
-        private void ReportError(string eventName, string errorMessage, string innerErrorMessage = null)
+        private void ReportError(string eventName, string errorMessage,
+            string innerErrorMessage = null)
         {
-            this.stopwatch.Stop();
+            stopwatch.Stop();
 
             NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
             {
                 EventType = "Aegis",
                 EventName = eventName,
                 Source = "Aegis Proxy",
-                Duration = this.stopwatch.ElapsedMilliseconds,
-                HTTPStatusCode = (int)HttpStatusCode.InternalServerError,
+                Duration = stopwatch.ElapsedMilliseconds,
+                HTTPStatusCode = (int) HttpStatusCode.InternalServerError,
                 Success = false,
                 ErrorMessage = errorMessage,
                 InnerErrorMessage = innerErrorMessage

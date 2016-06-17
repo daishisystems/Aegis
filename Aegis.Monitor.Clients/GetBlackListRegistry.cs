@@ -682,7 +682,7 @@ namespace Aegis.Monitor.Clients
     /// <summary>
     ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
     ///     initialises a recurring task that continously polls Aegis for the most
-    ///     up-to-date black-list
+    ///     up-to-date black-list.
     /// </summary>
     internal class GetBlackListRegistry : Registry
     {

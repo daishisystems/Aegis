@@ -684,6 +684,7 @@ namespace Aegis.Monitor.Clients
     ///     <see cref="HTTPRequestMetadata" /> is malformed, invalid, partially, or
     ///     entirely omitted.
     /// </summary>
+    [Serializable]
     public class HTTPRequestMetadataException : Exception
     {
         public HTTPRequestMetadataException()
