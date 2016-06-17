@@ -752,13 +752,13 @@ namespace Aegis.Monitor.Proxy.Controllers
         /// </remarks>
         public HttpResponseMessage Post([FromBody] string value)
         {
-            IEnumerable<AegisEvent> events;
+            IEnumerable<AegisEventHub> events;
             this.stopwatch.Start();
 
-            // deserialise incoming events
+            // deserialise incoming events and convert to the new data structure
             try
             {
-                events = JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value);
+                events = JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value).Select(x => new AegisEventHub(x));
             }
             catch (Exception e)
             {

@@ -675,169 +675,85 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Net;
-using System.Text;
-using Newtonsoft.Json;
-
 namespace Aegis.Monitor.Core
 {
-    public class WebRequestHelper
+    using System.Linq;
+
+    /// <summary>
+    ///     AegisEventHub represents a simple structure that is designed to encapsulate
+    ///     metadata. It extends AegisEvent data with more fields.
+    /// 
+    ///     It is send from the Proxy to the Azure Hub.
+    /// </summary>
+    public class AegisEventHub
     {
-        public static void SendToProxy(List<AegisEvent> items)
+        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        public string IPAddress { get; set; }
+
+        /// <summary>IPAddress is a 3-segment IP address.</summary>
+        public string IPAddressShort { get; set; }
+
+        /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        public string Path { get; set; }
+
+        /// <summary>Time is a string-based translation of the event time.</summary>
+        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
+        public string Time { get; set; }
+
+        /// <summary>
+        /// Accepted languages in HTTP request
+        /// </summary>
+        public string HttpAcceptLanguage { get; set; }
+
+        /// <summary>
+        /// User-agent in HTTP request
+        /// </summary>
+        public string HttpUserAgent { get; set; }
+
+        /// <summary>
+        /// Flight date in
+        /// </summary>
+        public string DateIn { get; set; }
+
+        /// <summary>
+        /// Flight date out
+        /// </summary>
+        public string DateOut { get; set; }
+
+        /// <summary>
+        /// Flight origin
+        /// </summary>
+        public string Origin { get; set; }
+
+        /// <summary>
+        /// Flight destination
+        /// </summary>
+        public string Destination { get; set; }
+
+        /// <summary>
+        /// Convert AegisEvent to AegisEventHub data structure
+        /// </summary>
+        /// <param name="evnt"></param>
+        public AegisEventHub(AegisEvent evnt)
         {
-            if (items.Count == 0)
-            {
-                return;
-            }
+            // explicit assignment for full data control
+            this.IPAddress = evnt.IPAddress;
+            this.Path = evnt.Path;
+            this.Time = evnt.Time;
+            this.HttpAcceptLanguage = evnt.HttpAcceptLanguage;
+            this.HttpUserAgent = evnt.HttpUserAgent;
+            this.DateIn = evnt.DateIn;
+            this.DateOut = evnt.DateOut;
+            this.Origin = evnt.Origin;
+            this.Destination = evnt.Destination;
 
-            var aegisProxyAddress = ConfigurationManager.AppSettings["AegisProxy"];
-            var proxyAddress = ConfigurationManager.AppSettings["Proxy"];
-
-            if (string.IsNullOrEmpty(aegisProxyAddress))
-            {
-                // TODO: Is this expected logic?
-                return;
-            }
-
-            var request = WebRequest.Create(aegisProxyAddress);
-            request.Method = "POST";
-
-            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
-
-            var aegisPublishTimeoutMilliseconds = ConfigurationManager.AppSettings["AegisPublishTimeoutMilliseconds"];
-
-            if (!string.IsNullOrEmpty(aegisPublishTimeoutMilliseconds))
-            {
-                int timeout;
-                var canParse = int.TryParse(aegisPublishTimeoutMilliseconds, out timeout);
-
-                /* 
-                Approx. 1 second less than publish interval
-                to ensure that no overlap occurs, preventing 
-                multiple simultaneous threads running concurrently. 
-                */
-                request.Timeout = canParse ? timeout : 9000;
-            }
-            else
-            {
-                request.Timeout = 9000;
-            }
-
-            if (!string.IsNullOrEmpty(proxyAddress))
-            {
-                request.Proxy = new WebProxy(proxyAddress);
-            }
-
-            var itemsJson = JsonConvert.SerializeObject(
-                items,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            var postData = "=" + itemsJson;
-            var byteArray = Encoding.UTF8.GetBytes(postData);
-
-            request.ContentLength = byteArray.Length;
-            var dataStream = request.GetRequestStream();
-
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            dataStream.Close();
-
-            request.GetResponse();
+            // compute additional fields
+            this.IPAddressShort = string.Join(".", this.IPAddress.Split(new[] { '.' }).Take(3));
         }
 
-        public static async void SendToNewRelicInsight(List<NewRelicInsightsAegisEvent> items)
+        public override string ToString()
         {
-            WebResponse response = null;
-
-            try
-            {
-                string newRelicAccountID;
-
-                var newRelicAccountIDIsAvailable =
-                    AegisHelper.TryParseAppSetting("AegisNewRelicAccountID",
-                        out newRelicAccountID);
-
-                if (!newRelicAccountIDIsAvailable)
-                {
-                    return;
-                }
-
-                var newRelicURI =
-                    string.Concat(
-                        "https://insights-collector.newrelic.com/v1/accounts/",
-                        newRelicAccountID, "/events");
-
-                var request = WebRequest.Create(newRelicURI);
-                request.Method = "POST";
-                request.ContentType = "application/json";
-
-                string proxyAddress;
-
-                var proxyAddressIsAvailable =
-                    AegisHelper.TryParseAppSetting("Proxy",
-                        out proxyAddress);
-
-                if (proxyAddressIsAvailable)
-                {
-                    request.Proxy = new WebProxy(proxyAddress);
-                }
-
-                string aegisNewRelicTimeoutMilliseconds;
-
-                var aegisNewRelicTimeoutMillisecondsIsAvailable =
-                    AegisHelper.TryParseAppSetting(
-                        "AegisNewRelicTimeoutMilliseconds",
-                        out aegisNewRelicTimeoutMilliseconds);
-
-                if (aegisNewRelicTimeoutMillisecondsIsAvailable)
-                {
-                    int timeout;
-
-                    var canParse =
-                        int.TryParse(
-                            aegisNewRelicTimeoutMilliseconds,
-                            out timeout);
-
-                    /* 
-                    Approx. 1 second less than publish interval
-                    to ensure that no overlap occurs, preventing 
-                    multiple simultaneous threads running concurrently. 
-                    */
-                    request.Timeout = canParse ? timeout : 4000;
-                }
-                else
-                {
-                    request.Timeout = 4000;
-                }
-
-                var postData = JsonConvert.SerializeObject(items);
-                var byteArray = Encoding.UTF8.GetBytes(postData);
-
-                string newRelicAPIKey;
-
-                var newRelicAPIKeyIsAvailable =
-                    AegisHelper.TryParseAppSetting("AegisNewRelicAPIKey",
-                        out newRelicAPIKey);
-
-                if (!newRelicAPIKeyIsAvailable) return;
-
-                var newRelicAPIKeyHeader = string.Concat("X-Insert-Key: ",
-                    newRelicAPIKey);
-
-                var headers = request.Headers;
-                headers.Add(newRelicAPIKeyHeader);
-
-                var dataStream = await request.GetRequestStreamAsync();
-                await dataStream.WriteAsync(byteArray, 0, byteArray.Length);
-
-                dataStream.Close();
-                response = await request.GetResponseAsync();
-            }
-            finally
-            {
-                response?.Close();
-            }
+            return $"IP address:   {this.IPAddress}";
         }
     }
 }
