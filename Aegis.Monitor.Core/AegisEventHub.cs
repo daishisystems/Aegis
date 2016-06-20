@@ -675,18 +675,38 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Linq;
+
 namespace Aegis.Monitor.Core
 {
-    using System.Linq;
 
     /// <summary>
-    ///     AegisEventHub represents a simple structure that is designed to encapsulate
-    ///     metadata. It extends AegisEvent data with more fields.
-    /// 
-    ///     It is send from the Proxy to the Azure Hub.
+    ///     AegisEventHub represents a simple structure that is designed to
+    ///     encapsulate metadata. It extends AegisEvent data with more fields. It is
+    ///     send from the Proxy to the Azure Hub.
     /// </summary>
     public class AegisEventHub
     {
+
+        /// <summary>Convert AegisEvent to AegisEventHub data structure</summary>
+        /// <param name="evnt"></param>
+        public AegisEventHub(AegisEvent evnt)
+        {
+            // explicit assignment for full data control
+            IPAddress = evnt.IPAddress;
+            Path = evnt.Path;
+            Time = evnt.Time;
+            HttpAcceptLanguage = evnt.HttpAcceptLanguage;
+            HttpUserAgent = evnt.HttpUserAgent;
+            DateIn = evnt.DateIn;
+            DateOut = evnt.DateOut;
+            Origin = evnt.Origin;
+            Destination = evnt.Destination;
+
+            // compute additional fields
+            IPAddressShort = string.Join(".", IPAddress.Split('.').Take(3));
+        }
+
         /// <summary>IPAddress is a standard 4-segment IP address.</summary>
         public string IPAddress { get; set; }
 
@@ -700,60 +720,27 @@ namespace Aegis.Monitor.Core
         /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
         public string Time { get; set; }
 
-        /// <summary>
-        /// Accepted languages in HTTP request
-        /// </summary>
+        /// <summary>Accepted languages in HTTP request</summary>
         public string HttpAcceptLanguage { get; set; }
 
-        /// <summary>
-        /// User-agent in HTTP request
-        /// </summary>
+        /// <summary>User-agent in HTTP request</summary>
         public string HttpUserAgent { get; set; }
 
-        /// <summary>
-        /// Flight date in
-        /// </summary>
+        /// <summary>Flight date in</summary>
         public string DateIn { get; set; }
 
-        /// <summary>
-        /// Flight date out
-        /// </summary>
+        /// <summary>Flight date out</summary>
         public string DateOut { get; set; }
 
-        /// <summary>
-        /// Flight origin
-        /// </summary>
+        /// <summary>Flight origin</summary>
         public string Origin { get; set; }
 
-        /// <summary>
-        /// Flight destination
-        /// </summary>
+        /// <summary>Flight destination</summary>
         public string Destination { get; set; }
-
-        /// <summary>
-        /// Convert AegisEvent to AegisEventHub data structure
-        /// </summary>
-        /// <param name="evnt"></param>
-        public AegisEventHub(AegisEvent evnt)
-        {
-            // explicit assignment for full data control
-            this.IPAddress = evnt.IPAddress;
-            this.Path = evnt.Path;
-            this.Time = evnt.Time;
-            this.HttpAcceptLanguage = evnt.HttpAcceptLanguage;
-            this.HttpUserAgent = evnt.HttpUserAgent;
-            this.DateIn = evnt.DateIn;
-            this.DateOut = evnt.DateOut;
-            this.Origin = evnt.Origin;
-            this.Destination = evnt.Destination;
-
-            // compute additional fields
-            this.IPAddressShort = string.Join(".", this.IPAddress.Split(new[] { '.' }).Take(3));
-        }
 
         public override string ToString()
         {
-            return $"IP address:   {this.IPAddress}";
+            return $"IP address:   {IPAddress}";
         }
     }
 }

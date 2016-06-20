@@ -733,7 +733,7 @@ namespace Aegis.Monitor.Core
 
             var itemsJson = JsonConvert.SerializeObject(
                 items,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
             var postData = "=" + itemsJson;
             var byteArray = Encoding.UTF8.GetBytes(postData);
 

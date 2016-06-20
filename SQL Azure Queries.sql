@@ -149,3 +149,13 @@ ORDER BY TotalNumHits DESC;
 
 SELECT '[' + LowerIPAddress + ']', '[' + UpperIPAddress + ']'
 FROM dbo.WhiteList;
+
+-----
+/* Ensure that whitelist ranges are correct in format */
+
+SELECT COUNT(*)
+FROM dbo.WhiteList
+WHERE LowerIPAddress LIKE '% '
+OR LowerIPAddress LIKE ' %'
+OR UpperIPAddress LIKE '% '
+OR UpperIPAddress LIKE ' %';

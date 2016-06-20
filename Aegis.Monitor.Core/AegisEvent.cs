@@ -698,34 +698,22 @@ namespace Aegis.Monitor.Core
         /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
         public string Time { get; set; }
 
-        /// <summary>
-        /// Accepted languages in HTTP request
-        /// </summary>
+        /// <summary>Accepted languages in HTTP request</summary>
         public string HttpAcceptLanguage { get; set; }
 
-        /// <summary>
-        /// User-agent in HTTP request
-        /// </summary>
+        /// <summary>User-agent in HTTP request</summary>
         public string HttpUserAgent { get; set; }
 
-        /// <summary>
-        /// Flight date in
-        /// </summary>
+        /// <summary>Flight date in</summary>
         public string DateIn { get; set; }
 
-        /// <summary>
-        /// Flight date out
-        /// </summary>
+        /// <summary>Flight date out</summary>
         public string DateOut { get; set; }
 
-        /// <summary>
-        /// Flight origin
-        /// </summary>
+        /// <summary>Flight origin</summary>
         public string Origin { get; set; }
 
-        /// <summary>
-        /// Flight destination
-        /// </summary>
+        /// <summary>Flight destination</summary>
         public string Destination { get; set; }
 
         public override string ToString()
