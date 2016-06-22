@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Core", "Aegis.Monitor.Core\Aegis.Monitor.Core.csproj", "{687A614F-0265-4726-A494-7EE358C111B8}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients", "Aegis.Monitor.Clients\Aegis.Monitor.Clients.csproj", "{62F6C3B5-C2C6-4425-A615-D26CCA2AA6EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients.Tests", "Aegis.Monitor.Clients.Tests\Aegis.Monitor.Clients.Tests.csproj", "{AA848544-258D-4B0B-A18A-0994B2324D31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Phobos", "Phobos\Phobos.csproj", "{14320DB4-B1B1-45B7-9EE8-13A761354992}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA848544-258D-4B0B-A18A-0994B2324D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
