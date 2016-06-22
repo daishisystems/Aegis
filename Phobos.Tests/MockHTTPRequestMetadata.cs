@@ -675,78 +675,78 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-
-namespace Phobos
+namespace Phobos.Tests
 {
-    /// <summary>
-    ///     <para>
-    ///         <see cref="HttpRequestMetadataCache" /> is a Singleton that provides
-    ///         functionality to:
-    ///     </para>
-    ///     <para>1. Upload <see cref="HttpRequestMetadata" /> to Aegis, on-the-fly.</para>
-    ///     <para>2. Cache <see cref="HttpRequestMetadata" /> instances.</para>
-    ///     <para>
-    ///         3. Batch-upload cached <see cref="HttpRequestMetadata" /> instances
-    ///         to Aegis.
-    ///     </para>
-    ///     <para>
-    ///         4. Engage in a handshake process with Aegis, in order to guarantee
-    ///         both connectivity to Aegis, and metadata integrity on receipt by Aegis.
-    ///     </para>
-    /// </summary>
-    public class HttpRequestMetadataCache
+    /// <summary>Mock <see cref="HttpRequestMetadata" />, for testing.</summary>
+    internal class MockHttpRequestMetadata : HttpRequestMetadata
     {
-        static HttpRequestMetadataCache()
-        {
-
-        }
-
-        private HttpRequestMetadataCache()
-        {
-            Cache = new ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>>();
-        }
-
-        public static HttpRequestMetadataCache Instance { get; } = new HttpRequestMetadataCache();
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.IPAddress" /> is a <see cref="string" />
+        ///     -based representation of an IP address.
+        /// </summary>
+        /// <remarks><see cref="string" />-format is used to effect serialisation.</remarks>
+        public string IPAddress { get; set; }
 
         /// <summary>
-        ///     <see cref="Cache" /> is the underlying cache, in which
-        ///     <see cref="HttpRequestMetadata" /> instances are grouped.
+        ///     <see cref="HttpRequestMetadata.Timestamp" /> is a timestamp pertaining to
+        ///     the moment in time when the <see cref="HttpRequestMetadata" /> is parsed.
         /// </summary>
-        public ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>> Cache { get; set; }
+        /// <remarks>It is recommended to leverage ISO 8601 time-format.</remarks>
+        public string Timestamp { get; set; }
 
         /// <summary>
-        ///     <see cref="AddHTTPRequestMetadata" /> adds
-        ///     <see cref="httpRequestMetadata" /> to the underlying cache.
+        ///     <see cref="HttpRequestMetadata.AbsolutePath" /> is the full path of the
+        ///     HTTP request, excluding query parameters.
         /// </summary>
-        /// <param name="cacheName">
-        ///     <see cref="cacheName" /> is the name of the underlying cache to which
-        ///     <see cref="httpRequestMetadata" /> is to be added.
-        /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     <see cref="httpRequestMetadata" /> is the
-        ///     <see cref="HttpRequestMetadata" /> instance to be added to the underlying
-        ///     cache.
-        /// </param>
-        /// <remarks>
-        ///     <para>
-        ///         <see cref="cacheName" /> generally refers to the friendly name
-        ///         pertaining to a specific HTTP endpoint, that
-        ///         <see cref="HttpRequestMetadata" /> instances are to be grouped.
-        ///     </para>
-        /// </remarks>
-        public void AddHTTPRequestMetadata(string cacheName, HttpRequestMetadata httpRequestMetadata)
-        {
-            ConcurrentQueue<HttpRequestMetadata> cache;
-            var cacheExists = Cache.TryGetValue(cacheName, out cache);
+        public string AbsolutePath { get; set; }
 
-            if (!cacheExists)
-            {
-                cache = new ConcurrentQueue<HttpRequestMetadata>();
-                Cache.TryAdd(cacheName, cache);
-            }
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.PathAndQuery" /> is the full path of the
+        ///     HTTP request, including query parameters.
+        /// </summary>
+        public string PathAndQuery { get; set; }
 
-            cache.Enqueue(httpRequestMetadata);
-        }
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.AcceptHeader" /> is the Accept HTTP header.
+        /// </summary>
+        public string AcceptHeader { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.AcceptEncoding" /> is the Accept-Encoding
+        ///     HTTP header.
+        /// </summary>
+        public string AcceptEncoding { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.AcceptLanguage" /> is the Accept-Language
+        ///     HTTP header.
+        /// </summary>
+        public string AcceptLanguage { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.Connection" /> is the Connection HTTP
+        ///     header.
+        /// </summary>
+        public string Connection { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.Host" /> is the Host HTTP header.
+        /// </summary>
+        public string Host { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.Origin" /> is the Origin HTTP header.
+        /// </summary>
+        public string Origin { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.Referer" /> is the Referer HTTP header.
+        /// </summary>
+        public string Referer { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestMetadata.UserAgent" /> is the User-Agent HTTP header.
+        /// </summary>
+        public string UserAgent { get; set; }
     }
 }

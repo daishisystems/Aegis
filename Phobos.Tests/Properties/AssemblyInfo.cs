@@ -675,78 +675,42 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace Phobos
-{
-    /// <summary>
-    ///     <para>
-    ///         <see cref="HttpRequestMetadataCache" /> is a Singleton that provides
-    ///         functionality to:
-    ///     </para>
-    ///     <para>1. Upload <see cref="HttpRequestMetadata" /> to Aegis, on-the-fly.</para>
-    ///     <para>2. Cache <see cref="HttpRequestMetadata" /> instances.</para>
-    ///     <para>
-    ///         3. Batch-upload cached <see cref="HttpRequestMetadata" /> instances
-    ///         to Aegis.
-    ///     </para>
-    ///     <para>
-    ///         4. Engage in a handshake process with Aegis, in order to guarantee
-    ///         both connectivity to Aegis, and metadata integrity on receipt by Aegis.
-    ///     </para>
-    /// </summary>
-    public class HttpRequestMetadataCache
-    {
-        static HttpRequestMetadataCache()
-        {
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 
-        }
+[assembly: AssemblyTitle("Phobos.Tests")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Phobos.Tests")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
-        private HttpRequestMetadataCache()
-        {
-            Cache = new ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>>();
-        }
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
 
-        public static HttpRequestMetadataCache Instance { get; } = new HttpRequestMetadataCache();
+[assembly: ComVisible(false)]
 
-        /// <summary>
-        ///     <see cref="Cache" /> is the underlying cache, in which
-        ///     <see cref="HttpRequestMetadata" /> instances are grouped.
-        /// </summary>
-        public ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>> Cache { get; set; }
+// The following GUID is for the ID of the typelib if this project is exposed to COM
 
-        /// <summary>
-        ///     <see cref="AddHTTPRequestMetadata" /> adds
-        ///     <see cref="httpRequestMetadata" /> to the underlying cache.
-        /// </summary>
-        /// <param name="cacheName">
-        ///     <see cref="cacheName" /> is the name of the underlying cache to which
-        ///     <see cref="httpRequestMetadata" /> is to be added.
-        /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     <see cref="httpRequestMetadata" /> is the
-        ///     <see cref="HttpRequestMetadata" /> instance to be added to the underlying
-        ///     cache.
-        /// </param>
-        /// <remarks>
-        ///     <para>
-        ///         <see cref="cacheName" /> generally refers to the friendly name
-        ///         pertaining to a specific HTTP endpoint, that
-        ///         <see cref="HttpRequestMetadata" /> instances are to be grouped.
-        ///     </para>
-        /// </remarks>
-        public void AddHTTPRequestMetadata(string cacheName, HttpRequestMetadata httpRequestMetadata)
-        {
-            ConcurrentQueue<HttpRequestMetadata> cache;
-            var cacheExists = Cache.TryGetValue(cacheName, out cache);
+[assembly: Guid("7e4ac889-b39a-4dee-b687-9ea3ba108f71")]
 
-            if (!cacheExists)
-            {
-                cache = new ConcurrentQueue<HttpRequestMetadata>();
-                Cache.TryAdd(cacheName, cache);
-            }
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
 
-            cache.Enqueue(httpRequestMetadata);
-        }
-    }
-}
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

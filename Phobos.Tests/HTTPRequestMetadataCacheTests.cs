@@ -676,77 +676,53 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Concurrent;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Phobos
+namespace Phobos.Tests
 {
     /// <summary>
-    ///     <para>
-    ///         <see cref="HttpRequestMetadataCache" /> is a Singleton that provides
-    ///         functionality to:
-    ///     </para>
-    ///     <para>1. Upload <see cref="HttpRequestMetadata" /> to Aegis, on-the-fly.</para>
-    ///     <para>2. Cache <see cref="HttpRequestMetadata" /> instances.</para>
-    ///     <para>
-    ///         3. Batch-upload cached <see cref="HttpRequestMetadata" /> instances
-    ///         to Aegis.
-    ///     </para>
-    ///     <para>
-    ///         4. Engage in a handshake process with Aegis, in order to guarantee
-    ///         both connectivity to Aegis, and metadata integrity on receipt by Aegis.
-    ///     </para>
+    ///     <see cref="HTTPRequestMetadataCacheTests" /> ensures that logic pertaining
+    ///     to <see cref="HttpRequestMetadataCache" /> instances is executed correctly.
     /// </summary>
-    public class HttpRequestMetadataCache
+    [TestClass]
+    public class HTTPRequestMetadataCacheTests
     {
-        static HttpRequestMetadataCache()
+        /// <summary>
+        ///     <see cref="HTTPRequestMetadataIsAddedToExistingCache" /> ensures that a
+        ///     <see cref="HttpRequestMetadata" /> instance is added to an existing cache.
+        /// </summary>
+        [TestMethod]
+        public void HTTPRequestMetadataIsAddedToExistingCache()
         {
+            var cache = new ConcurrentQueue<HttpRequestMetadata>();
 
+            HttpRequestMetadataCache.Instance.Cache.TryAdd("TEST", cache);
+
+            HttpRequestMetadataCache.Instance.AddHTTPRequestMetadata("TEST", new MockHttpRequestMetadata());
+
+            Assert.AreEqual(1, cache.Count);
         }
 
-        private HttpRequestMetadataCache()
-        {
-            Cache = new ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>>();
-        }
-
-        public static HttpRequestMetadataCache Instance { get; } = new HttpRequestMetadataCache();
-
         /// <summary>
-        ///     <see cref="Cache" /> is the underlying cache, in which
-        ///     <see cref="HttpRequestMetadata" /> instances are grouped.
+        ///     <see cref="HTTPRequestMetadataIsAddedToExistingCache" /> ensures that a
+        ///     <see cref="HttpRequestMetadata" /> instance is added to a new cache.
         /// </summary>
-        public ConcurrentDictionary<string, ConcurrentQueue<HttpRequestMetadata>> Cache { get; set; }
-
-        /// <summary>
-        ///     <see cref="AddHTTPRequestMetadata" /> adds
-        ///     <see cref="httpRequestMetadata" /> to the underlying cache.
-        /// </summary>
-        /// <param name="cacheName">
-        ///     <see cref="cacheName" /> is the name of the underlying cache to which
-        ///     <see cref="httpRequestMetadata" /> is to be added.
-        /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     <see cref="httpRequestMetadata" /> is the
-        ///     <see cref="HttpRequestMetadata" /> instance to be added to the underlying
-        ///     cache.
-        /// </param>
-        /// <remarks>
-        ///     <para>
-        ///         <see cref="cacheName" /> generally refers to the friendly name
-        ///         pertaining to a specific HTTP endpoint, that
-        ///         <see cref="HttpRequestMetadata" /> instances are to be grouped.
-        ///     </para>
-        /// </remarks>
-        public void AddHTTPRequestMetadata(string cacheName, HttpRequestMetadata httpRequestMetadata)
+        [TestMethod]
+        public void HTTPRequestMetadataIsAddedToNewCache()
         {
+            HttpRequestMetadataCache.Instance.AddHTTPRequestMetadata("TEST", new MockHttpRequestMetadata());
+
             ConcurrentQueue<HttpRequestMetadata> cache;
-            var cacheExists = Cache.TryGetValue(cacheName, out cache);
+            var cacheExists = HttpRequestMetadataCache.Instance.Cache.TryGetValue("TEST", out cache);
 
-            if (!cacheExists)
-            {
-                cache = new ConcurrentQueue<HttpRequestMetadata>();
-                Cache.TryAdd(cacheName, cache);
-            }
+            Assert.IsTrue(cacheExists);
+            Assert.AreEqual(1, cache.Count);
+        }
 
-            cache.Enqueue(httpRequestMetadata);
+        [TestCleanup]
+        public void ClearCache()
+        {
+            HttpRequestMetadataCache.Instance.Cache.Clear();
         }
     }
 }

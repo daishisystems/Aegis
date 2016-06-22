@@ -674,14 +674,15 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 namespace Phobos
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> is a template that defines the minimal
+    ///     <see cref="HttpRequestMetadata" /> is a template that defines the minimal
     ///     required fundamental properties of HTTP request metadata necessary for
     ///     Aegis processing.
     /// </summary>
-    public interface HTTPRequestMetadata
+    public interface HttpRequestMetadata
     {
         /// <summary>
         ///     <see cref="IPAddress" /> is a <see cref="string" />-based representation of
@@ -692,7 +693,7 @@ namespace Phobos
 
         /// <summary>
         ///     <see cref="Timestamp" /> is a timestamp pertaining to the moment in time
-        ///     when the <see cref="HTTPRequestMetadata" /> is parsed.
+        ///     when the <see cref="HttpRequestMetadata" /> is parsed.
         /// </summary>
         /// <remarks>It is recommended to leverage ISO 8601 time-format.</remarks>
         string Timestamp { get; set; }

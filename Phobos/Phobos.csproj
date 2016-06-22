@@ -40,8 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HTTPRequestMetadata.cs" />
-    <Compile Include="HTTPRequestMetadataCache.cs" />
+    <Compile Include="HttpRequestMetadata.cs" />
+    <Compile Include="HttpRequestMetadataCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

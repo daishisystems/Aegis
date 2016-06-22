@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Clients.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Phobos", "Phobos\Phobos.csproj", "{14320DB4-B1B1-45B7-9EE8-13A761354992}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Phobos.Tests", "Phobos.Tests\Phobos.Tests.csproj", "{7E4AC889-B39A-4DEE-B687-9EA3BA108F71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14320DB4-B1B1-45B7-9EE8-13A761354992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E4AC889-B39A-4DEE-B687-9EA3BA108F71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E4AC889-B39A-4DEE-B687-9EA3BA108F71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E4AC889-B39A-4DEE-B687-9EA3BA108F71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E4AC889-B39A-4DEE-B687-9EA3BA108F71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
