@@ -683,11 +683,10 @@ using Daishi.NewRelic.Insights;
 using FluentScheduler;
 
 // ToDo: Need to check a wider time-range - 24 hours, for example
-
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continously
+    ///     <see cref="BlackListClient" /> is a Singleton instance that continuously
     ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
     ///     black-list in memory, providing a thread-safe collection of black-list
     ///     metadata for query.
