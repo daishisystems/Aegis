@@ -9,7 +9,7 @@ namespace Aegis.Monitor.Clients
     ///     describes an error event that occurs during a
     ///     <see cref="BlackListClient" /> operation.
     /// </summary>
-    internal class BlackListClientErrorNewRelicInsightsEvent : NewRelicInsightsEvent
+    public class BlackListClientErrorNewRelicInsightsEvent : NewRelicInsightsEvent
     {
         /// <summary>
         ///     <see cref="ApplicationName" /> is the name of the application from which
@@ -47,7 +47,38 @@ namespace Aegis.Monitor.Clients
         public int UnixTimeStamp
             => (int) DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
 
+        /// <summary>
+        ///     <see cref="MachineName" /> is the name of the underlying server, upon which
+        ///     the application is running.
+        /// </summary>
+        [JilDirective(Name = "machineName")]
+        public string MachineName => GetMachineName(() => Environment.MachineName);
+
         [JilDirective(Name = "eventType")]
         public string EventType { get; set; }
+
+        /// <summary>
+        ///     <see cref="GetMachineName" /> returns the name of the underlying server,
+        ///     upon which the application is running.
+        /// </summary>
+        /// <param name="getMachineName">
+        ///     A function that returns the name of the underlying
+        ///     server, upon which the application is running.
+        /// </param>
+        /// <returns>
+        ///     The name of the underlying server, upon which the application is
+        ///     running.
+        /// </returns>
+        public static string GetMachineName(Func<string> getMachineName)
+        {
+            try
+            {
+                return getMachineName();
+            }
+            catch (Exception)
+            {
+                return "UNKNOWN";
+            }
+        }
     }
 }
