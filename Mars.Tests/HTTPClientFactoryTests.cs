@@ -674,63 +674,81 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-
+using System;
+using System.Net;
 using System.Net.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Clients
+namespace Mars.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPClientFactory" /> creates an instance of
-    ///     <see cref="HttpClient" />, based on an instance of
-    ///     <see cref="HTTPRequestMetadata" />.
+    ///     <see cref="HTTPClientFactoryTests" /> ensures that logic pertaining to
+    ///     <see cref="HTTPClientFactory" /> executes correctly.
     /// </summary>
-    public class HTTPClientFactory
+    [TestClass]
+    public class HTTPClientFactoryTests
     {
         /// <summary>
-        ///     <see cref="Create" /> creates an instance of
-        ///     <see cref="HttpClient" />, based on an instance of
-        ///     <see cref="HTTPRequestMetadata" />.
+        ///     <see cref="HTTPClientWithProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with the specified proxy
+        ///     server.
         /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" /> used
-        ///     to create a <see cref="HttpClient" /> instance.
-        /// </param>
-        /// <param name="httpClientHandler">
-        ///     The <see cref="HttpClientHandler" /> that acts
-        ///     as an intermediary between <see cref="HttpClient" /> and
-        ///     <see cref="HTTPRequestMetadata" />, during creation of a
-        ///     <see cref="HttpClient" /> instance.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpClient" />, based on
-        ///     <see cref="httpRequestMetadata" />.
-        /// </returns>
-        public HttpClient Create(HTTPRequestMetadata httpRequestMetadata,
-            out HttpClientHandler httpClientHandler)
+        [TestMethod]
+        public void HTTPClientWithProxyIsCreated()
         {
-            HttpClient httpClient;
-
-            if (httpRequestMetadata.UseWebProxy)
+            var httpRequestMetadata = new HTTPRequestMetadata
             {
-                httpClientHandler = new HttpClientHandler
-                {
-                    UseProxy = true,
-                    Proxy = httpRequestMetadata.WebProxy
-                };
-                httpClient = new HttpClient(httpClientHandler);
-            }
-            else
-            {
-                httpClientHandler = null;
-                httpClient = new HttpClient();
-            }
+                UseWebProxy = true,
+                WebProxy = new WebProxy(new Uri("http://localhost"))
+            };
 
-            if (httpRequestMetadata.UseNonDefaultTimeout)
-            {
-                httpClient.Timeout = httpRequestMetadata.NonDefaultTimeout;
-            }
+            HttpClientHandler httpClientHandler;
 
-            return httpClient;
+            var httpClientFactory = new HTTPClientFactory();
+            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.IsTrue(httpClientHandler.UseProxy);
+            Assert.AreEqual(httpRequestMetadata.WebProxy, httpClientHandler.Proxy);
+        }
+
+        /// <summary>
+        ///     <see cref="HTTPClientWithoutProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with no specified proxy
+        ///     server.
+        /// </summary>
+        [TestMethod]
+        public void HTTPClientWithoutProxyIsCreated()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata();
+
+            HttpClientHandler httpClientHandler;
+
+            var httpClientFactory = new HTTPClientFactory();
+            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.IsNull(httpClientHandler);
+            Assert.IsNotNull(httpRequestMetadata);
+        }
+
+        /// <summary>
+        ///     <see cref="HTTPClientWithNonDefaultTimeoutIsCreated" /> ensures that a
+        ///     <see cref="HttpClient" /> instance is created, with a non-default timeout.
+        /// </summary>
+        [TestMethod]
+        public void HTTPClientWithNonDefaultTimeoutIsCreated()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
+            {
+                UseNonDefaultTimeout = true,
+                NonDefaultTimeout = new TimeSpan(0, 0, 5)
+            };
+
+            HttpClientHandler httpClientHandler;
+            var httpClientFactory = new HTTPClientFactory();
+
+            var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
+
+            Assert.AreEqual(httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
         }
     }
 }

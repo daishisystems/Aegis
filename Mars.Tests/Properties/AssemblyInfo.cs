@@ -674,163 +674,42 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-using System;
-using System.Net;
-using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 
-namespace Aegis.Monitor.Clients.Tests
-{
-    /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
-    /// </summary>
-    [TestClass]
-    public class HTTPRequestMetadataTests
-    {
-        /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
-        ///     uninstantiated <see cref="HTTPRequestMetadata" /> instances fail
-        ///     validation.
-        /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnNullMetadata()
-        {
-            HTTPRequestMetadataException httpRequestMetadataException;
+[assembly: AssemblyTitle("Mars.Tests")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Mars.Tests")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(null,
-                    out httpRequestMetadataException);
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
-            Assert.IsNotNull(httpRequestMetadataException);
-        }
+[assembly: ComVisible(false)]
 
-        /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
-        /// </summary>
-        [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+// The following GUID is for the ID of the typelib if this project is exposed to COM
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+[assembly: Guid("dd6666b4-84bb-430c-b936-00a5f748d9db")]
 
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
 
-            Assert.IsFalse(httpRequestMetadataIsValid);
-        }
-
-        /// <summary>
-        ///     <see cref="WebProxyIsSetWhenUseProxyIsSpecified" /> ensures that a a valid
-        ///     <see cref="WebProxy" /> is instantiated when the
-        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> property is <c>true</c>.
-        /// </summary>
-        [TestMethod]
-        public void WebProxyIsSetWhenUseProxyIsSpecified()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                URI = new Uri("http://localhost"),
-                UseWebProxy = true,
-                WebProxy = new WebProxy()
-            };
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsTrue(httpRequestMetadataIsValid);
-            Assert.IsNull(httpRequestMetadataException);
-        }
-
-        /// <summary>
-        ///     <see cref="NullWebProxyReturnsExceptionWhenUseProxyIsSpecified" /> ensures
-        ///     that a
-        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
-        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
-        ///     <see cref="HTTPRequestMetadata.WebProxy" />, when
-        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> is <c>true</c>.
-        /// </summary>
-        [TestMethod]
-        public void NullWebProxyReturnsExceptionWhenUseProxyIsSpecified()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                URI = new Uri("http://localhost"),
-                UseWebProxy = true
-            };
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsFalse(httpRequestMetadataIsValid);
-            Assert.IsNotNull(httpRequestMetadataException);
-        }
-
-        /// <summary>
-        ///     <see cref="TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified" /> ensures that
-        ///     a a valid
-        ///     <see cref="TimeSpan" /> is instantiated when the
-        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> property is
-        ///     <c>true</c>.
-        /// </summary>
-        [TestMethod]
-        public void TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                URI = new Uri("http://localhost"),
-                UseNonDefaultTimeout = true,
-                NonDefaultTimeout = new TimeSpan(0, 0, 5)
-            };
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsTrue(httpRequestMetadataIsValid);
-            Assert.IsNull(httpRequestMetadataException);
-        }
-
-        /// <summary>
-        ///     <see cref="ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified" />
-        ///     ensures that a
-        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
-        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
-        ///     <see cref="Timeout" />, when
-        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> is <c>true</c>.
-        /// </summary>
-        [TestMethod]
-        public void ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                URI = new Uri("http://localhost"),
-                UseNonDefaultTimeout = true
-            };
-
-            HTTPRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            Assert.IsFalse(httpRequestMetadataIsValid);
-            Assert.IsInstanceOfType(httpRequestMetadataException,
-                typeof(HTTPRequestMetadataException));
-        }
-    }
-}
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

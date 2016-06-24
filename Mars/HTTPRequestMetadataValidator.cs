@@ -674,78 +674,76 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System;
 
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Monitor.Core;
-using Mars;
-
-namespace Aegis.Monitor.Clients
+namespace Mars
 {
     /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
+    ///     <see cref="HTTPRequestMetadataValidator" /> validates and instance of
+    ///     <see cref="HTTPRequestMetadata" />, ensuring that relevant properties are
+    ///     instantiated correctly.
     /// </summary>
-    public static class BlackListManager
+    public static class HTTPRequestMetadataValidator
     {
         /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
+        ///     <see cref="TryValidate" /> ensures that <see cref="httpRequestMetadata" />
+        ///     is instantiated correctly. If any <see cref="HTTPRequestMetadata" />
+        ///     properties are not instantiated correctly, the method returns <c>false</c>,
+        ///     and outputs a <see cref="HTTPRequestMetadataException" />.
         /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     instance to validate.
         /// </param>
-        /// <param name="httpRequestMetadata"></param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
+        /// <param name="httpRequestMetadataException">
+        ///     A
+        ///     <see cref="HTTPRequestMetadataException" />, returned if any
+        ///     <see cref="HTTPRequestMetadata" /> properties are not instantiated
+        ///     correctly
         /// </param>
         /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
+        ///     <c>True</c> if all <see cref="httpRequestMetadata" /> properties are
+        ///     instantiated correctly.
         /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public static bool TryValidate(HTTPRequestMetadata httpRequestMetadata,
+            out HTTPRequestMetadataException httpRequestMetadataException)
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
+            httpRequestMetadataException = null;
 
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
+            if (httpRequestMetadata == null)
             {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException("No HTTP request metadata specified.");
+
+                return false;
             }
 
-            return indexedBlackList;
-        }
-
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
-        {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
+            if (httpRequestMetadata.URI == null)
             {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+                httpRequestMetadataException = new HTTPRequestMetadataException("No URI specified.");
+
+                return false;
             }
 
-            return indexedBlackList;
+            if (httpRequestMetadata.UseWebProxy && httpRequestMetadata.WebProxy == null)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException("UseProxy is true, but no proxy is specified.");
+
+                return false;
+            }
+
+            if (httpRequestMetadata.UseNonDefaultTimeout &&
+                httpRequestMetadata.NonDefaultTimeout == TimeSpan.Zero)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException(
+                        "UseNonDefaultTimeout is true, but no timeout is specified.");
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

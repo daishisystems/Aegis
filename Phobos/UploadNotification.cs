@@ -676,80 +676,54 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Net;
-using System.Net.Http;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Clients.Tests
+namespace Phobos
 {
     /// <summary>
-    ///     <see cref="HTTPClientFactoryTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPClientFactory" /> executes correctly.
+    ///     <see cref="UploadNotification" /> is a template that contains properties
+    ///     which describe an upcoming Aegis metadata-upload.
     /// </summary>
-    [TestClass]
-    public class HTTPClientFactoryTests
+    /// <remarks>
+    ///     Generally describes an upcoming upload of
+    ///     <see cref="HttpRequestMetadata" /> instances.
+    /// </remarks>
+    public class UploadNotification
     {
         /// <summary>
-        ///     <see cref="HTTPClientWithProxyIsCreated" /> ensures that a
-        ///     <see cref="HttpClient" /> instance is created, with the specified proxy
-        ///     server.
+        ///     <see cref="UploadID" /> is a metadata-upload unique identifier.
         /// </summary>
-        [TestMethod]
-        public void HTTPClientWithProxyIsCreated()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                UseWebProxy = true,
-                WebProxy = new WebProxy(new Uri("http://localhost"))
-            };
-
-            HttpClientHandler httpClientHandler;
-
-            var httpClientFactory = new HTTPClientFactory();
-            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
-
-            Assert.IsTrue(httpClientHandler.UseProxy);
-            Assert.AreEqual(httpRequestMetadata.WebProxy, httpClientHandler.Proxy);
-        }
+        /// <remarks>It is recommenced to use a new <see cref="Guid" />.</remarks>
+        public string UploadID { get; set; }
 
         /// <summary>
-        ///     <see cref="HTTPClientWithoutProxyIsCreated" /> ensures that a
-        ///     <see cref="HttpClient" /> instance is created, with no specified proxy
-        ///     server.
+        ///     <see cref="ItemCount" /> is the total number of items that will be
+        ///     uploaded.
         /// </summary>
-        [TestMethod]
-        public void HTTPClientWithoutProxyIsCreated()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata();
-
-            HttpClientHandler httpClientHandler;
-
-            var httpClientFactory = new HTTPClientFactory();
-            httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
-
-            Assert.IsNull(httpClientHandler);
-            Assert.IsNotNull(httpRequestMetadata);
-        }
+        /// <remarks>
+        ///     Generally describes the number of <see cref="HttpRequestMetadata" />
+        ///     instances to be uploaded.
+        /// </remarks>
+        public int ItemCount { get; set; }
 
         /// <summary>
-        ///     <see cref="HTTPClientWithNonDefaultTimeoutIsCreated" /> ensures that a
-        ///     <see cref="HttpClient" /> instance is created, with a non-default timeout.
+        ///     <see cref="EndpointName" /> is the friendly name of the endpoint from which
+        ///     each upload item was parsed.
         /// </summary>
-        [TestMethod]
-        public void HTTPClientWithNonDefaultTimeoutIsCreated()
-        {
-            var httpRequestMetadata = new HTTPRequestMetadata
-            {
-                UseNonDefaultTimeout = true,
-                NonDefaultTimeout = new TimeSpan(0, 0, 5)
-            };
+        /// <remarks>E.g., 'availability', 'index', etc.</remarks>
+        public string EndpointName { get; set; }
 
-            HttpClientHandler httpClientHandler;
+        /// <summary>
+        ///     <see cref="Timestamp" /> is the time that this
+        ///     <see cref="UploadNotification" /> was instantiated.
+        /// </summary>
+        /// <remarks>It is recommended to leverage ISO 8601 time-format.</remarks>
+        public string Timestamp { get; set; }
 
-            var httpClientFactory = new HTTPClientFactory();
-            var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
-
-            Assert.AreEqual(httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
-        }
+        /// <summary>
+        ///     <see cref="UnixTicks" /> is the time that this
+        ///     <see cref="UploadNotification" /> was instantiated, expressed as Unix
+        ///     ticks.
+        /// </summary>
+        public int UnixTicks { get; set; }
     }
 }

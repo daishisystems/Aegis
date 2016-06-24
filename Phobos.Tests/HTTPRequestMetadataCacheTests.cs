@@ -675,7 +675,9 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
+using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Phobos.Tests
@@ -717,6 +719,50 @@ namespace Phobos.Tests
 
             Assert.IsTrue(cacheExists);
             Assert.AreEqual(1, cache.Count);
+        }
+
+        /// <summary>
+        ///     <see cref="SuccessfulUploadNotificationReturnsAppropriateHttpStatusCode" />
+        ///     ensures that an appropriate <see cref="HttpStatusCode" /> is returned after
+        ///     a successful metadata-upload notification.
+        /// </summary>
+        [TestMethod]
+        public void SuccessfulUploadNotificationReturnsAppropriateHttpStatusCode()
+        {
+            var httpStatusCode = HttpRequestMetadataCache.SendUploadNotification(
+                new UploadNotification(),
+                uploadNotification => HttpStatusCode.Accepted);
+
+            Assert.AreEqual(HttpStatusCode.Accepted, httpStatusCode);
+        }
+
+        /// <summary>
+        ///     <see cref="FailedUploadNotificationReturnsAppropriateHttpStatusCode" />
+        ///     ensures that an appropriate <see cref="HttpStatusCode" /> is returned after
+        ///     a failed metadata-upload notification.
+        /// </summary>
+        [TestMethod]
+        public void FailedUploadNotificationReturnsAppropriateHttpStatusCode()
+        {
+            var httpStatusCode = HttpRequestMetadataCache.SendUploadNotification(
+                new UploadNotification(),
+                uploadNotification => HttpStatusCode.InternalServerError);
+
+            Assert.AreNotEqual(HttpStatusCode.Accepted, httpStatusCode);
+        }
+
+        /// <summary>
+        ///     <see cref="FailedUploadNotificationThrowsAppropriateExceptionType" />
+        ///     ensures that an appropriate <see cref="UploadNotificationException" /> is
+        ///     thrown during a failed metadata-upload notification.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof (UploadNotificationException))]
+        public void FailedUploadNotificationThrowsAppropriateExceptionType()
+        {
+            HttpRequestMetadataCache.SendUploadNotification(
+                new UploadNotification(),
+                uploadNotification => { throw new Exception(); });
         }
 
         [TestCleanup]

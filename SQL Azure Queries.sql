@@ -145,6 +145,7 @@ SELECT * FROM	(
 
 WHERE HyperActivity > 1
 AND AVGNumHits >= 60
+AND IPAddress = '213.233.132.177'
 ORDER BY TotalNumHits DESC;
 
 SELECT '[' + LowerIPAddress + ']', '[' + UpperIPAddress + ']'
@@ -177,6 +178,9 @@ WHERE IPAddress = '213.233.132.177';
 
 UPDATE DBO.BlackList SET
 	PATH = '/en-gb/availability'
+WHERE IPAddress = '213.233.132.177';
+
+SELECT * FROM dbo.blacklist
 WHERE IPAddress = '213.233.132.177';
 
 

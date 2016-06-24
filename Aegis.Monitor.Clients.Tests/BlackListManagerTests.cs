@@ -679,6 +679,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Aegis.Monitor.Core;
+using Mars;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Monitor.Clients.Tests

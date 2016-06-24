@@ -70,10 +70,6 @@
     <Compile Include="BlackListManager.cs" />
     <Compile Include="GetBlackListJob.cs" />
     <Compile Include="GetBlackListRegistry.cs" />
-    <Compile Include="HTTPClientFactory.cs" />
-    <Compile Include="HTTPRequestMetadata.cs" />
-    <Compile Include="HTTPRequestMetadataException.cs" />
-    <Compile Include="HTTPRequestMetadataValidator.cs" />
     <Compile Include="IPAddressValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -86,6 +82,10 @@
     <ProjectReference Include="..\Aegis.Monitor.Core\Aegis.Monitor.Core.csproj">
       <Project>{687A614F-0265-4726-A494-7EE358C111B8}</Project>
       <Name>Aegis.Monitor.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mars\Mars.csproj">
+      <Project>{C016268D-4D11-4D56-A723-0E83B12BA528}</Project>
+      <Name>Mars</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

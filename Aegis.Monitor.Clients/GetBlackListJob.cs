@@ -679,6 +679,7 @@ using System;
 using System.Web.Hosting;
 using Daishi.NewRelic.Insights;
 using FluentScheduler;
+using Mars;
 
 namespace Aegis.Monitor.Clients
 {

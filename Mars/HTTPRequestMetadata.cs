@@ -674,78 +674,69 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System;
+using System.Net;
 
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Monitor.Core;
-using Mars;
-
-namespace Aegis.Monitor.Clients
+namespace Mars
 {
     /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
+    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
+    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
+    ///     issuing HTTP requests, such as specifying a web proxy, etc.
     /// </summary>
-    public static class BlackListManager
+    public class HTTPRequestMetadata
     {
         /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
+        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
+        ///     request.
         /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
-        /// </param>
-        /// <param name="httpRequestMetadata"></param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
-        /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
-        {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
-
-            return indexedBlackList;
-        }
+        public Uri URI { get; set; }
 
         /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
+        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
+        ///     <see cref="WebProxy" />.
         /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public bool UseWebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
+        ///     issuing HTTP requests.
+        /// </summary>
+        /// <remarks>
+        ///     The feature facilitates HTTP connectivity, even when Internet
+        ///     connectivity is funneled through a proxy server: e.g, corporate networks.
+        /// </remarks>
+        public WebProxy WebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
+        ///     <see cref="NonDefaultTimeout" />.
+        /// </summary>
+        public bool UseNonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
+        ///     timeout.
+        /// </summary>
+        /// <remarks>
+        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
+        ///     connectivity will not create a bottleneck in consuming systems.
+        /// </remarks>
+        public TimeSpan NonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="Empty" /> returns a non-initialised
+        ///     <see cref="HTTPRequestMetadata" /> instance.
+        /// </summary>
+        /// <returns>A non-initialised <see cref="HTTPRequestMetadata" /> instance.</returns>
+        /// <remarks>
+        ///     This method promotes a more intuitive means of instantiating
+        ///     non-required instances of <see cref="HTTPRequestMetadata" /> in
+        ///     unit-testing scenarios.
+        /// </remarks>
+        public static HTTPRequestMetadata Empty()
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
-
-            return indexedBlackList;
+            return new HTTPRequestMetadata();
         }
     }
 }

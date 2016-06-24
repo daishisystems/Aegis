@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AA848544-258D-4B0B-A18A-0994B2324D31}</ProjectGuid>
+    <ProjectGuid>{DD6666B4-84BB-430C-B936-00A5F748D9DB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Aegis.Monitor.Clients.Tests</RootNamespace>
-    <AssemblyName>Aegis.Monitor.Clients.Tests</AssemblyName>
+    <RootNamespace>Mars.Tests</RootNamespace>
+    <AssemblyName>Mars.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -46,36 +46,23 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-          <Private>False</Private>
-        </Reference>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="IPAddressValidatorTests.cs" />
-    <Compile Include="MockBlackListLoader.cs" />
+    <Compile Include="HTTPClientFactoryTests.cs" />
+    <Compile Include="HTTPRequestMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BlackListManagerTests.cs" />
-    <Compile Include="BlackListClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Aegis.Monitor.Clients\Aegis.Monitor.Clients.csproj">
-      <Project>{62F6C3B5-C2C6-4425-A615-D26CCA2AA6EA}</Project>
-      <Name>Aegis.Monitor.Clients</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Aegis.Monitor.Core\Aegis.Monitor.Core.csproj">
-      <Project>{687A614F-0265-4726-A494-7EE358C111B8}</Project>
-      <Name>Aegis.Monitor.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Mars\Mars.csproj">
       <Project>{C016268D-4D11-4D56-A723-0E83B12BA528}</Project>
       <Name>Mars</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Aegis.Monitor.Core.licenseheader" />
-    <None Include="app.config" />
+    <None Include="PaulMooney.licenseheader" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

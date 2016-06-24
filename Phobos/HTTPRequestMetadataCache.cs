@@ -675,7 +675,9 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
+using System.Net;
 
 namespace Phobos
 {
@@ -747,6 +749,42 @@ namespace Phobos
             }
 
             cache.Enqueue(httpRequestMetadata);
+        }
+
+        /// <summary>
+        ///     <see cref="SendUploadNotification" /> executes a HTTP request to Aegis,
+        ///     informing the system that a metadata upload is pending.
+        /// </summary>
+        /// <param name="uploadNotification">
+        ///     <see cref="uploadNotification" /> is a template that contains properties
+        ///     which describe an upcoming Aegis metadata-upload.
+        /// </param>
+        /// <param name="sendUploadNotification">
+        ///     <see cref="sendUploadNotification" /> is an abstraction that handles the
+        ///     specifics of executing a HTTP request to Aegis, informing the system that a
+        ///     metadata upload is pending.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="HttpStatusCode" /> instance that indicates success, or
+        ///     failure.
+        /// </returns>
+        /// <remarks>
+        ///     <para>Throws:</para>
+        ///     <para>
+        ///         <see cref="UploadNotificationException" />
+        ///     </para>
+        /// </remarks>
+        public static HttpStatusCode SendUploadNotification(UploadNotification uploadNotification,
+            Func<UploadNotification, HttpStatusCode> sendUploadNotification)
+        {
+            try
+            {
+                return sendUploadNotification(uploadNotification);
+            }
+            catch (Exception exception)
+            {
+                throw new UploadNotificationException("Could not upload notification.", exception);
+            }
         }
     }
 }

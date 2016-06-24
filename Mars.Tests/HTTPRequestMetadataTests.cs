@@ -674,77 +674,161 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-
 using System;
+using System.Net;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Clients
+namespace Mars.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataValidator" /> validates and instance of
-    ///     <see cref="HTTPRequestMetadata" />, ensuring that relevant properties are
-    ///     instantiated correctly.
+    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
+    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
     /// </summary>
-    public class HTTPRequestMetadataValidator
+    [TestClass]
+    public class HTTPRequestMetadataTests
     {
         /// <summary>
-        ///     <see cref="TryValidate" /> ensures that <see cref="httpRequestMetadata" />
-        ///     is instantiated correctly. If any <see cref="HTTPRequestMetadata" />
-        ///     properties are not instantiated correctly, the method returns <c>false</c>,
-        ///     and outputs a <see cref="HTTPRequestMetadataException" />.
+        ///     <see cref="HTTPRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
+        ///     uninstantiated <see cref="HTTPRequestMetadata" /> instances fail
+        ///     validation.
         /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
-        ///     instance to validate.
-        /// </param>
-        /// <param name="httpRequestMetadataException">
-        ///     A
-        ///     <see cref="HTTPRequestMetadataException" />, returned if any
-        ///     <see cref="HTTPRequestMetadata" /> properties are not instantiated
-        ///     correctly
-        /// </param>
-        /// <returns>
-        ///     <c>True</c> if all <see cref="httpRequestMetadata" /> properties are
-        ///     instantiated correctly.
-        /// </returns>
-        public static bool TryValidate(HTTPRequestMetadata httpRequestMetadata,
-            out HTTPRequestMetadataException httpRequestMetadataException)
+        [TestMethod]
+        public void HTTPRequestMetadataValidatorFailsOnNullMetadata()
         {
-            httpRequestMetadataException = null;
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            if (httpRequestMetadata == null)
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(null,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsNotNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
+        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
+        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        /// </summary>
+        [TestMethod]
+        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata();
+
+            HTTPRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+        }
+
+        /// <summary>
+        ///     <see cref="WebProxyIsSetWhenUseProxyIsSpecified" /> ensures that a a valid
+        ///     <see cref="WebProxy" /> is instantiated when the
+        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> property is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void WebProxyIsSetWhenUseProxyIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
             {
-                httpRequestMetadataException =
-                    new HTTPRequestMetadataException("No HTTP request metadata specified.");
+                URI = new Uri("http://localhost"),
+                UseWebProxy = true,
+                WebProxy = new WebProxy()
+            };
 
-                return false;
-            }
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            if (httpRequestMetadata.URI == null)
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsTrue(httpRequestMetadataIsValid);
+            Assert.IsNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="NullWebProxyReturnsExceptionWhenUseProxyIsSpecified" /> ensures
+        ///     that a
+        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
+        ///     <see cref="HTTPRequestMetadata.WebProxy" />, when
+        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void NullWebProxyReturnsExceptionWhenUseProxyIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
             {
-                httpRequestMetadataException = new HTTPRequestMetadataException("No URI specified.");
+                URI = new Uri("http://localhost"),
+                UseWebProxy = true
+            };
 
-                return false;
-            }
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            if (httpRequestMetadata.UseWebProxy && httpRequestMetadata.WebProxy == null)
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsNotNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified" /> ensures that
+        ///     a a valid
+        ///     <see cref="TimeSpan" /> is instantiated when the
+        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> property is
+        ///     <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
             {
-                httpRequestMetadataException =
-                    new HTTPRequestMetadataException("UseProxy is true, but no proxy is specified.");
+                URI = new Uri("http://localhost"),
+                UseNonDefaultTimeout = true,
+                NonDefaultTimeout = new TimeSpan(0, 0, 5)
+            };
 
-                return false;
-            }
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            if (httpRequestMetadata.UseNonDefaultTimeout &&
-                httpRequestMetadata.NonDefaultTimeout == TimeSpan.Zero)
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsTrue(httpRequestMetadataIsValid);
+            Assert.IsNull(httpRequestMetadataException);
+        }
+
+        /// <summary>
+        ///     <see cref="ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified" />
+        ///     ensures that a
+        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
+        ///     <see cref="Timeout" />, when
+        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> is <c>true</c>.
+        /// </summary>
+        [TestMethod]
+        public void ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified()
+        {
+            var httpRequestMetadata = new HTTPRequestMetadata
             {
-                httpRequestMetadataException =
-                    new HTTPRequestMetadataException(
-                        "UseNonDefaultTimeout is true, but no timeout is specified.");
+                URI = new Uri("http://localhost"),
+                UseNonDefaultTimeout = true
+            };
 
-                return false;
-            }
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            return true;
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            Assert.IsFalse(httpRequestMetadataIsValid);
+            Assert.IsInstanceOfType(httpRequestMetadataException,
+                typeof (HTTPRequestMetadataException));
         }
     }
 }

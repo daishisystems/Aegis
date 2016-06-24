@@ -683,6 +683,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Aegis.Monitor.Core;
 using Jil;
+using Mars;
 
 namespace Aegis.Monitor.Clients
 {

@@ -674,78 +674,31 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System;
 
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Monitor.Core;
-using Mars;
-
-namespace Aegis.Monitor.Clients
+namespace Mars
 {
     /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
+    ///     <see cref="HTTPRequestMetadataException" /> is thrown when
+    ///     <see cref="HTTPRequestMetadata" /> is malformed, invalid, partially, or
+    ///     entirely omitted.
     /// </summary>
-    public static class BlackListManager
+    [Serializable]
+    public class HTTPRequestMetadataException : Exception
     {
-        /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
-        /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
-        /// </param>
-        /// <param name="httpRequestMetadata"></param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
-        /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public HTTPRequestMetadataException()
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
-
-            return indexedBlackList;
         }
 
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public HTTPRequestMetadataException(string message) : base(message)
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
+        }
 
-            return indexedBlackList;
+        public HTTPRequestMetadataException(string message, Exception inner) : base(message, inner)
+        {
+
         }
     }
 }

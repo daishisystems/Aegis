@@ -675,77 +675,84 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
+using System.IO;
+using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Monitor.Core;
+using System.Net.Http.Headers;
+using System.Text;
+using Jil;
 using Mars;
 
-namespace Aegis.Monitor.Clients
+namespace Phobos
 {
     /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
+    ///     <see cref="UploadNotifier" /> executes a HTTP request to Aegis, informing
+    ///     the system that a metadata upload is pending.
     /// </summary>
-    public static class BlackListManager
+    public class UploadNotifier
     {
         /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
+        ///     <see cref="SendUploadNotification" /> executes a HTTP request to Aegis,
+        ///     informing the system that a metadata upload is pending.
         /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
+        /// <param name="uploadNotification">
+        ///     <see cref="uploadNotification" /> is a template that contains properties
+        ///     which describe an upcoming Aegis metadata-upload.
         /// </param>
-        /// <param name="httpRequestMetadata"></param>
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     associated with the HTTP request.
+        /// </param>
         /// <param name="httpClientFactory">
         ///     The <see cref="HTTPClientFactory" /> used to
         ///     construct a <see cref="HttpClient" />.
         /// </param>
         /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
+        ///     A <see cref="HttpStatusCode" /> instance that indicates success, or
+        ///     failure.
         /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public static HttpStatusCode SendUploadNotification(UploadNotification uploadNotification,
+            HTTPRequestMetadata httpRequestMetadata, HTTPClientFactory httpClientFactory)
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
+            HTTPRequestMetadataException httpRequestMetadataException;
 
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
+            var httpRequestMetadataIsValid =
+                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                    out httpRequestMetadataException);
+
+            if (!httpRequestMetadataIsValid)
             {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
+                throw httpRequestMetadataException;
             }
 
-            return indexedBlackList;
-        }
+            HttpClientHandler httpClientHandler;
 
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
-        {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
+                out httpClientHandler))
             {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
 
-            return indexedBlackList;
+                StringWriter uploadNotificationWriter;
+
+                using (uploadNotificationWriter = new StringWriter())
+                {
+                    JSON.Serialize(
+                        uploadNotification,
+                        uploadNotificationWriter
+                        );
+                }
+
+                var response = httpClient.PostAsync(httpRequestMetadata.URI,
+                    new StringContent(
+                        uploadNotificationWriter.ToString(),
+                        Encoding.UTF8, "application/json")).Result;
+
+                return response.StatusCode;
+            }
         }
+
+        // ToDo: Add Async equivalent
     }
 }
