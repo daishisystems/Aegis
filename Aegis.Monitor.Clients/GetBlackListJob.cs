@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Threading.Tasks;
 using System.Web.Hosting;
 using Daishi.NewRelic.Insights;
 using FluentScheduler;
@@ -684,7 +685,7 @@ using Mars;
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="GetBlackListJob" /> is a recurring task that continously polls
+    ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
     ///     Aegis for the most up-to-date black-list, and retains a copy of this
     ///     black-list in memory.
     /// </summary>
@@ -722,42 +723,24 @@ namespace Aegis.Monitor.Clients
                             httpRequestMetadata,
                             new HTTPClientFactory());
                 }
+                catch (TaskCanceledException exception)
+                {
+                    if (exception.CancellationToken.IsCancellationRequested)
+                    {
+                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
+                    }
+                    else
+                    {
+                        // If the exception.CancellationToken.IsCancellationRequested is false,
+                        // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                        // Add a custom message in order to ensure that tasks are not canceled.
+                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
+                            "Request timeout.");
+                    }
+                }
                 catch (Exception exception)
                 {
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.AccountID =
-                        BlackListClient.Instance.NewRelicInsightsMetadata.AccountID;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.APIKey =
-                        BlackListClient.Instance.NewRelicInsightsMetadata.APIKey;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.NonDefaultTimeout =
-                        BlackListClient.Instance.NonDefaultTimeout;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseWebProxy =
-                        BlackListClient.Instance.UseWebProxy;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.WebProxy =
-                        BlackListClient.Instance.NewRelicInsightsMetadata.WebProxy;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.URI =
-                        BlackListClient.Instance.NewRelicInsightsMetadata.URI;
-
-                    var blackListClientErrorNewRelicInsightsEvent =
-                        new BlackListClientErrorNewRelicInsightsEvent
-                        {
-                            EventType = "AegisErrors",
-                            ComponentName = "Black-list load-job",
-                            ErrorMessage = exception.Message,
-                            InnerErrorMessage =
-                                exception.InnerException?.Message ?? string.Empty
-                        };
-
-                    try
-                    {
-                        NewRelicInsightsClient.UploadEvents(
-                            new[] {blackListClientErrorNewRelicInsightsEvent},
-                            new HttpClientFactory(),
-                            NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
-                    }
-                    catch (Exception)
-                    {
-                        // ToDo: There is no fall-back solution if New Relic Insights is offline.          
-                    }
+                    UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
                 }
             }
         }
@@ -775,6 +758,51 @@ namespace Aegis.Monitor.Clients
             }
 
             HostingEnvironment.UnregisterObject(this);
+        }
+
+        /// <summary>
+        ///     <see cref="UploadExceptionToNewRelicInsights" /> uploads
+        ///     <see cref="Exception" /> metadata to New Relic Insights.
+        /// </summary>
+        /// <param name="exception">
+        ///     The <see cref="Exception" /> to upload to New Relic
+        ///     Insights.
+        /// </param>
+        /// <param name="newRelicInsightsClient">
+        ///     The <see cref="NewRelicInsightsClient" />
+        ///     instance that facilitates the <see cref="Exception" />-upload.
+        /// </param>
+        /// <param name="customExceptionMessage">
+        ///     A custom message, generally used in place
+        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
+        ///     isolate the specific underlying issue.
+        /// </param>
+        private static void UploadExceptionToNewRelicInsights(Exception exception,
+            NewRelicInsightsClient newRelicInsightsClient,
+            string customExceptionMessage = null)
+        {
+            var blackListClientErrorNewRelicInsightsEvent =
+                new BlackListClientErrorNewRelicInsightsEvent
+                {
+                    EventType = "AegisErrors",
+                    ComponentName = "Black-list load-job",
+                    ErrorMessage = customExceptionMessage ?? exception.Message,
+                    InnerErrorMessage =
+                        exception.InnerException?.Message ?? string.Empty
+                };
+
+            try
+            {
+                NewRelicInsightsClient.UploadEvents(
+                    new[] {blackListClientErrorNewRelicInsightsEvent},
+                    new HttpClientFactory(),
+                    newRelicInsightsClient.NewRelicInsightsMetadata);
+            }
+
+            catch (Exception)
+            {
+                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+            }
         }
     }
 }
