@@ -71,6 +71,7 @@
     <Compile Include="GetBlackListJob.cs" />
     <Compile Include="GetBlackListRegistry.cs" />
     <Compile Include="IPAddressValidator.cs" />
+    <Compile Include="NewRelicInsightsExceptionMessageParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

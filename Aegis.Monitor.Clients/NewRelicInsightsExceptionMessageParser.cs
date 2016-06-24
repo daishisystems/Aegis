@@ -676,134 +676,32 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Threading.Tasks;
-using System.Web.Hosting;
-using Daishi.NewRelic.Insights;
-using FluentScheduler;
-using Mars;
 
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
-    ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
-    ///     Aegis for the most up-to-date black-list, and retains a copy of this
-    ///     black-list in memory.
+    ///     <see cref="NewRelicInsightsExceptionMessageParser" /> parses
+    ///     <see cref="Exception" /> metadata in order to determine an appropriate
+    ///     <see cref="Exception" /> message.
     /// </summary>
-    internal class GetBlackListJob : IJob, IRegisteredObject
+    public static class NewRelicInsightsExceptionMessageParser
     {
-        private readonly object _lock = new object();
-
-        private bool _shuttingDown;
-
         /// <summary>
-        ///     <see cref="Execute" /> invokes a process that returns the most up-to-date
-        ///     black-list from Aegis.
+        ///     <see cref="GetExceptionMessage" /> returns
+        ///     <see cref="customExceptionMessage" />, if it is not null, otherwise, the
+        ///     <see cref="Exception.Message" /> property of <see cref="exception" />.
         /// </summary>
-        public void Execute()
+        /// <param name="customExceptionMessage">The custom exception message.</param>
+        /// <param name="exception">The <see cref="Exception" /> from which to read the
+        ///     <see cref="Exception.Message" /> property, if
+        ///     <see cref="customExceptionMessage" /> is null.</param>
+        /// <returns>
+        ///     <see cref="customExceptionMessage" />, if it is not null, otherwise, the
+        ///     <see cref="Exception.Message" /> property of <see cref="exception" />.
+        /// </returns>
+        public static string GetExceptionMessage(string customExceptionMessage, Exception exception)
         {
-            lock (_lock)
-            {
-                if (_shuttingDown)
-                    return;
-
-                var httpRequestMetadata = new HTTPRequestMetadata
-                {
-                    URI = BlackListClient.Instance.AegisURI,
-                    UseWebProxy = BlackListClient.Instance.UseWebProxy,
-                    WebProxy = BlackListClient.Instance.WebProxy,
-                    UseNonDefaultTimeout = BlackListClient.Instance.UseNonDefaultTimeout,
-                    NonDefaultTimeout = BlackListClient.Instance.NonDefaultTimeout
-                };
-
-                try
-                {
-                    BlackListClient.Instance.BlackList =
-                        BlackListManager.Load(
-                            new AegisBlackListLoader(),
-                            httpRequestMetadata,
-                            new HTTPClientFactory());
-                }
-                catch (TaskCanceledException exception)
-                {
-                    if (exception.CancellationToken.IsCancellationRequested)
-                    {
-                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                    }
-                    else
-                    {
-                        // If the exception.CancellationToken.IsCancellationRequested is false,
-                        // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                        // Add a custom message in order to ensure that tasks are not canceled.
-                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
-                            "Request timeout.");
-                    }
-                }
-                catch (Exception exception)
-                {
-                    UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                }
-            }
-        }
-
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
-        }
-
-        /// <summary>
-        ///     <see cref="UploadExceptionToNewRelicInsights" /> uploads
-        ///     <see cref="Exception" /> metadata to New Relic Insights.
-        /// </summary>
-        /// <param name="exception">
-        ///     The <see cref="Exception" /> to upload to New Relic
-        ///     Insights.
-        /// </param>
-        /// <param name="newRelicInsightsClient">
-        ///     The <see cref="NewRelicInsightsClient" />
-        ///     instance that facilitates the <see cref="Exception" />-upload.
-        /// </param>
-        /// <param name="customExceptionMessage">
-        ///     A custom message, generally used in place
-        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
-        ///     isolate the specific underlying issue.
-        /// </param>
-        private static void UploadExceptionToNewRelicInsights(Exception exception,
-            NewRelicInsightsClient newRelicInsightsClient,
-            string customExceptionMessage = null)
-        {
-            var blackListClientErrorNewRelicInsightsEvent =
-                new BlackListClientErrorNewRelicInsightsEvent
-                {
-                    EventType = "AegisErrors",
-                    ComponentName = "Black-list load-job",
-                    ErrorMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                        customExceptionMessage, exception),
-                    InnerErrorMessage =
-                        exception.InnerException?.Message ?? string.Empty
-                };
-
-            try
-            {
-                NewRelicInsightsClient.UploadEvents(
-                    new[] {blackListClientErrorNewRelicInsightsEvent},
-                    new HttpClientFactory(),
-                    newRelicInsightsClient.NewRelicInsightsMetadata);
-            }
-
-            catch (Exception)
-            {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
-            }
+            return customExceptionMessage ?? exception.Message;
         }
     }
 }

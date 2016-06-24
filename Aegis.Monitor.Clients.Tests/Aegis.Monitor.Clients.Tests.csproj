@@ -63,6 +63,7 @@
     <Compile Include="BlackListManagerTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
     <Compile Include="BlackListClientErrorNewRelicInsightsEventTests.cs" />
+    <Compile Include="NewRelicInsightsExceptionMessageParserTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aegis.Monitor.Clients\Aegis.Monitor.Clients.csproj">
