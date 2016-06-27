@@ -65,8 +65,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AegisEventPublisherTests.cs" />
-    <Compile Include="HTTPClientFactoryTests.cs" />
-    <Compile Include="HTTPRequestMetadataTests.cs" />
+    <Compile Include="HttpClientFactoryTests.cs" />
+    <Compile Include="HttpRequestMetadataTests.cs" />
     <Compile Include="IPAddressExtensionMethodsTests.cs" />
     <Compile Include="MemoryCacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

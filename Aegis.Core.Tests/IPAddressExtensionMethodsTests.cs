@@ -680,9 +680,17 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
 {
+    /// <summary>
+    ///     <see cref="IPAddressExtensionMethodsTests" /> ensures that logic pertaining
+    ///     to <see cref="IPAddress" /> extensions executes correctly.
+    /// </summary>
     [TestClass]
     public class IPAddressExtensionMethodsTests
     {
+        /// <summary>
+        ///     <see cref="PrivateIPAddressIsDetermined" /> ensures that private
+        ///     <see cref="IPAddress" /> instances are detectable.
+        /// </summary>
         [TestMethod]
         public void PrivateIPAddressIsDetermined()
         {
@@ -704,6 +712,11 @@ namespace Aegis.Core.Tests
             }
         }
 
+        /// <summary>
+        ///     <see cref="IPAddressesAreWithinTheSpecifiedRange" /> ensures that an
+        ///     <see cref="IPAddress" /> instances is determined to be within a specific
+        ///     <see cref="IPAddress" />-range.
+        /// </summary>
         [TestMethod]
         public void IPAddressesAreWithinTheSpecifiedRange()
         {

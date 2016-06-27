@@ -772,7 +772,7 @@ namespace Aegis.Pumps
         /// </summary>
         /// <remarks>
         ///     The feature facilitates HTTP connectivity, even when Internet
-        ///     connectivity is funneled through a proxy server: e.g, corporate networks.
+        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
         /// </remarks>
         public WebProxy WebProxy { get; set; }
 

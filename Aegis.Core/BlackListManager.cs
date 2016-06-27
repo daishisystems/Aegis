@@ -791,13 +791,13 @@ namespace Aegis.Core
         ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
         /// </param>
         /// <param name="geoLocationProviderURI">
-        ///     The geo-location provider
+        ///     The geolocation provider
         ///     <see cref="Uri" />, used to retrieve <see cref="IPAddressGeoLocation" />
         ///     metadata for any given <see cref="IPAddress" />.
         /// </param>
         /// <param name="whiteList">
         ///     If explicitly specified, a <see cref="WhiteList" />
-        ///     prevents any whitelisted <see cref="IPAddress" /> instances from being
+        ///     prevents any white-listed <see cref="IPAddress" /> instances from being
         ///     added to the <see cref="BlackListItem" /> collection returned by this
         ///     method.
         /// </param>
@@ -816,7 +816,7 @@ namespace Aegis.Core
         ///     which,
         ///     <see cref="BlackListItem.IPAddress" /> properties that are determined to be
         ///     <para>1. Private IP addresses</para>
-        ///     <para>2. Whitelisted IP addresses</para>
+        ///     <para>2. White-listed IP addresses</para>
         ///     are ignored. Otherwise, the <see cref="BlackListItem.IPAddress" /> property
         ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
         /// </remarks>

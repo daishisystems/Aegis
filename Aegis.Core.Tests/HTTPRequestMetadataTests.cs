@@ -677,24 +677,25 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Net;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataTests" /> ensures that logic pertaining to
+    ///     <see cref="HttpRequestMetadataTests" /> ensures that logic pertaining to
     ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
     /// </summary>
     [TestClass]
-    public class HTTPRequestMetadataTests
+    public class HttpRequestMetadataTests
     {
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
+        ///     <see cref="HttpRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
         ///     uninstantiated <see cref="HTTPRequestMetadata" /> instances fail
         ///     validation.
         /// </summary>
         [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnNullMetadata()
+        public void HttpRequestMetadataValidatorFailsOnNullMetadata()
         {
             HTTPRequestMetadataException httpRequestMetadataException;
 
@@ -707,12 +708,12 @@ namespace Aegis.Core.Tests
         }
 
         /// <summary>
-        ///     <see cref="HTTPRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
+        ///     <see cref="HttpRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
         ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
         ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
         /// </summary>
         [TestMethod]
-        public void HTTPRequestMetadataValidatorFailsOnInvalidURI()
+        public void HttpRequestMetadataValidatorFailsOnInvalidURI()
         {
             var httpRequestMetadata = new HTTPRequestMetadata();
 

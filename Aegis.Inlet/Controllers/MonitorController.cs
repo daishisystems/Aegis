@@ -800,16 +800,6 @@ namespace Aegis.Inlet.Controllers
 
                 stopwatch.Stop();
 
-                //NewRelicInsightsAegisEventCache.Add(new NewRelicInsightsAegisEvent
-                //{
-                //    EventType = "Aegis",
-                //    EventName = "Publish Events",
-                //    Source = "Aegis Proxy",
-                //    Duration = _stopwatch.ElapsedMilliseconds,
-                //    HTTPStatusCode = (int) HttpStatusCode.Created,
-                //    Success = true
-                //});
-
                 return new HttpResponseMessage(HttpStatusCode.Created);
             }
             catch (Exception e)

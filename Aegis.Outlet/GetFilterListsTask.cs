@@ -696,6 +696,7 @@ namespace Aegis.Outlet
     ///     seconds.
     /// 
     /// 
+    /// 
     /// </remarks>
     public class GetFilterListsTask : IJob, IRegisteredObject
     {

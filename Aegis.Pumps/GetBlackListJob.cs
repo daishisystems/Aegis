@@ -733,7 +733,7 @@ namespace Aegis.Pumps
                     {
                         // If the exception.CancellationToken.IsCancellationRequested is false,
                         // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                        // Add a custom message in order to ensure that tasks are not canceled.
+                        // Add a custom message in order to ensure that tasks are not cancelled.
                         UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
                             "Request timeout.");
                     }

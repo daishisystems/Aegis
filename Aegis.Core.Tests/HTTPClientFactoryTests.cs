@@ -683,19 +683,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPClientFactoryTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPClientFactory" /> executes correctly.
+    ///     <see cref="HttpClientFactoryTests" /> ensures that logic pertaining to
+    ///     <see cref="HTTPClientFactory" /> instances executes correctly.
     /// </summary>
     [TestClass]
-    public class HTTPClientFactoryTests
+    public class HttpClientFactoryTests
     {
         /// <summary>
-        ///     <see cref="HTTPClientWithProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClientWithProxyIsCreated" /> ensures that a
         ///     <see cref="HttpClient" /> instance is created, with the specified proxy
         ///     server.
         /// </summary>
         [TestMethod]
-        public void HTTPClientWithProxyIsCreated()
+        public void HttpClientWithProxyIsCreated()
         {
             var httpRequestMetadata = new HTTPRequestMetadata
             {
@@ -713,12 +713,12 @@ namespace Aegis.Core.Tests
         }
 
         /// <summary>
-        ///     <see cref="HTTPClientWithoutProxyIsCreated" /> ensures that a
+        ///     <see cref="HttpClientWithoutProxyIsCreated" /> ensures that a
         ///     <see cref="HttpClient" /> instance is created, with no specified proxy
         ///     server.
         /// </summary>
         [TestMethod]
-        public void HTTPClientWithoutProxyIsCreated()
+        public void HttpClientWithoutProxyIsCreated()
         {
             var httpRequestMetadata = new HTTPRequestMetadata();
 
@@ -732,11 +732,11 @@ namespace Aegis.Core.Tests
         }
 
         /// <summary>
-        ///     <see cref="HTTPClientWithNonDefaultTimeoutIsCreated" /> ensures that a
+        ///     <see cref="HttpClientWithNonDefaultTimeoutIsCreated" /> ensures that a
         ///     <see cref="HttpClient" /> instance is created, with a non-default timeout.
         /// </summary>
         [TestMethod]
-        public void HTTPClientWithNonDefaultTimeoutIsCreated()
+        public void HttpClientWithNonDefaultTimeoutIsCreated()
         {
             var httpRequestMetadata = new HTTPRequestMetadata
             {

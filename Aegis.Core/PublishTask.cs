@@ -708,7 +708,7 @@ namespace Aegis.Core
                 int batchSize;
                 var canParse = int.TryParse(aegisCacheBatchSize, out batchSize);
 
-                // Set batchsize to 1000 if config setting is missing or invalid.
+                // Set batch-size to 1000 if config setting is missing or invalid.
                 _aegisCacheBatchSize = canParse ? batchSize : 1000;
             }
             else
@@ -721,7 +721,7 @@ namespace Aegis.Core
 
         /// <summary>
         ///     <see cref="Execute" /> runs at regular intervals, invoking
-        ///     <see cref="AegisEventCache.Publish" /> to persist a batch of
+        ///     <see cref="AegisEventCache" /> to persist a batch of
         ///     <see cref="AegisEvent" /> instances to an Azure Event Hub.
         /// </summary>
         /// <remarks>

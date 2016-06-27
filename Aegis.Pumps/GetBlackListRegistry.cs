@@ -681,7 +681,7 @@ namespace Aegis.Pumps
 {
     /// <summary>
     ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
-    ///     initialises a recurring task that continously polls Aegis for the most
+    ///     initialises a recurring task that continuously polls Aegis for the most
     ///     up-to-date black-list.
     /// </summary>
     internal class GetBlackListRegistry : Registry

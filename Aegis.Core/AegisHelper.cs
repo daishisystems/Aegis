@@ -695,7 +695,7 @@ namespace Aegis.Core
         ///     configuration value is enabled in the application configuration file.
         /// </summary>
         /// <param name="appSettingKey">
-        ///     The application configuration key petaining to the
+        ///     The application configuration key pertaining to the
         ///     specified configuration value.
         /// </param>
         /// <returns>
