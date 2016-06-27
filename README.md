@@ -1,2 +1,2 @@
-# Aegis.Monitor
-Simple Aegis event-monitoring tools.
+# Aegis
+Web application traffic blocking system
