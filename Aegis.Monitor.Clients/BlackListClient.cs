@@ -683,6 +683,7 @@ using Daishi.NewRelic.Insights;
 using FluentScheduler;
 
 // ToDo: Need to check a wider time-range - 24 hours, for example
+
 namespace Aegis.Monitor.Clients
 {
     /// <summary>
@@ -725,7 +726,7 @@ namespace Aegis.Monitor.Clients
 
         /// <summary>
         ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continously polls Aegis for the most up-to-date
+        ///     recurring task that continuously polls Aegis for the most up-to-date
         ///     black-list. It is used as an index in order to reference the recurring
         ///     task, once initialised.
         /// </summary>
@@ -742,7 +743,7 @@ namespace Aegis.Monitor.Clients
 
         /// <summary>
         ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continously polls Aegis for the most up-to-date black-list is
+        ///     task that continuously polls Aegis for the most up-to-date black-list is
         ///     executed.
         /// </summary>
         /// <remarks>A default interval is provided, if one is not provided.</remarks>
@@ -770,8 +771,8 @@ namespace Aegis.Monitor.Clients
         ///     issuing HTTP requests.
         /// </summary>
         /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
+        ///     The feature facilitates HTTP connectivity, even when Internet
+        ///     connectivity is funneled through a proxy server: e.g, corporate networks.
         /// </remarks>
         public WebProxy WebProxy { get; set; }
 
@@ -786,11 +787,12 @@ namespace Aegis.Monitor.Clients
         ///     timeout.
         /// </summary>
         /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow internet
+        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
         ///     connectivity will not create a bottleneck in consuming systems.
         /// </remarks>
         public TimeSpan NonDefaultTimeout { get; set; }
 
+        //ToDo: New Relic Insights property can be removed.
         /// <summary>
         ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
         ///     properties that pertain to a New Relic Insights event, as well as New Relic
@@ -799,7 +801,7 @@ namespace Aegis.Monitor.Clients
         public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
 
         /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continously polls
+        ///     <see cref="Initialise" /> begins a recurring task that continuously polls
         ///     Aegis for the most up-to-date black-list, and retains a copy of this
         ///     black-list in memory, providing a thread-safe collection of black-list
         ///     metadata for query.
@@ -811,7 +813,7 @@ namespace Aegis.Monitor.Clients
         }
 
         /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continously polls
+        ///     <see cref="ShutDown" /> stops the recurring task that continuously polls
         ///     Aegis for the most up-to-date black-list.
         /// </summary>
         public void ShutDown()
