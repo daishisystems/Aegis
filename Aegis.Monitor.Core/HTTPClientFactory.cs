@@ -674,42 +674,63 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System.Reflection;
-using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
+using System.Net.Http;
 
-[assembly: AssemblyTitle("Mars.Tests")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Mars.Tests")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace Aegis.Monitor.Core
+{
+    /// <summary>
+    ///     <see cref="HTTPClientFactory" /> creates an instance of
+    ///     <see cref="HttpClient" />, based on an instance of
+    ///     <see cref="HTTPRequestMetadata" />.
+    /// </summary>
+    public class HTTPClientFactory
+    {
+        /// <summary>
+        ///     <see cref="Create" /> creates an instance of
+        ///     <see cref="HttpClient" />, based on an instance of
+        ///     <see cref="HTTPRequestMetadata" />.
+        /// </summary>
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" /> used
+        ///     to create a <see cref="HttpClient" /> instance.
+        /// </param>
+        /// <param name="httpClientHandler">
+        ///     The <see cref="HttpClientHandler" /> that acts
+        ///     as an intermediary between <see cref="HttpClient" /> and
+        ///     <see cref="HTTPRequestMetadata" />, during creation of a
+        ///     <see cref="HttpClient" /> instance.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="HttpClient" />, based on
+        ///     <see cref="httpRequestMetadata" />.
+        /// </returns>
+        public HttpClient Create(HTTPRequestMetadata httpRequestMetadata,
+            out HttpClientHandler httpClientHandler)
+        {
+            HttpClient httpClient;
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
+            if (httpRequestMetadata.UseWebProxy)
+            {
+                httpClientHandler = new HttpClientHandler
+                {
+                    UseProxy = true,
+                    Proxy = httpRequestMetadata.WebProxy
+                };
+                httpClient = new HttpClient(httpClientHandler);
+            }
+            else
+            {
+                httpClientHandler = null;
+                httpClient = new HttpClient();
+            }
 
-[assembly: ComVisible(false)]
+            if (httpRequestMetadata.UseNonDefaultTimeout)
+            {
+                httpClient.Timeout = httpRequestMetadata.NonDefaultTimeout;
+            }
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-
-[assembly: Guid("dd6666b4-84bb-430c-b936-00a5f748d9db")]
-
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
-
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+            return httpClient;
+        }
+    }
+}

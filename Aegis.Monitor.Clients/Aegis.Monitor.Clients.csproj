@@ -84,10 +84,6 @@
       <Project>{687A614F-0265-4726-A494-7EE358C111B8}</Project>
       <Name>Aegis.Monitor.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Mars\Mars.csproj">
-      <Project>{C016268D-4D11-4D56-A723-0E83B12BA528}</Project>
-      <Name>Mars</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

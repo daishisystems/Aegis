@@ -24,9 +24,9 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
         private readonly IDictionary<Type, Func<object, string>>
             AnnotationTextGenerator = new Dictionary<Type, Func<object, string>>
             {
-                {typeof(RequiredAttribute), a => "Required"},
+                {typeof (RequiredAttribute), a => "Required"},
                 {
-                    typeof(RangeAttribute), a =>
+                    typeof (RangeAttribute), a =>
                     {
                         var range = (RangeAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -35,7 +35,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
                 },
                 {
-                    typeof(MaxLengthAttribute), a =>
+                    typeof (MaxLengthAttribute), a =>
                     {
                         var maxLength = (MaxLengthAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -43,7 +43,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
                 },
                 {
-                    typeof(MinLengthAttribute), a =>
+                    typeof (MinLengthAttribute), a =>
                     {
                         var minLength = (MinLengthAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -51,7 +51,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
                 },
                 {
-                    typeof(StringLengthAttribute), a =>
+                    typeof (StringLengthAttribute), a =>
                     {
                         var strLength = (StringLengthAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -60,7 +60,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
                 },
                 {
-                    typeof(DataTypeAttribute), a =>
+                    typeof (DataTypeAttribute), a =>
                     {
                         var dataType = (DataTypeAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -70,7 +70,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
                 },
                 {
-                    typeof(RegularExpressionAttribute), a =>
+                    typeof (RegularExpressionAttribute), a =>
                     {
                         var regularExpression = (RegularExpressionAttribute) a;
                         return string.Format(CultureInfo.CurrentCulture,
@@ -84,25 +84,25 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
         private readonly IDictionary<Type, string> DefaultTypeDocumentation = new Dictionary
             <Type, string>
         {
-            {typeof(short), "integer"},
-            {typeof(int), "integer"},
-            {typeof(long), "integer"},
-            {typeof(ushort), "unsigned integer"},
-            {typeof(uint), "unsigned integer"},
-            {typeof(ulong), "unsigned integer"},
-            {typeof(byte), "byte"},
-            {typeof(char), "character"},
-            {typeof(sbyte), "signed byte"},
-            {typeof(Uri), "URI"},
-            {typeof(float), "decimal number"},
-            {typeof(double), "decimal number"},
-            {typeof(decimal), "decimal number"},
-            {typeof(string), "string"},
-            {typeof(Guid), "globally unique identifier"},
-            {typeof(TimeSpan), "time interval"},
-            {typeof(DateTime), "date"},
-            {typeof(DateTimeOffset), "date"},
-            {typeof(bool), "boolean"}
+            {typeof (short), "integer"},
+            {typeof (int), "integer"},
+            {typeof (long), "integer"},
+            {typeof (ushort), "unsigned integer"},
+            {typeof (uint), "unsigned integer"},
+            {typeof (ulong), "unsigned integer"},
+            {typeof (byte), "byte"},
+            {typeof (char), "character"},
+            {typeof (sbyte), "signed byte"},
+            {typeof (Uri), "URI"},
+            {typeof (float), "decimal number"},
+            {typeof (double), "decimal number"},
+            {typeof (decimal), "decimal number"},
+            {typeof (string), "string"},
+            {typeof (Guid), "globally unique identifier"},
+            {typeof (TimeSpan), "time interval"},
+            {typeof (DateTime), "date"},
+            {typeof (DateTimeOffset), "date"},
+            {typeof (bool), "boolean"}
         };
 
         public ModelDescriptionGenerator(HttpConfiguration config)
@@ -177,7 +177,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                 if (genericArguments.Length == 1)
                 {
                     var enumerableType =
-                        typeof(IEnumerable<>).MakeGenericType(genericArguments);
+                        typeof (IEnumerable<>).MakeGenericType(genericArguments);
                     if (enumerableType.IsAssignableFrom(modelType))
                     {
                         return GenerateCollectionModelDescription(modelType,
@@ -187,7 +187,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                 if (genericArguments.Length == 2)
                 {
                     var dictionaryType =
-                        typeof(IDictionary<,>).MakeGenericType(genericArguments);
+                        typeof (IDictionary<,>).MakeGenericType(genericArguments);
                     if (dictionaryType.IsAssignableFrom(modelType))
                     {
                         return GenerateDictionaryModelDescription(modelType,
@@ -195,7 +195,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                     }
 
                     var keyValuePairType =
-                        typeof(KeyValuePair<,>).MakeGenericType(genericArguments);
+                        typeof (KeyValuePair<,>).MakeGenericType(genericArguments);
                     if (keyValuePairType.IsAssignableFrom(modelType))
                     {
                         return GenerateKeyValuePairModelDescription(modelType,
@@ -210,22 +210,22 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage.ModelDescriptions
                 return GenerateCollectionModelDescription(modelType, elementType);
             }
 
-            if (modelType == typeof(NameValueCollection))
+            if (modelType == typeof (NameValueCollection))
             {
                 return GenerateDictionaryModelDescription(modelType,
-                    typeof(string), typeof(string));
+                    typeof (string), typeof (string));
             }
 
-            if (typeof(IDictionary).IsAssignableFrom(modelType))
+            if (typeof (IDictionary).IsAssignableFrom(modelType))
             {
                 return GenerateDictionaryModelDescription(modelType,
-                    typeof(object), typeof(object));
+                    typeof (object), typeof (object));
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(modelType))
+            if (typeof (IEnumerable).IsAssignableFrom(modelType))
             {
                 return GenerateCollectionModelDescription(modelType,
-                    typeof(object));
+                    typeof (object));
             }
 
             return GenerateComplexTypeModelDescription(modelType);

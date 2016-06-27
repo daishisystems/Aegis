@@ -678,9 +678,9 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Threading.Tasks;
 using System.Web.Hosting;
+using Aegis.Monitor.Core;
 using Daishi.NewRelic.Insights;
 using FluentScheduler;
-using Mars;
 
 namespace Aegis.Monitor.Clients
 {

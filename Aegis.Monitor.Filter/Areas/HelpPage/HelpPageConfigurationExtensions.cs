@@ -25,7 +25,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
             this HttpConfiguration config,
             IDocumentationProvider documentationProvider)
         {
-            config.Services.Replace(typeof(IDocumentationProvider),
+            config.Services.Replace(typeof (IDocumentationProvider),
                 documentationProvider);
         }
 
@@ -236,7 +236,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
             this HttpConfiguration config)
         {
             return (HelpPageSampleGenerator) config.Properties.GetOrAdd(
-                typeof(HelpPageSampleGenerator),
+                typeof (HelpPageSampleGenerator),
                 k => new HelpPageSampleGenerator());
         }
 
@@ -248,7 +248,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
             HelpPageSampleGenerator sampleGenerator)
         {
             config.Properties.AddOrUpdate(
-                typeof(HelpPageSampleGenerator),
+                typeof (HelpPageSampleGenerator),
                 k => sampleGenerator,
                 (k, o) => sampleGenerator);
         }
@@ -260,7 +260,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
             this HttpConfiguration config)
         {
             return (ModelDescriptionGenerator) config.Properties.GetOrAdd(
-                typeof(ModelDescriptionGenerator),
+                typeof (ModelDescriptionGenerator),
                 k => InitializeModelDescriptionGenerator(config));
         }
 
@@ -405,7 +405,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
                         // as a simple string here.
                         var modelDescription =
                             modelGenerator.GetOrCreateModelDescription(
-                                typeof(string));
+                                typeof (string));
                         AddParameterDescription(apiModel, apiParameter,
                             modelDescription);
                     }
@@ -422,7 +422,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
 
             return
                 TypeDescriptor.GetConverter(parameterType)
-                    .CanConvertFrom(typeof(string));
+                    .CanConvertFrom(typeof (string));
         }
 
         private static ParameterDescription AddParameterDescription(
@@ -458,7 +458,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
                 }
                 else if (apiParameter.ParameterDescriptor != null &&
                          apiParameter.ParameterDescriptor.ParameterType ==
-                         typeof(HttpRequestMessage))
+                         typeof (HttpRequestMessage))
                 {
                     var parameterType =
                         sampleGenerator.ResolveHttpRequestMessageType(
@@ -479,7 +479,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
         {
             var response = apiModel.ApiDescription.ResponseDescription;
             var responseType = response.ResponseType ?? response.DeclaredType;
-            if (responseType != null && responseType != typeof(void))
+            if (responseType != null && responseType != typeof (void))
             {
                 apiModel.ResourceDescription =
                     modelGenerator.GetOrCreateModelDescription(responseType);
@@ -531,7 +531,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
                     p => p.Source == ApiParameterSource.FromBody ||
                          (p.ParameterDescriptor != null &&
                           p.ParameterDescriptor.ParameterType ==
-                          typeof(HttpRequestMessage)));
+                          typeof (HttpRequestMessage)));
 
             if (parameterDescription == null)
             {
@@ -542,7 +542,7 @@ namespace Aegis.Monitor.Filter.Areas.HelpPage
             resourceType =
                 parameterDescription.ParameterDescriptor.ParameterType;
 
-            if (resourceType == typeof(HttpRequestMessage))
+            if (resourceType == typeof (HttpRequestMessage))
             {
                 var sampleGenerator = config.GetHelpPageSampleGenerator();
                 resourceType =

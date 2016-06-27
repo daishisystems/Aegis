@@ -674,42 +674,77 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System.Reflection;
-using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
+using System;
 
-[assembly: AssemblyTitle("Mars")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Mars")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace Aegis.Monitor.Core
+{
+    /// <summary>
+    ///     <see cref="HTTPRequestMetadataValidator" /> validates and instance of
+    ///     <see cref="HTTPRequestMetadata" />, ensuring that relevant properties are
+    ///     instantiated correctly.
+    /// </summary>
+    public static class HTTPRequestMetadataValidator
+    {
+        /// <summary>
+        ///     <see cref="TryValidate" /> ensures that <see cref="httpRequestMetadata" />
+        ///     is instantiated correctly. If any <see cref="HTTPRequestMetadata" />
+        ///     properties are not instantiated correctly, the method returns <c>false</c>,
+        ///     and outputs a <see cref="HTTPRequestMetadataException" />.
+        /// </summary>
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="HTTPRequestMetadata" />
+        ///     instance to validate.
+        /// </param>
+        /// <param name="httpRequestMetadataException">
+        ///     A
+        ///     <see cref="HTTPRequestMetadataException" />, returned if any
+        ///     <see cref="HTTPRequestMetadata" /> properties are not instantiated
+        ///     correctly
+        /// </param>
+        /// <returns>
+        ///     <c>True</c> if all <see cref="httpRequestMetadata" /> properties are
+        ///     instantiated correctly.
+        /// </returns>
+        public static bool TryValidate(HTTPRequestMetadata httpRequestMetadata,
+            out HTTPRequestMetadataException httpRequestMetadataException)
+        {
+            httpRequestMetadataException = null;
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
+            if (httpRequestMetadata == null)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException("No HTTP request metadata specified.");
 
-[assembly: ComVisible(false)]
+                return false;
+            }
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
+            if (httpRequestMetadata.URI == null)
+            {
+                httpRequestMetadataException = new HTTPRequestMetadataException("No URI specified.");
 
-[assembly: Guid("c016268d-4d11-4d56-a723-0e83b12ba528")]
+                return false;
+            }
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+            if (httpRequestMetadata.UseWebProxy && httpRequestMetadata.WebProxy == null)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException("UseProxy is true, but no proxy is specified.");
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+                return false;
+            }
+
+            if (httpRequestMetadata.UseNonDefaultTimeout &&
+                httpRequestMetadata.NonDefaultTimeout == TimeSpan.Zero)
+            {
+                httpRequestMetadataException =
+                    new HTTPRequestMetadataException(
+                        "UseNonDefaultTimeout is true, but no timeout is specified.");
+
+                return false;
+            }
+
+            return true;
+        }
+    }
+}

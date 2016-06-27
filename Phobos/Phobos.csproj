@@ -61,9 +61,9 @@
     <None Include="PaulMooney.licenseheader" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mars\Mars.csproj">
-      <Project>{C016268D-4D11-4D56-A723-0E83B12BA528}</Project>
-      <Name>Mars</Name>
+    <ProjectReference Include="..\Aegis.Monitor.Core\Aegis.Monitor.Core.csproj">
+      <Project>{687A614F-0265-4726-A494-7EE358C111B8}</Project>
+      <Name>Aegis.Monitor.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

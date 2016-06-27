@@ -3,14 +3,14 @@
 <package>
   <metadata>
     <id>Aegis.Monitor.Core</id>
-    <title>Aegis .NET Monitoring Engine</title>
-    <version>1.0.10</version>
+    <title>Aegis Core</title>
+    <version>1.0.12</version>
     <authors>Paul Mooney</authors>
     <owners>Paul Mooney</owners>
     <licenseUrl>http://www.gnu.org/licenses/gpl-3.0.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Aegis event-monitoring tools</description>
-    <releaseNotes>Updated dependencies.</releaseNotes>
+    <description>Aegis core components</description>
+    <releaseNotes>Added HTTP helper components.</releaseNotes>
     <copyright>Copyright (C) 2016 Paul Mooney</copyright>
     <tags>Aegis</tags>
   </metadata>

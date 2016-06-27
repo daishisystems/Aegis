@@ -69,33 +69,33 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
                         createdObjectReferences);
                 }
 
-                if (type == typeof(IDictionary))
+                if (type == typeof (IDictionary))
                 {
-                    return GenerateDictionary(typeof(Hashtable),
+                    return GenerateDictionary(typeof (Hashtable),
                         DefaultCollectionSize, createdObjectReferences);
                 }
 
-                if (typeof(IDictionary).IsAssignableFrom(type))
+                if (typeof (IDictionary).IsAssignableFrom(type))
                 {
                     return GenerateDictionary(type, DefaultCollectionSize,
                         createdObjectReferences);
                 }
 
-                if (type == typeof(IList) ||
-                    type == typeof(IEnumerable) ||
-                    type == typeof(ICollection))
+                if (type == typeof (IList) ||
+                    type == typeof (IEnumerable) ||
+                    type == typeof (ICollection))
                 {
-                    return GenerateCollection(typeof(ArrayList),
+                    return GenerateCollection(typeof (ArrayList),
                         DefaultCollectionSize, createdObjectReferences);
                 }
 
-                if (typeof(IList).IsAssignableFrom(type))
+                if (typeof (IList).IsAssignableFrom(type))
                 {
                     return GenerateCollection(type, DefaultCollectionSize,
                         createdObjectReferences);
                 }
 
-                if (type == typeof(IQueryable))
+                if (type == typeof (IQueryable))
                 {
                     return GenerateQueryable(type, DefaultCollectionSize,
                         createdObjectReferences);
@@ -124,12 +124,12 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             Dictionary<Type, object> createdObjectReferences)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(Nullable<>))
+            if (genericTypeDefinition == typeof (Nullable<>))
             {
                 return GenerateNullable(type, createdObjectReferences);
             }
 
-            if (genericTypeDefinition == typeof(KeyValuePair<,>))
+            if (genericTypeDefinition == typeof (KeyValuePair<,>))
             {
                 return GenerateKeyValuePair(type, createdObjectReferences);
             }
@@ -142,24 +142,24 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             var genericArguments = type.GetGenericArguments();
             if (genericArguments.Length == 1)
             {
-                if (genericTypeDefinition == typeof(IList<>) ||
-                    genericTypeDefinition == typeof(IEnumerable<>) ||
-                    genericTypeDefinition == typeof(ICollection<>))
+                if (genericTypeDefinition == typeof (IList<>) ||
+                    genericTypeDefinition == typeof (IEnumerable<>) ||
+                    genericTypeDefinition == typeof (ICollection<>))
                 {
                     var collectionType =
-                        typeof(List<>).MakeGenericType(genericArguments);
+                        typeof (List<>).MakeGenericType(genericArguments);
                     return GenerateCollection(collectionType, collectionSize,
                         createdObjectReferences);
                 }
 
-                if (genericTypeDefinition == typeof(IQueryable<>))
+                if (genericTypeDefinition == typeof (IQueryable<>))
                 {
                     return GenerateQueryable(type, collectionSize,
                         createdObjectReferences);
                 }
 
                 var closedCollectionType =
-                    typeof(ICollection<>).MakeGenericType(genericArguments[0]);
+                    typeof (ICollection<>).MakeGenericType(genericArguments[0]);
                 if (closedCollectionType.IsAssignableFrom(type))
                 {
                     return GenerateCollection(type, collectionSize,
@@ -169,16 +169,16 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
 
             if (genericArguments.Length == 2)
             {
-                if (genericTypeDefinition == typeof(IDictionary<,>))
+                if (genericTypeDefinition == typeof (IDictionary<,>))
                 {
                     var dictionaryType =
-                        typeof(Dictionary<,>).MakeGenericType(genericArguments);
+                        typeof (Dictionary<,>).MakeGenericType(genericArguments);
                     return GenerateDictionary(dictionaryType, collectionSize,
                         createdObjectReferences);
                 }
 
                 var closedDictionaryType =
-                    typeof(IDictionary<,>).MakeGenericType(genericArguments[0],
+                    typeof (IDictionary<,>).MakeGenericType(genericArguments[0],
                         genericArguments[1]);
                 if (closedDictionaryType.IsAssignableFrom(type))
                 {
@@ -219,14 +219,14 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
 
         private static bool IsTuple(Type genericTypeDefinition)
         {
-            return genericTypeDefinition == typeof(Tuple<>) ||
-                   genericTypeDefinition == typeof(Tuple<,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,,,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,,,,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,,,,,>) ||
-                   genericTypeDefinition == typeof(Tuple<,,,,,,,>);
+            return genericTypeDefinition == typeof (Tuple<>) ||
+                   genericTypeDefinition == typeof (Tuple<,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,,,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,,,,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,,,,,>) ||
+                   genericTypeDefinition == typeof (Tuple<,,,,,,,>);
         }
 
         private static object GenerateKeyValuePair(Type keyValuePairType,
@@ -276,8 +276,8 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
         private static object GenerateDictionary(Type dictionaryType, int size,
             Dictionary<Type, object> createdObjectReferences)
         {
-            var typeK = typeof(object);
-            var typeV = typeof(object);
+            var typeK = typeof (object);
+            var typeV = typeof (object);
             if (dictionaryType.IsGenericType)
             {
                 var genericArgs = dictionaryType.GetGenericArguments();
@@ -332,14 +332,14 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             if (isGeneric)
             {
                 var listType =
-                    typeof(List<>).MakeGenericType(
+                    typeof (List<>).MakeGenericType(
                         queryableType.GetGenericArguments());
                 list = GenerateCollection(listType, size,
                     createdObjectReferences);
             }
             else
             {
-                list = GenerateArray(typeof(object[]), size,
+                list = GenerateArray(typeof (object[]), size,
                     createdObjectReferences);
             }
             if (list == null)
@@ -349,10 +349,10 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             if (isGeneric)
             {
                 var argumentType =
-                    typeof(IEnumerable<>).MakeGenericType(
+                    typeof (IEnumerable<>).MakeGenericType(
                         queryableType.GetGenericArguments());
                 var asQueryableMethod =
-                    typeof(Queryable).GetMethod("AsQueryable",
+                    typeof (Queryable).GetMethod("AsQueryable",
                         new[] {argumentType});
                 return asQueryableMethod.Invoke(null, new[] {list});
             }
@@ -365,7 +365,7 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
         {
             var type = collectionType.IsGenericType
                 ? collectionType.GetGenericArguments()[0]
-                : typeof(object);
+                : typeof (object);
             var result = Activator.CreateInstance(collectionType);
             var addMethod = collectionType.GetMethod("Add");
             var areAllElementsNull = true;
@@ -474,26 +474,26 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             {
                 return new Dictionary<Type, Func<long, object>>
                 {
-                    {typeof(bool), index => true},
-                    {typeof(byte), index => (byte) 64},
-                    {typeof(char), index => (char) 65},
-                    {typeof(DateTime), index => DateTime.Now},
+                    {typeof (bool), index => true},
+                    {typeof (byte), index => (byte) 64},
+                    {typeof (char), index => (char) 65},
+                    {typeof (DateTime), index => DateTime.Now},
                     {
-                        typeof(DateTimeOffset),
+                        typeof (DateTimeOffset),
                         index => new DateTimeOffset(DateTime.Now)
                     },
-                    {typeof(DBNull), index => DBNull.Value},
-                    {typeof(decimal), index => (decimal) index},
-                    {typeof(double), index => index + 0.1},
-                    {typeof(Guid), index => Guid.NewGuid()},
-                    {typeof(short), index => (short) (index%short.MaxValue)},
-                    {typeof(int), index => (int) (index%int.MaxValue)},
-                    {typeof(long), index => index},
-                    {typeof(object), index => new object()},
-                    {typeof(sbyte), index => (sbyte) 64},
-                    {typeof(float), index => (float) (index + 0.1)},
+                    {typeof (DBNull), index => DBNull.Value},
+                    {typeof (decimal), index => (decimal) index},
+                    {typeof (double), index => index + 0.1},
+                    {typeof (Guid), index => Guid.NewGuid()},
+                    {typeof (short), index => (short) (index%short.MaxValue)},
+                    {typeof (int), index => (int) (index%int.MaxValue)},
+                    {typeof (long), index => index},
+                    {typeof (object), index => new object()},
+                    {typeof (sbyte), index => (sbyte) 64},
+                    {typeof (float), index => (float) (index + 0.1)},
                     {
-                        typeof(string),
+                        typeof (string),
                         index =>
                         {
                             return string.Format(CultureInfo.CurrentCulture,
@@ -501,14 +501,14 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
                         }
                     },
                     {
-                        typeof(TimeSpan),
+                        typeof (TimeSpan),
                         index => { return TimeSpan.FromTicks(1234567); }
                     },
-                    {typeof(ushort), index => (ushort) (index%ushort.MaxValue)},
-                    {typeof(uint), index => (uint) (index%uint.MaxValue)},
-                    {typeof(ulong), index => (ulong) index},
+                    {typeof (ushort), index => (ushort) (index%ushort.MaxValue)},
+                    {typeof (uint), index => (uint) (index%uint.MaxValue)},
+                    {typeof (ulong), index => (ulong) index},
                     {
-                        typeof(Uri),
+                        typeof (Uri),
                         index =>
                         {
                             return

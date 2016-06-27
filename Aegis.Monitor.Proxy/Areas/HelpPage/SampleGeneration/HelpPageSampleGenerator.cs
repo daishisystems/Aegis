@@ -121,7 +121,7 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             // Do the sample generation based on formatters only if an action doesn't return an HttpResponseMessage.
             // Here we cannot rely on formatters because we don't know what's in the HttpResponseMessage, it might not even use formatters.
             if (type != null &&
-                !typeof(HttpResponseMessage).IsAssignableFrom(type))
+                !typeof (HttpResponseMessage).IsAssignableFrom(type))
             {
                 var sampleObject = GetSampleObject(type);
                 foreach (var formatter in formatters)
@@ -279,10 +279,10 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             IEnumerable<string> parameterNames, SampleDirection sampleDirection,
             out Collection<MediaTypeFormatter> formatters)
         {
-            if (!Enum.IsDefined(typeof(SampleDirection), sampleDirection))
+            if (!Enum.IsDefined(typeof (SampleDirection), sampleDirection))
             {
                 throw new InvalidEnumArgumentException("sampleDirection",
-                    (int) sampleDirection, typeof(SampleDirection));
+                    (int) sampleDirection, typeof (SampleDirection));
             }
             if (api == null)
             {

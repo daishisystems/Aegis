@@ -54,10 +54,10 @@ namespace Aegis.Monitor.Proxy.Areas.HelpPage
             string controllerName, string actionName,
             IEnumerable<string> parameterNames)
         {
-            if (!Enum.IsDefined(typeof(SampleDirection), sampleDirection))
+            if (!Enum.IsDefined(typeof (SampleDirection), sampleDirection))
             {
                 throw new InvalidEnumArgumentException("sampleDirection",
-                    (int) sampleDirection, typeof(SampleDirection));
+                    (int) sampleDirection, typeof (SampleDirection));
             }
             if (controllerName == null)
             {

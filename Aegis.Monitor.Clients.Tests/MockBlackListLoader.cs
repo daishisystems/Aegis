@@ -680,7 +680,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Aegis.Monitor.Core;
-using Mars;
 
 namespace Aegis.Monitor.Clients.Tests
 {

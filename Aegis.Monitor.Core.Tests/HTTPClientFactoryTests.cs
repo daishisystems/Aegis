@@ -674,12 +674,13 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 using System.Net;
 using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Mars.Tests
+namespace Aegis.Monitor.Core.Tests
 {
     /// <summary>
     ///     <see cref="HTTPClientFactoryTests" /> ensures that logic pertaining to
@@ -748,7 +749,7 @@ namespace Mars.Tests
 
             var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
-            Assert.AreEqual(httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
+            Assert.AreEqual((object) httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
         }
     }
 }

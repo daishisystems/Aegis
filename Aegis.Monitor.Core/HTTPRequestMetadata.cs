@@ -674,62 +674,70 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-using System.Net.Http;
 
-namespace Mars
+using System;
+using System.Net;
+
+namespace Aegis.Monitor.Core
 {
     /// <summary>
-    ///     <see cref="HTTPClientFactory" /> creates an instance of
-    ///     <see cref="HttpClient" />, based on an instance of
-    ///     <see cref="HTTPRequestMetadata" />.
+    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
+    ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
+    ///     issuing HTTP requests, such as specifying a web proxy, etc.
     /// </summary>
-    public class HTTPClientFactory
+    public class HTTPRequestMetadata
     {
         /// <summary>
-        ///     <see cref="Create" /> creates an instance of
-        ///     <see cref="HttpClient" />, based on an instance of
-        ///     <see cref="HTTPRequestMetadata" />.
+        ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
+        ///     request.
         /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" /> used
-        ///     to create a <see cref="HttpClient" /> instance.
-        /// </param>
-        /// <param name="httpClientHandler">
-        ///     The <see cref="HttpClientHandler" /> that acts
-        ///     as an intermediary between <see cref="HttpClient" /> and
-        ///     <see cref="HTTPRequestMetadata" />, during creation of a
-        ///     <see cref="HttpClient" /> instance.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpClient" />, based on
-        ///     <see cref="httpRequestMetadata" />.
-        /// </returns>
-        public HttpClient Create(HTTPRequestMetadata httpRequestMetadata,
-            out HttpClientHandler httpClientHandler)
+        public Uri URI { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
+        ///     <see cref="WebProxy" />.
+        /// </summary>
+        public bool UseWebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
+        ///     issuing HTTP requests.
+        /// </summary>
+        /// <remarks>
+        ///     The feature facilitates HTTP connectivity, even when Internet
+        ///     connectivity is funneled through a proxy server: e.g, corporate networks.
+        /// </remarks>
+        public WebProxy WebProxy { get; set; }
+
+        /// <summary>
+        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
+        ///     <see cref="NonDefaultTimeout" />.
+        /// </summary>
+        public bool UseNonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
+        ///     timeout.
+        /// </summary>
+        /// <remarks>
+        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
+        ///     connectivity will not create a bottleneck in consuming systems.
+        /// </remarks>
+        public TimeSpan NonDefaultTimeout { get; set; }
+
+        /// <summary>
+        ///     <see cref="Empty" /> returns a non-initialised
+        ///     <see cref="HTTPRequestMetadata" /> instance.
+        /// </summary>
+        /// <returns>A non-initialised <see cref="HTTPRequestMetadata" /> instance.</returns>
+        /// <remarks>
+        ///     This method promotes a more intuitive means of instantiating
+        ///     non-required instances of <see cref="HTTPRequestMetadata" /> in
+        ///     unit-testing scenarios.
+        /// </remarks>
+        public static HTTPRequestMetadata Empty()
         {
-            HttpClient httpClient;
-
-            if (httpRequestMetadata.UseWebProxy)
-            {
-                httpClientHandler = new HttpClientHandler
-                {
-                    UseProxy = true,
-                    Proxy = httpRequestMetadata.WebProxy
-                };
-                httpClient = new HttpClient(httpClientHandler);
-            }
-            else
-            {
-                httpClientHandler = null;
-                httpClient = new HttpClient();
-            }
-
-            if (httpRequestMetadata.UseNonDefaultTimeout)
-            {
-                httpClient.Timeout = httpRequestMetadata.NonDefaultTimeout;
-            }
-
-            return httpClient;
+            return new HTTPRequestMetadata();
         }
     }
 }
