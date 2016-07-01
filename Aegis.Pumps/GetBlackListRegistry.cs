@@ -689,9 +689,9 @@ namespace Aegis.Pumps
         public GetBlackListRegistry()
         {
             Schedule<GetBlackListJob>()
-                .WithName(BlackListClient.Instance.RecurringTaskName)
+                .WithName(BlackListPump.Instance.RecurringTaskName)
                 .ToRunNow()
-                .AndEvery(BlackListClient.Instance.RecurringTaskInterval)
+                .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
                 .Minutes();
         }
     }

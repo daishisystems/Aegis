@@ -708,16 +708,16 @@ namespace Aegis.Pumps
 
                 var httpRequestMetadata = new HTTPRequestMetadata
                 {
-                    URI = BlackListClient.Instance.AegisURI,
-                    UseWebProxy = BlackListClient.Instance.UseWebProxy,
-                    WebProxy = BlackListClient.Instance.WebProxy,
-                    UseNonDefaultTimeout = BlackListClient.Instance.UseNonDefaultTimeout,
-                    NonDefaultTimeout = BlackListClient.Instance.NonDefaultTimeout
+                    URI = BlackListPump.Instance.AegisURI,
+                    UseWebProxy = BlackListPump.Instance.UseWebProxy,
+                    WebProxy = BlackListPump.Instance.WebProxy,
+                    UseNonDefaultTimeout = BlackListPump.Instance.UseNonDefaultTimeout,
+                    NonDefaultTimeout = BlackListPump.Instance.NonDefaultTimeout
                 };
 
                 try
                 {
-                    BlackListClient.Instance.BlackList =
+                    BlackListPump.Instance.BlackList =
                         BlackListManager.Load(
                             new AegisBlackListLoader(),
                             httpRequestMetadata,

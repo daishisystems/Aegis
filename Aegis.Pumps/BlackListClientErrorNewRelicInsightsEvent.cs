@@ -684,7 +684,7 @@ namespace Aegis.Pumps
     /// <summary>
     ///     <see cref="BlackListClientErrorNewRelicInsightsEvent" /> is a template that
     ///     describes an error event that occurs during a
-    ///     <see cref="BlackListClient" /> operation.
+    ///     <see cref="BlackListPump" /> operation.
     /// </summary>
     public class BlackListClientErrorNewRelicInsightsEvent : NewRelicInsightsEvent
     {

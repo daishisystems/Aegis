@@ -687,30 +687,30 @@ using FluentScheduler;
 namespace Aegis.Pumps
 {
     /// <summary>
-    ///     <see cref="BlackListClient" /> is a Singleton instance that continuously
+    ///     <see cref="BlackListPump" /> is a Singleton instance that continuously
     ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
     ///     black-list in memory, providing a thread-safe collection of black-list
     ///     metadata for query.
     /// </summary>
-    public class BlackListClient
+    public class BlackListPump
     {
 
         private volatile bool _hasStarted;
         private int _recurringTaskInterval;
         private string _recurringTaskName;
 
-        static BlackListClient()
+        static BlackListPump()
         {
 
         }
 
-        private BlackListClient()
+        private BlackListPump()
         {
             BlackList = new ConcurrentDictionary<string, BlackListItem>();
             NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
         }
 
-        public static BlackListClient Instance { get; } = new BlackListClient();
+        public static BlackListPump Instance { get; } = new BlackListPump();
 
         /// <summary>
         ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
@@ -740,7 +740,7 @@ namespace Aegis.Pumps
             }
             set { _recurringTaskName = value; }
         }
-
+            
         /// <summary>
         ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
         ///     task that continuously polls Aegis for the most up-to-date black-list is
