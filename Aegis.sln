@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Core.Tests", "Aegis.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Inlet", "Aegis.Inlet\Aegis.Inlet.csproj", "{4C7A9E7A-0E1D-43EC-A22C-7E1F30945B67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Outlet", "Aegis.Outlet\Aegis.Outlet.csproj", "{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aegis.Monitor.Filter", "Aegis.Monitor.Filter\Aegis.Monitor.Filter.csproj", "{FD6EFE55-DB22-4F43-8BE6-0F874C2EE8CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

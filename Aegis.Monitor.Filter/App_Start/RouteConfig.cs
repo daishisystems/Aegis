@@ -675,130 +675,27 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Net;
-using System.Web.Hosting;
-using Aegis.Core;
-using FluentScheduler;
+using System.Web.Mvc;
+using System.Web.Routing;
 
-namespace Aegis.Outlet
+namespace Aegis.Monitor.Filter
 {
-    /// <summary>
-    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
-    ///     executes at regular intervals.
-    /// </summary>
-    /// <remarks>
-    ///     <see
-    ///         PublishTaskshTask" /> registers with the ASP.NET
-    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
-    ///     seconds.
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    public class GetFilterListsTask : IJob, IRegisteredObject
+    public class RouteConfig
     {
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public GetFilterListsTask()
+        public static void RegisterRoutes(RouteCollection routes)
         {
-            HostingEnvironment.RegisterObject(this);
-        }
+            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-        /// <summary>
-        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It integrates both lists and provides up-to-date collections of
-        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
-        /// </summary>
-        /// <remarks>
-        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
-        ///     blacklist metadata pertaining to malicious activity that occurred within
-        ///     the last 24 hours.
-        /// </remarks>
-        public void Execute()
-        {
-            lock (_lock)
-            {
-                if (_shuttingDown)
-                    return;
-
-                try
+            routes.MapRoute(
+                "Default",
+                "{controller}/{action}/{id}",
+                new
                 {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
-
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
-
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
-
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
-
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
-
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
-                    var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
-
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
-
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
+                    controller = "Home",
+                    action = "Index",
+                    id = UrlParameter.Optional
                 }
-                catch (Exception)
-                {
-                    // Fail silently and ignore errors for POC
-                }
-            }
-        }
-
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
+                );
         }
     }
 }

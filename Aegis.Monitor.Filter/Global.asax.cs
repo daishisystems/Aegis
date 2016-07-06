@@ -675,27 +675,26 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Web;
+using System.Web.Http;
 using System.Web.Mvc;
+using System.Web.Optimization;
 using System.Web.Routing;
+using FluentScheduler;
 
-namespace Aegis.Outlet
+namespace Aegis.Monitor.Filter
 {
-    public class RouteConfig
+    public class WebApiApplication : HttpApplication
     {
-        public static void RegisterRoutes(RouteCollection routes)
+        protected void Application_Start()
         {
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            AreaRegistration.RegisterAllAreas();
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            routes.MapRoute(
-                "Default",
-                "{controller}/{action}/{id}",
-                new
-                {
-                    controller = "Home",
-                    action = "Index",
-                    id = UrlParameter.Optional
-                }
-                );
+            JobManager.Initialize(new FilterRegistry());
         }
     }
 }

@@ -674,7 +674,6 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
-
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -724,6 +723,11 @@ namespace Aegis.Core.Tests
                 IPAddress.Parse("192.168.1.10")
                     .IsInRange(IPAddress.Parse("192.168.0.0"),
                         IPAddress.Parse("192.168.255.255")));
+        }
+
+        public void HandleEmptyIPAddressHeader()
+        {
+            
         }
     }
 }

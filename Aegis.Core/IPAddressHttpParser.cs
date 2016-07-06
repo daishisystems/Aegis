@@ -675,22 +675,242 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using FluentScheduler;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
-namespace Aegis.Outlet
+namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="FilterRegistry" /> is a task-manager that controls the execution
-    ///     of scheduled <see cref="GetFilterListsTask" /> commands.
+    ///     <see cref="IPAddressHttpParser" /> facilitates the parsing of HTTP requests
+    ///     in order to extract <see cref="IPAddress" /> metadata, as well as the
+    ///     formatting of that metadata.
     /// </summary>
-    public class FilterRegistry : Registry
+    public static class IPAddressHttpParser
     {
-        public FilterRegistry()
+        /// <summary>
+        ///     <see cref="TryGetHttpRequestHeaderValues" /> attempts to return the HTTP
+        ///     header value(s) pertaining to the HTTP header associated with the
+        ///     <see cref="headerName" /> index.
+        /// </summary>
+        /// <param name="headerName">
+        ///     <see cref="headerName" /> is the name of the HTTP header to parse.
+        /// </param>
+        /// <param name="headers">
+        ///     <see cref="headers" /> is the collection of
+        ///     <see cref="HttpRequestHeaders" /> to parse.
+        /// </param>
+        /// <param name="httpRequestHeaderValues">
+        ///     <see cref="httpRequestHeaderValues" /> is a collection of raw HTTP header
+        ///     values parsed from the HTTP request.
+        /// </param>
+        /// <returns>
+        ///     <see cref="TryGetHttpRequestHeaderValues" /> returns <c>true</c> if
+        ///     <see cref="headers" /> is successfully parsed. Otherwise, <c>false</c>.
+        /// </returns>
+        public static bool TryGetHttpRequestHeaderValues(string headerName, HttpRequestHeaders headers,
+            out IEnumerable<string> httpRequestHeaderValues)
         {
-            Schedule<GetFilterListsTask>()
-                .ToRunNow()
-                .AndEvery(20)
-                .Minutes();
+            if (string.IsNullOrEmpty(headerName) || headers == null)
+            {
+                httpRequestHeaderValues = new List<string>();
+                return false;
+            }
+
+            var canParseHttpRequestHeaderValues = headers.TryGetValues(headerName,
+                out httpRequestHeaderValues);
+
+            if (canParseHttpRequestHeaderValues)
+            {
+                return true;
+            }
+
+            httpRequestHeaderValues = new List<string>();
+            return false;
         }
+
+        /// <summary>
+        ///     <see cref="HttpRequestHeaderValueContainsIPAddress" /> determines whether
+        ///     or not <see cref="httpRequestHeaderValue" /> contains at least 1 IP
+        ///     address, and outputs all <see cref="IPAddress" /> instances found in
+        ///     <see cref="httpRequestHeaderValue" />.
+        /// </summary>
+        /// <param name="httpRequestHeaderValue">
+        ///     <see cref="httpRequestHeaderValue" /> is the HTTP request header-value that
+        ///     will be determined to contain at least 1 IP address.
+        /// </param>
+        /// <param name="ipAddresses">
+        ///     <see cref="ipAddresses" /> is a collection of
+        ///     <see cref="IPAddress" /> instances that have been found in
+        ///     <see cref="httpRequestHeaderValue" />.
+        /// </param>
+        /// <returns>
+        ///     <see cref="HttpRequestHeaderValueContainsIPAddress" /> returns
+        ///     <c>true</c> if <see cref="httpRequestHeaderValue" /> contains at least 1 IP
+        ///     address. Otherwise, <c>false</c>.
+        /// </returns>
+        public static bool HttpRequestHeaderValueContainsIPAddress(string httpRequestHeaderValue,
+            out IEnumerable<IPAddress> ipAddresses)
+        {
+            var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
+
+            var matches = ipAddressRegex.Matches(httpRequestHeaderValue);
+
+            if (matches.Count > 0)
+            {
+                var parsedIPAddresses = new List<IPAddress>();
+
+                foreach (var match in matches)
+                {
+                    IPAddress ipAddress;
+                    var isValidIPAddress = IPAddress.TryParse(match.ToString(), out ipAddress);
+
+                    if (isValidIPAddress)
+                    {
+                        parsedIPAddresses.Add(ipAddress);
+                    }
+                }
+
+                if (parsedIPAddresses.Count > 0)
+                {
+                    ipAddresses = parsedIPAddresses;
+                    return true;
+                }
+            }
+
+            ipAddresses = new List<IPAddress>();
+            return false;
+        }
+
+        /// <summary>
+        ///     <see cref="SplitHttpRequestHeaderValue" /> splits
+        ///     <see cref="httpRequestHeaderValue" />, if
+        ///     <see cref="httpRequestHeaderValue" /> consists of a comma-delimited
+        ///     collection of values.
+        /// </summary>
+        /// <param name="httpRequestHeaderValue">
+        ///     <see cref="httpRequestHeaderValue" /> is the HTTP request header value that
+        ///     potentially contains a comma-delimited collection of values.
+        /// </param>
+        /// <returns>
+        ///     <see cref="SplitHttpRequestHeaderValue" /> returns an
+        ///     <see cref="IEnumerable{T}" /> instance that consists of a collection of
+        ///     segmented values, as a result of a comma-delimited split operation on
+        ///     <see cref="httpRequestHeaderValue" />.
+        /// </returns>
+        /// <remarks>
+        ///     The original <see cref="httpRequestHeaderValue" /> value is returned
+        ///     if <see cref="httpRequestHeaderValue" /> does not consist of a
+        ///     comma-delimited collection of values.
+        /// </remarks>
+        public static IEnumerable<string> SplitHttpRequestHeaderValue(
+            string httpRequestHeaderValue)
+        {
+            var splitHttpRequestHeaderValues =
+                httpRequestHeaderValue.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+
+            return
+                splitHttpRequestHeaderValues
+                    .Select(
+                        splitHttpRequestHeaderValue => splitHttpRequestHeaderValue.Trim())
+                    .Where(
+                        trimmedSplitHttpRequestHeaderValue =>
+                            !trimmedSplitHttpRequestHeaderValue.Equals(string.Empty))
+                    .ToList();
+        }
+
+        /// <summary>
+        ///     <see cref="ParseIPAddresses" /> parses a
+        ///     <see cref="httpRequestHeaderValues" />, a collection of HTTP header values,
+        ///     in order to extract
+        ///     <see cref="IPAddress" /> metadata. Successful parsing results in a
+        ///     collection of <see cref="IPAddress" /> instances parsed from
+        ///     <see cref="httpRequestHeaderValues" />.
+        /// </summary>
+        /// <param name="httpRequestHeaderValues">
+        ///     <see cref="httpRequestHeaderValues" /> is a collection of raw HTTP header
+        ///     values extracted from a HTTP request, prior to parsing.
+        /// </param>
+        /// <returns>
+        ///     <see cref="ParseIPAddresses" /> returns a collection of
+        ///     <see cref="IPAddress" /> instances parsed from
+        ///     <see cref="httpRequestHeaderValues" />.
+        /// </returns>
+        public static List<IPAddress> ParseIPAddresses(IEnumerable<string> httpRequestHeaderValues)
+        {
+            var ipAddresses = new List<IPAddress>();
+            var values = httpRequestHeaderValues as string[] ?? httpRequestHeaderValues.ToArray();
+
+            foreach (var httpRequestHeaderValue in values)
+            {
+
+            }
+
+            return ipAddresses;
+        }
+
+        /// <summary>
+        ///     <see cref="GetIPAddressParseResult" /> determines an appropriate
+        ///     <see cref="IPAddressParseResult" /> based on <see cref="ipAddresses" /> and
+        ///     <see cref="httpRequestHeaderValues" />.
+        /// </summary>
+        /// <param name="ipAddresses">
+        ///     <see cref="ipAddresses" /> is a collection of successfully parsed
+        ///     <see cref="IPAddress" /> instances.
+        /// </param>
+        /// <param name="httpRequestHeaderValues">
+        ///     <see cref="httpRequestHeaderValues" /> is a collection of raw values parsed
+        ///     from a HTTP request header.
+        /// </param>
+        /// <returns><see cref="GetIPAddressParseResult" /> returns </returns>
+        /// <remarks>
+        ///     E.g., if both <see cref="ipAddresses" /> and
+        ///     <see cref="httpRequestHeaderValues" /> contain a single value, a
+        ///     <see cref="GetIPAddressParseResult" />.<c>SingleHeaderValid</c> result is
+        ///     returned, indicating that a single <see cref="IPAddress" /> has been parsed
+        ///     from a single HTTP header value that contains the <see cref="IPAddress" />
+        ///     instance.
+        /// </remarks>
+        public static IPAddressParseResult GetIPAddressParseResult(List<IPAddress> ipAddresses,
+            IEnumerable<string> httpRequestHeaderValues)
+        {
+            var values = httpRequestHeaderValues as string[] ?? httpRequestHeaderValues.ToArray();
+
+            if (values.Length.Equals(1) && ipAddresses.Count.Equals(1))
+            {
+                return IPAddressParseResult.SingleHeaderValid;
+            }
+            if (values.Length > 1 && ipAddresses.Count.Equals(values.Length))
+            {
+                return IPAddressParseResult.MultipleHeadersAllValid;
+            }
+            if (values.Length.Equals(1) && ipAddresses.Count.Equals(0))
+            {
+                return IPAddressParseResult.SingleHeaderEmptyOrInvalid;
+            }
+            if (values.Length > 1 && ipAddresses.Count.Equals(0))
+            {
+                return IPAddressParseResult.MultipleHeadersAllInvalid;
+            }
+            if (values.Length > 1 && ipAddresses.Count < values.Length)
+            {
+                return IPAddressParseResult.MultipleHeadersSomeInvalid;
+            }
+
+            return IPAddressParseResult.Unknown;
+        }
+
+        // ToDo: Create method to parse result to New Relic event.
+        // ToDo: First IP is origin - block this as priority. Final IP may be Vodafone, for example.
+        // ToDo: Check for internal IPs
+        // toDo: Flag Chain as 'broken' if IP route list contains garbage
+
+        // ToDo: Load IPs into HttpRequestNetworkRoute instances
+        // ToDo: Review, deploy to NuGet
+        // ToDo: Implement in .REZ
+        // ToDo: Move on to BlackList URI Job
     }
 }

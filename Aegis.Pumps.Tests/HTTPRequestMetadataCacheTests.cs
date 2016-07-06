@@ -678,17 +678,17 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Concurrent;
 using System.Net;
-using Aegis.Pumps;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Phobos.Tests;
 
-namespace Phobos.Tests
+namespace Aegis.Pumps.Tests
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataCacheTests" /> ensures that logic pertaining
+    ///     <see cref="HttpRequestMetadataCacheTests" /> ensures that logic pertaining
     ///     to <see cref="HttpRequestMetadataCache" /> instances is executed correctly.
     /// </summary>
     [TestClass]
-    public class HTTPRequestMetadataCacheTests
+    public class HttpRequestMetadataCacheTests
     {
         /// <summary>
         ///     <see cref="HTTPRequestMetadataIsAddedToExistingCache" /> ensures that a

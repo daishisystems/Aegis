@@ -675,24 +675,24 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using FluentScheduler;
+using System.Web.Http;
 
-namespace Aegis.Pumps
+namespace Aegis.Monitor.Filter
 {
-    /// <summary>
-    ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
-    ///     initialises a recurring task that continuously polls Aegis for the most
-    ///     up-to-date black-list.
-    /// </summary>
-    internal class GetBlackListRegistry : Registry
+    public static class WebApiConfig
     {
-        public GetBlackListRegistry()
+        public static void Register(HttpConfiguration config)
         {
-            Schedule<GetBlackListJob>()
-                .WithName(BlackListPump.Instance.RecurringTaskName)
-                .ToRunNow()
-                .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
-                .Seconds();
+            // Web API configuration and services
+
+            // Web API routes
+            config.MapHttpAttributeRoutes();
+
+            config.Routes.MapHttpRoute(
+                "DefaultApi",
+                "api/{controller}/{id}",
+                new {id = RouteParameter.Optional}
+                );
         }
     }
 }

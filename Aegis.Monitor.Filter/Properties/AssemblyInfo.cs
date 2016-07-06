@@ -675,57 +675,41 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Generic;
-using System.Net;
-using System.Web.Http;
-using Aegis.Core;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace Aegis.Outlet.Controllers
-{
-    /// <summary>
-    ///     <see cref="BlackListController" /> provides a collection of cached,
-    ///     blacklisted items, calculated by Aegis.
-    /// </summary>
-    public class BlackListController : ApiController
-    {
-        /// <summary>
-        ///     <see cref="GetBlackList" /> returns a collection of
-        ///     <see cref="BlackListItem" /> instances that pertain to each
-        ///     <see cref="country" />.
-        /// </summary>
-        /// <param name="country">
-        ///     The country from which each
-        ///     <see cref="BlackListItem" /> originates.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances that pertain to
-        ///     each <see cref="country" />.
-        /// </returns>
-        [Route("blacklist")]
-        public IEnumerable<BlackListItem> GetBlackList([FromUri] string[] country)
-        {
-            var blackList = new List<BlackListItem>();
+// General Information about an assembly is controlled through the following
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 
-            foreach (var c in country)
-            {
-                List<BlackListItem> blackListItems;
+[assembly: AssemblyTitle("Aegis.Monitor.Filter")]
+[assembly: AssemblyDescription("Outlet point for Aegis-connected application-blacklist")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Paul Mooney")]
+[assembly: AssemblyProduct("Aegis.Monitor.Filter")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
-                var blackListExists =
-                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
-                        out blackListItems);
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
+// COM, set the ComVisible attribute to true on that type.
 
-                if (blackListExists)
-                {
-                    blackList.AddRange(blackListItems);
-                }
-            }
+[assembly: ComVisible(false)]
 
-            if (blackList.Count.Equals(0))
-            {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
-            }
+// The following GUID is for the ID of the typelib if this project is exposed to COM
 
-            return blackList;
-        }
-    }
-}
+[assembly: Guid("3fbe785f-9d6d-4385-9843-dec0d01d0b95")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers
+// by using the '*' as shown below:
+
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]

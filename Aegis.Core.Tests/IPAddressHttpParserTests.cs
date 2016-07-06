@@ -675,24 +675,190 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using FluentScheduler;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps
+namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
-    ///     initialises a recurring task that continuously polls Aegis for the most
-    ///     up-to-date black-list.
+    ///     <see cref="IPAddressHttpParserTests" /> ensures that logic pertaining to
+    ///     <see cref="IPAddressHttpParser" /> executes correctly.
     /// </summary>
-    internal class GetBlackListRegistry : Registry
+    [TestClass]
+    public class IPAddressHttpParserTests
     {
-        public GetBlackListRegistry()
+        /// <summary>
+        ///     <see cref="InvalidHeaderNameReturnsFalseAndOutputsEmptyCollection" />
+        ///     ensures that an invalid HTTP header name results in a return value equal to
+        ///     <c>false</c>, and outputs and empty collection of HTTP request header
+        ///     values.
+        /// </summary>
+        [TestMethod]
+        public void InvalidHeaderNameReturnsFalseAndOutputsEmptyCollection()
         {
-            Schedule<GetBlackListJob>()
-                .WithName(BlackListPump.Instance.RecurringTaskName)
-                .ToRunNow()
-                .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
-                .Seconds();
+            var request = new HttpRequestMessage();
+            IEnumerable<string> httpRequestHeaderValues;
+
+            var canParseHttpRequestHeaderValues =
+                IPAddressHttpParser.TryGetHttpRequestHeaderValues(string.Empty,
+                    request.Headers, out httpRequestHeaderValues);
+
+            Assert.IsFalse(canParseHttpRequestHeaderValues);
+            Assert.AreEqual(0, httpRequestHeaderValues.Count());
+        }
+
+        /// <summary>
+        ///     <see cref="NullHttpHeadersReturnsFalseAndOutputsEmptyCollection" />
+        ///     ensures that an uninstantiated HTTP headers collection results in a return
+        ///     value equal to
+        ///     <c>false</c>, and outputs and empty collection of HTTP request header
+        ///     values.
+        /// </summary>
+        [TestMethod]
+        public void NullHttpHeadersReturnsFalseAndOutputsEmptyCollection()
+        {
+            IEnumerable<string> httpRequestHeaderValues;
+
+            var canParseHttpRequestHeaderValues =
+                IPAddressHttpParser.TryGetHttpRequestHeaderValues("TEST", null,
+                    out httpRequestHeaderValues);
+
+            Assert.IsFalse(canParseHttpRequestHeaderValues);
+            Assert.AreEqual(0, httpRequestHeaderValues.Count());
+        }
+
+        /// <summary>
+        ///     <see cref="EmptyHttpHeadersReturnsFalseAndOutputsEmptyCollection" />
+        ///     ensures that an empty HTTP headers collection results in a return value
+        ///     equal to
+        ///     <c>false</c>, and outputs and empty collection of HTTP request header
+        ///     values.
+        /// </summary>
+        [TestMethod]
+        public void EmptyHttpHeadersReturnsFalseAndOutputsEmptyCollection()
+        {
+            var request = new HttpRequestMessage();
+            IEnumerable<string> httpRequestHeaderValues;
+
+            var canParseHttpRequestHeaderValues =
+                IPAddressHttpParser.TryGetHttpRequestHeaderValues("TEST", request.Headers,
+                    out httpRequestHeaderValues);
+
+            Assert.IsFalse(canParseHttpRequestHeaderValues);
+            Assert.AreEqual(0, httpRequestHeaderValues.Count());
+        }
+
+        /// <summary>
+        ///     <see cref="CommaDelimitedHttpRequestHeaderValueIsSplit" /> ensures that a
+        ///     HTTP header that consists of a comma-delimited collection of values is
+        ///     split into individual, trimmed segments.
+        /// </summary>
+        [TestMethod]
+        public void CommaDelimitedHttpRequestHeaderValueIsSplit()
+        {
+            const string commaDelimitedHttpRequestHeaderValue = "TEST1, TEST2,     TEST3   , ,";
+
+            var splitHttpRequestHeaderValues =
+                IPAddressHttpParser.SplitHttpRequestHeaderValue(commaDelimitedHttpRequestHeaderValue);
+
+            var values = splitHttpRequestHeaderValues as string[] ?? splitHttpRequestHeaderValues.ToArray();
+
+            Assert.AreEqual(3, values.Length);
+            Assert.AreEqual("TEST1", values[0]);
+            Assert.AreEqual("TEST2", values[1]);
+            Assert.AreEqual("TEST3", values[2]);
+        }
+
+        /// <summary>
+        ///     <see cref="NonDelimitedHttpRequestHeaderValueIsSplit" /> ensures that a
+        ///     HTTP header that does not consist of a comma-delimited collection of values
+        ///     is returned as-is.
+        /// </summary>
+        [TestMethod]
+        public void NonDelimitedHttpRequestHeaderValueIsSplit()
+        {
+            const string commaDelimitedHttpRequestHeaderValue = "TEST1   ";
+
+            var splitHttpRequestHeaderValues =
+                IPAddressHttpParser.SplitHttpRequestHeaderValue(commaDelimitedHttpRequestHeaderValue);
+
+            var values = splitHttpRequestHeaderValues as string[] ?? splitHttpRequestHeaderValues.ToArray();
+
+            Assert.AreEqual(1, values.Length);
+            Assert.AreEqual("TEST1", values[0]);
+        }
+
+        /// <summary>
+        ///     <see cref="SingleValidIPAddressIsSuccessfullyParsedFromHttpRequestHeader" />
+        ///     ensures that a HTTP header collection that consists of a single
+        ///     <see cref="IPAddress" /> instances is successfully parsed.
+        /// </summary>
+        [TestMethod]
+        public void SingleValidIPAddressIsSuccessfullyParsedFromHttpRequestHeader()
+        {
+            const string httpRequestHeaderValue = "X-FORWARD-FOR:TEST127.0.0.1,TEST 127.0.0.x ,[ABC]   ";
+
+            IEnumerable<IPAddress> ipAddresses;
+
+            var httpRequestHeaderValueContainsIPAddress =
+                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                    out ipAddresses);
+
+            Assert.IsTrue(httpRequestHeaderValueContainsIPAddress);
+            var enumerable = ipAddresses as IPAddress[] ?? ipAddresses.ToArray();
+
+            Assert.AreEqual(1, enumerable.Length);
+            Assert.AreEqual("127.0.0.1", enumerable[0].ToString());
+        }
+
+        /// <summary>
+        ///     <see
+        ///         cref="MultipleValidIPAddressesAreSuccessfullyParsedFromHttpRequestHeader" />
+        ///     ensures that a HTTP header collection that consists of multiple
+        ///     <see cref="IPAddress" /> instances is successfully parsed.
+        /// </summary>
+        [TestMethod]
+        public void MultipleValidIPAddressesAreSuccessfullyParsedFromHttpRequestHeader()
+        {
+            const string httpRequestHeaderValue = "X-FORWARD-FOR:TEST127.0.0.1,TEST 127.0.0.8 ,[ABC]   ";
+
+            IEnumerable<IPAddress> ipAddresses;
+
+            var httpRequestHeaderValueContainsIPAddress =
+                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                    out ipAddresses);
+
+            Assert.IsTrue(httpRequestHeaderValueContainsIPAddress);
+            var enumerable = ipAddresses as IPAddress[] ?? ipAddresses.ToArray();
+
+            Assert.AreEqual(2, enumerable.Length);
+            Assert.AreEqual("127.0.0.1", enumerable[0].ToString());
+            Assert.AreEqual("127.0.0.8", enumerable[1].ToString());
+        }
+
+        /// <summary>
+        ///     <see
+        ///         cref="NoValidIPAddressesAreSuccessfullyParsedFromHttpRequestHeader" />
+        ///     ensures that a HTTP header collection that does not consist of any
+        ///     <see cref="IPAddress" /> instances returns <c>false</c> and outputs and
+        ///     empty collection of <see cref="IPAddress" /> instances.
+        /// </summary>
+        [TestMethod]
+        public void NoValidIPAddressesAreSuccessfullyParsedFromHttpRequestHeader()
+        {
+            const string httpRequestHeaderValue = "X-FORWARD-FOR:TEST127.0,0.1,TEST 127.0.0.8419 ,[ABC]   ";
+
+            IEnumerable<IPAddress> ipAddresses;
+
+            var httpRequestHeaderValueContainsIPAddress =
+                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                    out ipAddresses);
+
+            Assert.IsFalse(httpRequestHeaderValueContainsIPAddress);
+            Assert.IsFalse(ipAddresses.Any());
         }
     }
 }

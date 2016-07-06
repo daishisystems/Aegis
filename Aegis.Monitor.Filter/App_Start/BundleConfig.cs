@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System.Web.Optimization;
 
-namespace Aegis.Outlet
+namespace Aegis.Monitor.Filter
 {
     public class BundleConfig
     {

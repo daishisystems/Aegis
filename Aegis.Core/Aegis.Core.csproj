@@ -73,6 +73,9 @@
     <Compile Include="HTTPRequestMetadata.cs" />
     <Compile Include="HTTPRequestMetadataException.cs" />
     <Compile Include="HTTPRequestMetadataValidator.cs" />
+    <Compile Include="HttpRequestNetworkRoute.cs" />
+    <Compile Include="IPAddressHttpParser.cs" />
+    <Compile Include="IPAddressParseResult.cs" />
     <Compile Include="MemoryCache.cs" />
     <Compile Include="IPAddressExtensions.cs" />
     <Compile Include="IPAddressGeoLocation.cs" />

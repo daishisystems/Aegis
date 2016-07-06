@@ -675,24 +675,92 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Collections.Generic;
+using System.Net;
 using System.Web.Http;
+using Aegis.Core;
 
-namespace Aegis.Outlet
+namespace Aegis.Monitor.Filter.Controllers
 {
-    public static class WebApiConfig
+    /// <summary>
+    ///     <see cref="BlackListController" /> provides a collection of cached,
+    ///     blacklisted items, calculated by Aegis.
+    /// </summary>
+    public class BlackListController : ApiController
     {
-        public static void Register(HttpConfiguration config)
+        /// <summary>
+        ///     <see cref="GetBlackList" /> returns a collection of
+        ///     <see cref="BlackListItem" /> instances that pertain to each
+        ///     <see cref="country" />.
+        /// </summary>
+        /// <param name="country">
+        ///     The country from which each
+        ///     <see cref="BlackListItem" /> originates.
+        /// </param>
+        /// <returns>
+        ///     A collection of <see cref="BlackListItem" /> instances that pertain to
+        ///     each <see cref="country" />.
+        /// </returns>
+        [Route("blacklist")]
+        public IEnumerable<BlackListItem> GetBlackList([FromUri] string[] country)
+
         {
-            // Web API configuration and services
+            var blackList = new List<BlackListItem>();
 
-            // Web API routes
-            config.MapHttpAttributeRoutes();
+            country = new[]
+            {
+                "ireland",
+                "united kingdom"
+            };
 
-            config.Routes.MapHttpRoute(
-                "DefaultApi",
-                "api/{controller}/{id}",
-                new {id = RouteParameter.Optional}
-                );
+            foreach (var c in country)
+            {
+                List<BlackListItem> blackListItems;
+
+                var blackListExists =
+                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
+                        out blackListItems);
+
+                if (blackListExists)
+                {
+                    blackList.AddRange(blackListItems);
+                }
+            }
+
+            if (blackList.Count.Equals(0))
+            {
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            }
+
+            return blackList;
+        }
+
+        [Route("blacklistmonitor")]
+        public IEnumerable<BlackListItem> GetBlackListMonitor([FromUri] string[] country)
+
+        {
+            var blackList = new List<BlackListItem>();
+
+            foreach (var c in country)
+            {
+                List<BlackListItem> blackListItems;
+
+                var blackListExists =
+                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
+                        out blackListItems);
+
+                if (blackListExists)
+                {
+                    blackList.AddRange(blackListItems);
+                }
+            }
+
+            if (blackList.Count.Equals(0))
+            {
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            }
+
+            return blackList;
         }
     }
 }

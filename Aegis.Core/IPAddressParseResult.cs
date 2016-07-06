@@ -674,16 +674,61 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+using System.Net;
 
-using System.Web.Mvc;
-
-namespace Aegis.Outlet
+namespace Aegis.Core
 {
-    public class FilterConfig
+    /// <summary>
+    ///     <see cref="IPAddressParseResult" /> defines the final state of an
+    ///     <see cref="IPAddressHttpParser.TryParseIPAddress" /> operation.
+    /// </summary>
+    public enum IPAddressParseResult
     {
-        public static void RegisterGlobalFilters(GlobalFilterCollection filters)
-        {
-            filters.Add(new HandleErrorAttribute());
-        }
+        /// <summary>
+        ///     <see cref="Unknown" /> implies that an unhandled condition occurred while
+        ///     parsing the HTTP request.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        ///     <see cref="NoHeaders" /> implies that a HTTP request did not contain the
+        ///     specified header value.
+        /// </summary>
+        NoHeaders,
+
+        /// <summary>
+        ///     <see cref="SingleHeaderValid" /> implies that a single instance of the
+        ///     specified header exists, and that the header value is a valid
+        ///     <see cref="IPAddress" /> instance.
+        /// </summary>
+        SingleHeaderValid,
+
+        /// <summary>
+        ///     <see cref="SingleHeaderEmptyOrInvalid" /> implies that a single instance of
+        ///     the specified header exists, and that the header value is not a valid
+        ///     <see cref="IPAddress" /> instance.
+        /// </summary>
+        SingleHeaderEmptyOrInvalid,
+
+        /// <summary>
+        ///     <see cref="MultipleHeadersAllValid" /> implies that multiple instances of
+        ///     the specified header exists, and that each header value is a valid
+        ///     <see cref="IPAddress" />.
+        /// </summary>
+        MultipleHeadersAllValid,
+
+        /// <summary>
+        ///     <see cref="MultipleHeadersSomeInvalid" /> implies that multiple instances
+        ///     of the specified header exists, and that some header values are not valid
+        ///     <see cref="IPAddress" /> instances.
+        /// </summary>
+        MultipleHeadersSomeInvalid,
+
+        /// <summary>
+        ///     <see cref="MultipleHeadersAllInvalid" /> implies that multiple instances of
+        ///     the specified header exists, and that all header values are not valid
+        ///     <see cref="IPAddress" /> instances.
+        /// </summary>
+        MultipleHeadersAllInvalid
     }
 }
