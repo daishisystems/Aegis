@@ -674,6 +674,7 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 using System.Net;
 using System.Threading;
@@ -683,23 +684,23 @@ namespace Aegis.Core.Tests
 {
     /// <summary>
     ///     <see cref="HttpRequestMetadataTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPRequestMetadata" /> instances is executed correctly.
+    ///     <see cref="HttpRequestMetadata" /> instances is executed correctly.
     /// </summary>
     [TestClass]
     public class HttpRequestMetadataTests
     {
         /// <summary>
         ///     <see cref="HttpRequestMetadataValidatorFailsOnNullMetadata" /> ensures that
-        ///     uninstantiated <see cref="HTTPRequestMetadata" /> instances fail
+        ///     uninstantiated <see cref="HttpRequestMetadata" /> instances fail
         ///     validation.
         /// </summary>
         [TestMethod]
         public void HttpRequestMetadataValidatorFailsOnNullMetadata()
         {
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(null,
+                HttpRequestMetadataValidator.TryValidate(null,
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
@@ -708,18 +709,18 @@ namespace Aegis.Core.Tests
 
         /// <summary>
         ///     <see cref="HttpRequestMetadataValidatorFailsOnInvalidURI" /> ensures that
-        ///     <see cref="HTTPRequestMetadata" /> instances instantiated with invalid
-        ///     <see cref="HTTPRequestMetadata.URI" /> properties fail validation.
+        ///     <see cref="HttpRequestMetadata" /> instances instantiated with invalid
+        ///     <see cref="HttpRequestMetadata.URI" /> properties fail validation.
         /// </summary>
         [TestMethod]
         public void HttpRequestMetadataValidatorFailsOnInvalidURI()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            var httpRequestMetadata = new HttpRequestMetadata();
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
@@ -728,22 +729,22 @@ namespace Aegis.Core.Tests
         /// <summary>
         ///     <see cref="WebProxyIsSetWhenUseProxyIsSpecified" /> ensures that a a valid
         ///     <see cref="WebProxy" /> is instantiated when the
-        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> property is <c>true</c>.
+        ///     <see cref="HttpRequestMetadata.UseWebProxy" /> property is <c>true</c>.
         /// </summary>
         [TestMethod]
         public void WebProxyIsSetWhenUseProxyIsSpecified()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 URI = new Uri("http://localhost"),
                 UseWebProxy = true,
                 WebProxy = new WebProxy()
             };
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             Assert.IsTrue(httpRequestMetadataIsValid);
@@ -753,24 +754,24 @@ namespace Aegis.Core.Tests
         /// <summary>
         ///     <see cref="NullWebProxyReturnsExceptionWhenUseProxyIsSpecified" /> ensures
         ///     that a
-        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
-        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
-        ///     <see cref="HTTPRequestMetadata.WebProxy" />, when
-        ///     <see cref="HTTPRequestMetadata.UseWebProxy" /> is <c>true</c>.
+        ///     <see cref="HttpRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HttpRequestMetadata" />, that contains an invalid
+        ///     <see cref="HttpRequestMetadata.WebProxy" />, when
+        ///     <see cref="HttpRequestMetadata.UseWebProxy" /> is <c>true</c>.
         /// </summary>
         [TestMethod]
         public void NullWebProxyReturnsExceptionWhenUseProxyIsSpecified()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 URI = new Uri("http://localhost"),
                 UseWebProxy = true
             };
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
@@ -781,23 +782,23 @@ namespace Aegis.Core.Tests
         ///     <see cref="TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified" /> ensures that
         ///     a a valid
         ///     <see cref="TimeSpan" /> is instantiated when the
-        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> property is
+        ///     <see cref="HttpRequestMetadata.UseNonDefaultTimeout" /> property is
         ///     <c>true</c>.
         /// </summary>
         [TestMethod]
         public void TimeoutIsSetWhenUseNonDefaultTimeoutIsSpecified()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 URI = new Uri("http://localhost"),
                 UseNonDefaultTimeout = true,
                 NonDefaultTimeout = new TimeSpan(0, 0, 5)
             };
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             Assert.IsTrue(httpRequestMetadataIsValid);
@@ -807,29 +808,29 @@ namespace Aegis.Core.Tests
         /// <summary>
         ///     <see cref="ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified" />
         ///     ensures that a
-        ///     <see cref="HTTPRequestMetadataException" /> is outputted when an instance
-        ///     of <see cref="HTTPRequestMetadata" />, that contains an invalid
+        ///     <see cref="HttpRequestMetadataException" /> is outputted when an instance
+        ///     of <see cref="HttpRequestMetadata" />, that contains an invalid
         ///     <see cref="Timeout" />, when
-        ///     <see cref="HTTPRequestMetadata.UseNonDefaultTimeout" /> is <c>true</c>.
+        ///     <see cref="HttpRequestMetadata.UseNonDefaultTimeout" /> is <c>true</c>.
         /// </summary>
         [TestMethod]
         public void ZeroTimeoutReturnsExceptionWhenUseNonDefaultTimeoutIsSpecified()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 URI = new Uri("http://localhost"),
                 UseNonDefaultTimeout = true
             };
 
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             Assert.IsFalse(httpRequestMetadataIsValid);
             Assert.IsInstanceOfType(httpRequestMetadataException,
-                typeof (HTTPRequestMetadataException));
+                typeof (HttpRequestMetadataException));
         }
     }
 }

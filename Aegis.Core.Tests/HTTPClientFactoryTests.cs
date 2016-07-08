@@ -674,6 +674,7 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 using System.Net;
 using System.Net.Http;
@@ -683,7 +684,7 @@ namespace Aegis.Core.Tests
 {
     /// <summary>
     ///     <see cref="HttpClientFactoryTests" /> ensures that logic pertaining to
-    ///     <see cref="HTTPClientFactory" /> instances executes correctly.
+    ///     <see cref="HttpClientFactory" /> instances executes correctly.
     /// </summary>
     [TestClass]
     public class HttpClientFactoryTests
@@ -696,7 +697,7 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void HttpClientWithProxyIsCreated()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 UseWebProxy = true,
                 WebProxy = new WebProxy(new Uri("http://localhost"))
@@ -704,7 +705,7 @@ namespace Aegis.Core.Tests
 
             HttpClientHandler httpClientHandler;
 
-            var httpClientFactory = new HTTPClientFactory();
+            var httpClientFactory = new HttpClientFactory();
             httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
             Assert.IsTrue(httpClientHandler.UseProxy);
@@ -719,11 +720,11 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void HttpClientWithoutProxyIsCreated()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata();
+            var httpRequestMetadata = new HttpRequestMetadata();
 
             HttpClientHandler httpClientHandler;
 
-            var httpClientFactory = new HTTPClientFactory();
+            var httpClientFactory = new HttpClientFactory();
             httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
             Assert.IsNull(httpClientHandler);
@@ -737,14 +738,14 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void HttpClientWithNonDefaultTimeoutIsCreated()
         {
-            var httpRequestMetadata = new HTTPRequestMetadata
+            var httpRequestMetadata = new HttpRequestMetadata
             {
                 UseNonDefaultTimeout = true,
                 NonDefaultTimeout = new TimeSpan(0, 0, 5)
             };
 
             HttpClientHandler httpClientHandler;
-            var httpClientFactory = new HTTPClientFactory();
+            var httpClientFactory = new HttpClientFactory();
 
             var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 

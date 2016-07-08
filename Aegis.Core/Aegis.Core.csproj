@@ -69,11 +69,13 @@
     <Compile Include="BlackListItem.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />
-    <Compile Include="HTTPClientFactory.cs" />
-    <Compile Include="HTTPRequestMetadata.cs" />
-    <Compile Include="HTTPRequestMetadataException.cs" />
-    <Compile Include="HTTPRequestMetadataValidator.cs" />
-    <Compile Include="HttpRequestNetworkRoute.cs" />
+    <Compile Include="CitrixNetworkRouteMapper.cs" />
+    <Compile Include="HttpClientFactory.cs" />
+    <Compile Include="HttpRequestMetadata.cs" />
+    <Compile Include="HttpRequestMetadataException.cs" />
+    <Compile Include="HttpRequestMetadataValidator.cs" />
+    <Compile Include="NetworkRoute.cs" />
+    <Compile Include="NetworkRouteMapper.cs" />
     <Compile Include="HttpRequestHeaderParser.cs" />
     <Compile Include="MemoryCache.cs" />
     <Compile Include="IPAddressExtensions.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="NewRelicInsightsEvent.cs" />
     <Compile Include="NewRelicInsightsRegistry.cs" />
     <Compile Include="NewRelicInsightsTask.cs" />
+    <Compile Include="NoHttpRequestHeadersFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublishTask.cs" />
     <Compile Include="WebRequestHelper.cs" />

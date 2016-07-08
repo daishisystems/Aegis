@@ -674,29 +674,30 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataException" /> is thrown when
-    ///     <see cref="HTTPRequestMetadata" /> is malformed, invalid, partially, or
+    ///     <see cref="HttpRequestMetadataException" /> is thrown when
+    ///     <see cref="HttpRequestMetadata" /> is malformed, invalid, partially, or
     ///     entirely omitted.
     /// </summary>
     [Serializable]
-    public class HTTPRequestMetadataException : Exception
+    public class HttpRequestMetadataException : Exception
     {
-        public HTTPRequestMetadataException()
+        public HttpRequestMetadataException()
         {
 
         }
 
-        public HTTPRequestMetadataException(string message) : base(message)
+        public HttpRequestMetadataException(string message) : base(message)
         {
 
         }
 
-        public HTTPRequestMetadataException(string message, Exception inner) : base(message, inner)
+        public HttpRequestMetadataException(string message, Exception inner) : base(message, inner)
         {
 
         }

@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -675,84 +675,102 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.IO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using Aegis.Core;
-using Jil;
 
-namespace Aegis.Pumps
+namespace Aegis.Core
 {
-    /// <summary>
-    ///     <see cref="UploadNotifier" /> executes a HTTP request to Aegis, informing
-    ///     the system that a metadata upload is pending.
-    /// </summary>
-    public class UploadNotifier
+    /// <see cref="CitrixNetworkRouteMapper" />
+    /// maps the full network route; that is, the
+    /// collection of
+    /// <see cref="IPAddress" />
+    /// instances, through which a
+    /// connecting client accesses a HTTP resource via Citrix hardware, including the original client
+    /// <see cref="IPAddress" />
+    /// instance, and subsequent proxy
+    /// <see cref="IPAddress" />
+    /// instances, if applicable, and where disclosed.
+    public class CitrixNetworkRouteMapper : NetworkRouteMapper
     {
-        /// <summary>
-        ///     <see cref="SendUploadNotification" /> executes a HTTP request to Aegis,
-        ///     informing the system that a metadata upload is pending.
-        /// </summary>
-        /// <param name="uploadNotification">
-        ///     <see cref="uploadNotification" /> is a template that contains properties
-        ///     which describe an upcoming Aegis metadata-upload.
+        private readonly string _httpRequestHeaderName;
+        private readonly HttpRequestHeaders _httpRequestHeaders;
+        private IEnumerable<string> _httpRequestHeaderValues;
+
+        /// <summary>Initialises a new <see cref="CitrixNetworkRouteMapper" /> instance.</summary>
+        /// <param name="httpRequestHeaderName">
+        ///     <see cref="httpRequestHeaderName" /> is the name of the HTTP request header
+        ///     to parse.
         /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request.
+        /// <param name="httpRequestHeaders">
+        ///     <see cref="HttpRequestHeaders" /> is the collection of HTTP request headers
+        ///     to parse.
         /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpStatusCode" /> instance that indicates success, or
-        ///     failure.
-        /// </returns>
-        public static HttpStatusCode SendUploadNotification(UploadNotification uploadNotification,
-            Core.HttpRequestMetadata httpRequestMetadata, HttpClientFactory httpClientFactory)
+        public CitrixNetworkRouteMapper(string httpRequestHeaderName,
+            HttpRequestHeaders httpRequestHeaders)
         {
-            HttpRequestMetadataException httpRequestMetadataException;
+            _httpRequestHeaderName = httpRequestHeaderName;
+            _httpRequestHeaders = httpRequestHeaders;
+        }
 
-            var httpRequestMetadataIsValid =
-                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            if (!httpRequestMetadataIsValid)
+        /// <summary>
+        ///     <see cref="NetworkRouteMapper.GetHttpRequestHeaderValues" /> extracts all
+        ///     relevant header values from a HTTP request.
+        /// </summary>
+        public override void GetHttpRequestHeaderValues()
+        {
+            if (string.IsNullOrEmpty(_httpRequestHeaderName) || _httpRequestHeaders == null)
             {
-                throw httpRequestMetadataException;
+                throw new ArgumentException("HTTP metadata not specified.");
             }
 
-            HttpClientHandler httpClientHandler;
+            var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
+                .TryGetHttpRequestHeaderValues(_httpRequestHeaderName, _httpRequestHeaders,
+                    out _httpRequestHeaderValues);
 
-            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
-                out httpClientHandler))
+            if (!canGetHttpRequestHeaderValues)
             {
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                StringWriter uploadNotificationWriter;
-
-                using (uploadNotificationWriter = new StringWriter())
-                {
-                    JSON.Serialize(
-                        uploadNotification,
-                        uploadNotificationWriter
-                        );
-                }
-
-                var response = httpClient.PostAsync(httpRequestMetadata.URI,
-                    new StringContent(
-                        uploadNotificationWriter.ToString(),
-                        Encoding.UTF8, "application/json")).Result;
-
-                return response.StatusCode;
+                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
             }
         }
 
-        // ToDo: Add Async equivalent
+        /// <summary>
+        ///     <see cref="NetworkRouteMapper.GetIPAddresses" /> extracts all
+        ///     <see cref="IPAddress" />
+        ///     instances from a HTTP request.
+        /// </summary>
+        public override void GetIPAddresses()
+        {
+            if (_httpRequestHeaderValues == null || !_httpRequestHeaderValues.Any())
+            {
+                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
+            }
+
+            var unparsableHttpRequestHeaders = new List<string>();
+            var parsedIpAddresses = new List<IPAddress>();
+
+            foreach (var httpRequestHeaderValue in _httpRequestHeaderValues)
+            {
+                IEnumerable<IPAddress> ipAddresses;
+
+                var httpRequestHeaderValueContainsIPAddresses =
+                    HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                        out ipAddresses);
+
+                if (!httpRequestHeaderValueContainsIPAddresses)
+                {
+                    unparsableHttpRequestHeaders.Add(httpRequestHeaderValue);
+                }
+                else
+                {
+                    parsedIpAddresses.AddRange(ipAddresses);
+                }
+            }
+
+            UnparsableHttpRequestHeaders = unparsableHttpRequestHeaders;
+            ParsedIPAddresses = parsedIpAddresses;
+        }
     }
 }

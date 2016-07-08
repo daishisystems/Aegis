@@ -682,6 +682,7 @@ using System.Web.Hosting;
 using Aegis.Core;
 using Daishi.NewRelic.Insights;
 using FluentScheduler;
+using HttpClientFactory = Aegis.Core.HttpClientFactory;
 
 namespace Aegis.Pumps
 {
@@ -764,7 +765,7 @@ namespace Aegis.Pumps
 
                 foreach (var country in countries)
                 {
-                    var httpRequestMetadata = new HTTPRequestMetadata
+                    var httpRequestMetadata = new Core.HttpRequestMetadata
                     {
                         URI =
                             new Uri("http://aegisfilter.azurewebsites.net/blacklistmonitor" + "?country=" + country),
@@ -780,7 +781,7 @@ namespace Aegis.Pumps
                             BlackListManager.Load(  
                                 new AegisBlackListLoader(),
                                 httpRequestMetadata,
-                                new HTTPClientFactory());
+                                new HttpClientFactory());
 
                         NewRelicInsightsClient.UploadEvents(new List<NewRelicInsightsEvent>
                         {
@@ -790,7 +791,7 @@ namespace Aegis.Pumps
                                 Country = country,
                                 NumScrapers = BlackListPump.Instance.BlackList.Count
                             }
-                        }, new HttpClientFactory(), NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
+                        }, new Daishi.NewRelic.Insights.HttpClientFactory(), NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
 
                     }
                     catch (TaskCanceledException exception)
@@ -867,7 +868,7 @@ namespace Aegis.Pumps
             {
                 NewRelicInsightsClient.UploadEvents(
                     new[] {blackListClientErrorNewRelicInsightsEvent},
-                    new HttpClientFactory(),
+                    new Daishi.NewRelic.Insights.HttpClientFactory(),
                     newRelicInsightsClient.NewRelicInsightsMetadata);
             }
 

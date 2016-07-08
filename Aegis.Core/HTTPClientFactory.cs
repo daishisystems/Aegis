@@ -674,37 +674,38 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System.Net.Http;
 
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="HTTPClientFactory" /> creates an instance of
+    ///     <see cref="HttpClientFactory" /> creates an instance of
     ///     <see cref="HttpClient" />, based on an instance of
-    ///     <see cref="HTTPRequestMetadata" />.
+    ///     <see cref="HttpRequestMetadata" />.
     /// </summary>
-    public class HTTPClientFactory
+    public class HttpClientFactory
     {
         /// <summary>
         ///     <see cref="Create" /> creates an instance of
         ///     <see cref="HttpClient" />, based on an instance of
-        ///     <see cref="HTTPRequestMetadata" />.
+        ///     <see cref="HttpRequestMetadata" />.
         /// </summary>
         /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" /> used
+        ///     The <see cref="HttpRequestMetadata" /> used
         ///     to create a <see cref="HttpClient" /> instance.
         /// </param>
         /// <param name="httpClientHandler">
         ///     The <see cref="HttpClientHandler" /> that acts
         ///     as an intermediary between <see cref="HttpClient" /> and
-        ///     <see cref="HTTPRequestMetadata" />, during creation of a
+        ///     <see cref="HttpRequestMetadata" />, during creation of a
         ///     <see cref="HttpClient" /> instance.
         /// </param>
         /// <returns>
         ///     A <see cref="HttpClient" />, based on
         ///     <see cref="httpRequestMetadata" />.
         /// </returns>
-        public HttpClient Create(HTTPRequestMetadata httpRequestMetadata,
+        public HttpClient Create(HttpRequestMetadata httpRequestMetadata,
             out HttpClientHandler httpClientHandler)
         {
             HttpClient httpClient;

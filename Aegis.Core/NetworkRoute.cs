@@ -1,4 +1,4 @@
-﻿/* License
+/* License
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -675,84 +675,31 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using Aegis.Core;
-using Jil;
 
-namespace Aegis.Pumps
+namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="UploadNotifier" /> executes a HTTP request to Aegis, informing
-    ///     the system that a metadata upload is pending.
+    ///     <see cref="NetworkRoute" /> is a <c>Constructor</c> for
+    ///     <see cref="NetworkRouteMapper" /> <c>Builder</c> instances. It facilitates
+    ///     the parsing of <see cref="IPAddress" /> instances from HTTP requests.
     /// </summary>
-    public class UploadNotifier
+    public class NetworkRoute
     {
         /// <summary>
-        ///     <see cref="SendUploadNotification" /> executes a HTTP request to Aegis,
-        ///     informing the system that a metadata upload is pending.
+        ///     <see cref="Map" /> facilitates the parsing of <see cref="IPAddress" />
+        ///     instances from HTTP requests by executing each step of the
+        ///     <see cref="networkRouteMapper" /> <c>Builder</c> process.
         /// </summary>
-        /// <param name="uploadNotification">
-        ///     <see cref="uploadNotification" /> is a template that contains properties
-        ///     which describe an upcoming Aegis metadata-upload.
+        /// <param name="networkRouteMapper">
+        ///     <see cref="networkRouteMapper" /> is a
+        ///     <c>Builder</c> instance that facilitates the parsing of
+        ///     <see cref="IPAddress" /> instances from HTTP requests.
         /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpStatusCode" /> instance that indicates success, or
-        ///     failure.
-        /// </returns>
-        public static HttpStatusCode SendUploadNotification(UploadNotification uploadNotification,
-            Core.HttpRequestMetadata httpRequestMetadata, HttpClientFactory httpClientFactory)
+        public void Map(NetworkRouteMapper networkRouteMapper)
         {
-            HttpRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid =
-                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
-
-            if (!httpRequestMetadataIsValid)
-            {
-                throw httpRequestMetadataException;
-            }
-
-            HttpClientHandler httpClientHandler;
-
-            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
-                out httpClientHandler))
-            {
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                StringWriter uploadNotificationWriter;
-
-                using (uploadNotificationWriter = new StringWriter())
-                {
-                    JSON.Serialize(
-                        uploadNotification,
-                        uploadNotificationWriter
-                        );
-                }
-
-                var response = httpClient.PostAsync(httpRequestMetadata.URI,
-                    new StringContent(
-                        uploadNotificationWriter.ToString(),
-                        Encoding.UTF8, "application/json")).Result;
-
-                return response.StatusCode;
-            }
+            networkRouteMapper.GetHttpRequestHeaderValues();
+            networkRouteMapper.GetIPAddresses();
         }
-
-        // ToDo: Add Async equivalent
     }
 }

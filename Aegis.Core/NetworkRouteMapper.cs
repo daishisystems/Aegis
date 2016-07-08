@@ -675,84 +675,43 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.IO;
+using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using Aegis.Core;
-using Jil;
 
-namespace Aegis.Pumps
+namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="UploadNotifier" /> executes a HTTP request to Aegis, informing
-    ///     the system that a metadata upload is pending.
+    ///     <see cref="NetworkRouteMapper" /> maps the full network route; that is, the
+    ///     collection of <see cref="IPAddress" /> instances, through which a
+    ///     connecting client accesses a HTTP resource, including the original client
+    ///     <see cref="IPAddress" /> instance, and subsequent proxy
+    ///     <see cref="IPAddress" />
+    ///     instances, if applicable, and where disclosed.
     /// </summary>
-    public class UploadNotifier
+    public abstract class NetworkRouteMapper
     {
         /// <summary>
-        ///     <see cref="SendUploadNotification" /> executes a HTTP request to Aegis,
-        ///     informing the system that a metadata upload is pending.
+        ///     <see cref="ParsedIPAddresses" /> is a collection of
+        ///     <see cref="IPAddress" /> instances parsed from a HTTP request.
         /// </summary>
-        /// <param name="uploadNotification">
-        ///     <see cref="uploadNotification" /> is a template that contains properties
-        ///     which describe an upcoming Aegis metadata-upload.
-        /// </param>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="HttpStatusCode" /> instance that indicates success, or
-        ///     failure.
-        /// </returns>
-        public static HttpStatusCode SendUploadNotification(UploadNotification uploadNotification,
-            Core.HttpRequestMetadata httpRequestMetadata, HttpClientFactory httpClientFactory)
-        {
-            HttpRequestMetadataException httpRequestMetadataException;
+        public IEnumerable<IPAddress> ParsedIPAddresses { get; protected set; }
 
-            var httpRequestMetadataIsValid =
-                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
-                    out httpRequestMetadataException);
+        /// <summary>
+        ///     <see cref="UnparsableHttpRequestHeaders" /> is a collection of HTTP request
+        ///     headers from which no <see cref="IPAddress" /> instance could be parsed.
+        /// </summary>
+        public IEnumerable<string> UnparsableHttpRequestHeaders { get; protected set; }
 
-            if (!httpRequestMetadataIsValid)
-            {
-                throw httpRequestMetadataException;
-            }
+        /// <summary>
+        ///     <see cref="GetHttpRequestHeaderValues" /> extracts all relevant header
+        ///     values from a HTTP request.
+        /// </summary>
+        public abstract void GetHttpRequestHeaderValues();
 
-            HttpClientHandler httpClientHandler;
-
-            using (var httpClient = httpClientFactory.Create(httpRequestMetadata,
-                out httpClientHandler))
-            {
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                StringWriter uploadNotificationWriter;
-
-                using (uploadNotificationWriter = new StringWriter())
-                {
-                    JSON.Serialize(
-                        uploadNotification,
-                        uploadNotificationWriter
-                        );
-                }
-
-                var response = httpClient.PostAsync(httpRequestMetadata.URI,
-                    new StringContent(
-                        uploadNotificationWriter.ToString(),
-                        Encoding.UTF8, "application/json")).Result;
-
-                return response.StatusCode;
-            }
-        }
-
-        // ToDo: Add Async equivalent
+        /// <summary>
+        ///     <see cref="GetIPAddresses" /> extracts all valid <see cref="IPAddress" />
+        ///     instances from a HTTP request.
+        /// </summary>
+        public abstract void GetIPAddresses();
     }
 }

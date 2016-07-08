@@ -674,17 +674,18 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 using System.Net;
 
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadata" /> encapsulates peripheral metadata
+    ///     <see cref="HttpRequestMetadata" /> encapsulates peripheral metadata
     ///     pertaining to a HTTP request. It facilitates a degree of flexibility when
     ///     issuing HTTP requests, such as specifying a web proxy, etc.
     /// </summary>
-    public class HTTPRequestMetadata
+    public class HttpRequestMetadata
     {
         /// <summary>
         ///     <see cref="URI" /> is the HTTP <see cref="Uri" /> pertaining to the HTTP
@@ -726,17 +727,17 @@ namespace Aegis.Core
 
         /// <summary>
         ///     <see cref="Empty" /> returns a non-initialised
-        ///     <see cref="HTTPRequestMetadata" /> instance.
+        ///     <see cref="HttpRequestMetadata" /> instance.
         /// </summary>
-        /// <returns>A non-initialised <see cref="HTTPRequestMetadata" /> instance.</returns>
+        /// <returns>A non-initialised <see cref="HttpRequestMetadata" /> instance.</returns>
         /// <remarks>
         ///     This method promotes a more intuitive means of instantiating
-        ///     non-required instances of <see cref="HTTPRequestMetadata" /> in
+        ///     non-required instances of <see cref="HttpRequestMetadata" /> in
         ///     unit-testing scenarios.
         /// </remarks>
-        public static HTTPRequestMetadata Empty()
+        public static HttpRequestMetadata Empty()
         {
-            return new HTTPRequestMetadata();
+            return new HttpRequestMetadata();
         }
     }
 }

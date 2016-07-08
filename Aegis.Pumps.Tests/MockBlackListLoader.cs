@@ -695,17 +695,17 @@ namespace Aegis.Pumps.Tests
         ///     instances.
         /// </summary>
         /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
+        ///     The <see cref="Core.HttpRequestMetadata" />
         ///     associated with the HTTP request that returns <see cref="BlackListItem" />
         ///     metadata.
         /// </param>
         /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     The <see cref="HttpClientFactory" /> used to
         ///     construct a <see cref="HttpClient" />.
         /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public override IEnumerable<BlackListItem> Load(Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
             return new List<BlackListItem>
             {
@@ -733,7 +733,7 @@ namespace Aegis.Pumps.Tests
         /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
         ///     instances.</returns>
         public override Task<IEnumerable<BlackListItem>> LoadAsync(
-            HTTPRequestMetadata httpRequestMetadata, HTTPClientFactory httpClientFactory)
+            Core.HttpRequestMetadata httpRequestMetadata, HttpClientFactory httpClientFactory)
         {
             throw new NotImplementedException();
         }

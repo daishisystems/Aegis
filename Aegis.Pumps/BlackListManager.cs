@@ -700,7 +700,7 @@ namespace Aegis.Pumps
         /// </param>
         /// <param name="httpRequestMetadata"></param>
         /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     The <see cref="HttpClientFactory" /> used to
         ///     construct a <see cref="HttpClient" />.
         /// </param>
         /// <returns>
@@ -708,8 +708,8 @@ namespace Aegis.Pumps
         ///     <see cref="BlackListItem" /> instances.
         /// </returns>
         public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
             var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 
@@ -733,8 +733,8 @@ namespace Aegis.Pumps
         ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
         ///     <see cref="BlackListItem" /> instances.</returns>
         public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
             var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
 

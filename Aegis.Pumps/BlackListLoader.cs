@@ -693,17 +693,17 @@ namespace Aegis.Pumps
         ///     instances.
         /// </summary>
         /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
+        ///     The <see cref="Core.HttpRequestMetadata" />
         ///     associated with the HTTP request that returns <see cref="BlackListItem" />
         ///     metadata.
         /// </param>
         /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     The <see cref="HttpClientFactory" /> used to
         ///     construct a <see cref="HttpClient" />.
         /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public abstract IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory);
+        public abstract IEnumerable<BlackListItem> Load(Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory);
 
         /// <summary>
         ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
@@ -714,7 +714,7 @@ namespace Aegis.Pumps
         /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
         ///     instances.</returns>
         public abstract Task<IEnumerable<BlackListItem>> LoadAsync(
-            HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory);
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory);
     }
 }

@@ -704,7 +704,7 @@ namespace Aegis.Pumps.Tests
         public void BlackListManagerFormatsBlackListItemsForIndexing()
         {
             var indexedBlackList = BlackListManager.Load(new MockBlackListLoader(),
-                HTTPRequestMetadata.Empty(), new HTTPClientFactory());
+                Core.HttpRequestMetadata.Empty(), new HttpClientFactory());
 
             Assert.AreEqual(2, indexedBlackList.Count);
         }
@@ -721,10 +721,10 @@ namespace Aegis.Pumps.Tests
         public void BlackListManagerCorrectlyLoadsDataFromActiveWebResource()
         {
             var blackList = BlackListManager.Load(new AegisBlackListLoader(),
-                new HTTPRequestMetadata
+                new Core.HttpRequestMetadata
                 {
                     URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
-                }, new HTTPClientFactory());
+                }, new HttpClientFactory());
 
             Assert.AreEqual(2, blackList.Count);
         }
@@ -738,10 +738,10 @@ namespace Aegis.Pumps.Tests
         public async Task BlackListManagerCorrectlyLoadsDataFromActiveWebResourceAsync()
         {
             var blackList = await BlackListManager.LoadAsync(new AegisBlackListLoader(),
-                new HTTPRequestMetadata
+                new Core.HttpRequestMetadata
                 {
                     URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
-                }, new HTTPClientFactory());
+                }, new HttpClientFactory());
 
             Assert.AreEqual(2, blackList.Count);
         }

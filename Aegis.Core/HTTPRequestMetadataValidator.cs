@@ -674,53 +674,54 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
 using System;
 
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="HTTPRequestMetadataValidator" /> validates and instance of
-    ///     <see cref="HTTPRequestMetadata" />, ensuring that relevant properties are
+    ///     <see cref="HttpRequestMetadataValidator" /> validates and instance of
+    ///     <see cref="HttpRequestMetadata" />, ensuring that relevant properties are
     ///     instantiated correctly.
     /// </summary>
-    public static class HTTPRequestMetadataValidator
+    public static class HttpRequestMetadataValidator
     {
         /// <summary>
         ///     <see cref="TryValidate" /> ensures that <see cref="httpRequestMetadata" />
-        ///     is instantiated correctly. If any <see cref="HTTPRequestMetadata" />
+        ///     is instantiated correctly. If any <see cref="HttpRequestMetadata" />
         ///     properties are not instantiated correctly, the method returns <c>false</c>,
-        ///     and outputs a <see cref="HTTPRequestMetadataException" />.
+        ///     and outputs a <see cref="HttpRequestMetadataException" />.
         /// </summary>
         /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
+        ///     The <see cref="HttpRequestMetadata" />
         ///     instance to validate.
         /// </param>
         /// <param name="httpRequestMetadataException">
         ///     A
-        ///     <see cref="HTTPRequestMetadataException" />, returned if any
-        ///     <see cref="HTTPRequestMetadata" /> properties are not instantiated
+        ///     <see cref="HttpRequestMetadataException" />, returned if any
+        ///     <see cref="HttpRequestMetadata" /> properties are not instantiated
         ///     correctly
         /// </param>
         /// <returns>
         ///     <c>True</c> if all <see cref="httpRequestMetadata" /> properties are
         ///     instantiated correctly.
         /// </returns>
-        public static bool TryValidate(HTTPRequestMetadata httpRequestMetadata,
-            out HTTPRequestMetadataException httpRequestMetadataException)
+        public static bool TryValidate(HttpRequestMetadata httpRequestMetadata,
+            out HttpRequestMetadataException httpRequestMetadataException)
         {
             httpRequestMetadataException = null;
 
             if (httpRequestMetadata == null)
             {
                 httpRequestMetadataException =
-                    new HTTPRequestMetadataException("No HTTP request metadata specified.");
+                    new HttpRequestMetadataException("No HTTP request metadata specified.");
 
                 return false;
             }
 
             if (httpRequestMetadata.URI == null)
             {
-                httpRequestMetadataException = new HTTPRequestMetadataException("No URI specified.");
+                httpRequestMetadataException = new HttpRequestMetadataException("No URI specified.");
 
                 return false;
             }
@@ -728,7 +729,7 @@ namespace Aegis.Core
             if (httpRequestMetadata.UseWebProxy && httpRequestMetadata.WebProxy == null)
             {
                 httpRequestMetadataException =
-                    new HTTPRequestMetadataException("UseProxy is true, but no proxy is specified.");
+                    new HttpRequestMetadataException("UseProxy is true, but no proxy is specified.");
 
                 return false;
             }
@@ -737,7 +738,7 @@ namespace Aegis.Core
                 httpRequestMetadata.NonDefaultTimeout == TimeSpan.Zero)
             {
                 httpRequestMetadataException =
-                    new HTTPRequestMetadataException(
+                    new HttpRequestMetadataException(
                         "UseNonDefaultTimeout is true, but no timeout is specified.");
 
                 return false;

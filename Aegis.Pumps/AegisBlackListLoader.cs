@@ -700,18 +700,18 @@ namespace Aegis.Pumps
         ///     instances.
         /// </summary>
         /// <param name="httpRequestMetadata">
-        ///     The <see cref="HTTPRequestMetadata" />
+        ///     The <see cref="Core.HttpRequestMetadata" />
         ///     associated with the HTTP request that returns <see cref="BlackListItem" />
         ///     metadata.
         /// </param>
         /// <param name="httpClientFactory">
-        ///     The <see cref="HTTPClientFactory" /> used to
+        ///     The <see cref="HttpClientFactory" /> used to
         ///     construct a <see cref="HttpClient" />.
         /// </param>
         /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
         /// <remarks>
         ///     <para>
-        ///         Throws a <see cref="HTTPRequestMetadataException" /> if
+        ///         Throws a <see cref="HttpRequestMetadataException" /> if
         ///         <see cref="httpRequestMetadata" /> is invalid.
         ///     </para>
         ///     <para>
@@ -719,13 +719,13 @@ namespace Aegis.Pumps
         ///         cannot be downloaded, read from, or parsed successfully.
         ///     </para>
         /// </remarks>
-        public override IEnumerable<BlackListItem> Load(HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+        public override IEnumerable<BlackListItem> Load(Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             if (!httpRequestMetadataIsValid)
@@ -774,13 +774,13 @@ namespace Aegis.Pumps
         /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
         ///     instances.</returns>
         public override async Task<IEnumerable<BlackListItem>> LoadAsync(
-            HTTPRequestMetadata httpRequestMetadata,
-            HTTPClientFactory httpClientFactory)
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
-            HTTPRequestMetadataException httpRequestMetadataException;
+            HttpRequestMetadataException httpRequestMetadataException;
 
             var httpRequestMetadataIsValid =
-                HTTPRequestMetadataValidator.TryValidate(httpRequestMetadata,
+                HttpRequestMetadataValidator.TryValidate(httpRequestMetadata,
                     out httpRequestMetadataException);
 
             if (!httpRequestMetadataIsValid)
