@@ -755,6 +755,12 @@ namespace Aegis.Core
         public static bool HttpRequestHeaderValueContainsIPAddress(string httpRequestHeaderValue,
             out IEnumerable<IPAddress> ipAddresses)
         {
+            if (string.IsNullOrEmpty(httpRequestHeaderValue))
+            {
+                ipAddresses = new List<IPAddress>();
+                return false;
+            }
+
             var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
 
             var matches = ipAddressRegex.Matches(httpRequestHeaderValue);
@@ -823,36 +829,6 @@ namespace Aegis.Core
         }
 
         /// <summary>
-        ///     <see cref="ParseIPAddresses" /> parses a
-        ///     <see cref="httpRequestHeaderValues" />, a collection of HTTP header values,
-        ///     in order to extract
-        ///     <see cref="IPAddress" /> metadata. Successful parsing results in a
-        ///     collection of <see cref="IPAddress" /> instances parsed from
-        ///     <see cref="httpRequestHeaderValues" />.
-        /// </summary>
-        /// <param name="httpRequestHeaderValues">
-        ///     <see cref="httpRequestHeaderValues" /> is a collection of raw HTTP header
-        ///     values extracted from a HTTP request, prior to parsing.
-        /// </param>
-        /// <returns>
-        ///     <see cref="ParseIPAddresses" /> returns a collection of
-        ///     <see cref="IPAddress" /> instances parsed from
-        ///     <see cref="httpRequestHeaderValues" />.
-        /// </returns>
-        public static List<IPAddress> ParseIPAddresses(IEnumerable<string> httpRequestHeaderValues)
-        {
-            var ipAddresses = new List<IPAddress>();
-            var values = httpRequestHeaderValues as string[] ?? httpRequestHeaderValues.ToArray();
-
-            foreach (var httpRequestHeaderValue in values)
-            {
-
-            }
-
-            return ipAddresses;
-        }
-
-        /// <summary>
         ///     <see cref="GetIPAddressParseResult" /> determines an appropriate
         ///     <see cref="IPAddressParseResult" /> based on <see cref="ipAddresses" /> and
         ///     <see cref="httpRequestHeaderValues" />.
@@ -902,15 +878,5 @@ namespace Aegis.Core
 
             return IPAddressParseResult.Unknown;
         }
-
-        // ToDo: Create method to parse result to New Relic event.
-        // ToDo: First IP is origin - block this as priority. Final IP may be Vodafone, for example.
-        // ToDo: Check for internal IPs
-        // toDo: Flag Chain as 'broken' if IP route list contains garbage
-
-        // ToDo: Load IPs into HttpRequestNetworkRoute instances
-        // ToDo: Review, deploy to NuGet
-        // ToDo: Implement in .REZ
-        // ToDo: Move on to BlackList URI Job
     }
 }

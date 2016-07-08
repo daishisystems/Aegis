@@ -707,12 +707,6 @@ namespace Aegis.Monitor.Filter.Controllers
         {
             var blackList = new List<BlackListItem>();
 
-            country = new[]
-            {
-                "ireland",
-                "united kingdom"
-            };
-
             foreach (var c in country)
             {
                 List<BlackListItem> blackListItems;

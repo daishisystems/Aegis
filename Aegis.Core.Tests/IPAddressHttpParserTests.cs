@@ -792,6 +792,25 @@ namespace Aegis.Core.Tests
         }
 
         /// <summary>
+        ///     <see cref="EmptyCollectionIsOutputFromInvalidHttpRequestHeader" /> ensures
+        ///     that an empty collection is output from an invalid HTTP request header
+        ///     value, when attempting to determine whether or not a HTTP header request
+        ///     value contains at least 1 valid <see cref="IPAddress" /> instance.
+        /// </summary>
+        [TestMethod]
+        public void EmptyCollectionIsOutputFromInvalidHttpRequestHeader()
+        {
+            IEnumerable<IPAddress> ipAddresses;
+
+            var httpRequestHeaderValueContainsIPAddress =
+                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(null,
+                    out ipAddresses);
+
+            Assert.IsFalse(httpRequestHeaderValueContainsIPAddress);
+            Assert.IsFalse(ipAddresses.Any());
+        }
+
+        /// <summary>
         ///     <see cref="SingleValidIPAddressIsSuccessfullyParsedFromHttpRequestHeader" />
         ///     ensures that a HTTP header collection that consists of a single
         ///     <see cref="IPAddress" /> instances is successfully parsed.
