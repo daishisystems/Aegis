@@ -723,7 +723,7 @@ namespace Aegis.Core
         {
             if (string.IsNullOrEmpty(_httpRequestHeaderName) || _httpRequestHeaders == null)
             {
-                throw new ArgumentException("HTTP metadata not specified.");
+                throw new ArgumentException("HTTP request header metadata not specified.");
             }
 
             var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
