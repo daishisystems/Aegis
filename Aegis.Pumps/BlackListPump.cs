@@ -740,7 +740,7 @@ namespace Aegis.Pumps
             }
             set { _recurringTaskName = value; }
         }
-            
+
         /// <summary>
         ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
         ///     task that continuously polls Aegis for the most up-to-date black-list is

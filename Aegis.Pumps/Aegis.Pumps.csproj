@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aegis.Monitor.Core">
+      <HintPath>..\Aegis.Inlet\Bin\Aegis.Monitor.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Daishi.NewRelic.Insights, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Daishi.NewRelic.1.0.2\lib\net452\Daishi.NewRelic.Insights.dll</HintPath>
       <Private>True</Private>

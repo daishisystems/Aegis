@@ -688,8 +688,8 @@ namespace Aegis.Pumps.Tests
     {
         /// <summary>
         ///     <see cref="DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
-        ///     that a default <see cref="BlackListPump.RecurringTaskName" /> is
-        ///     assigned, if one is not provided.
+        ///     that a default <see cref="BlackListPump.RecurringTaskName" /> is assigned,
+        ///     if one is not provided.
         /// </summary>
         [TestMethod]
         public void DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided()

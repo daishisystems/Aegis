@@ -697,6 +697,7 @@ namespace Aegis.Monitor.Filter
     /// 
     /// 
     /// 
+    /// 
     /// </remarks>
     public class GetFilterListsTask : IJob, IRegisteredObject
     {

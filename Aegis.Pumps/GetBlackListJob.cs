@@ -676,10 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Hosting;
-using Aegis.Core;
 using Daishi.NewRelic.Insights;
 using FluentScheduler;
 using HttpClientFactory = Aegis.Core.HttpClientFactory;
@@ -708,114 +706,45 @@ namespace Aegis.Pumps
                 if (_shuttingDown)
                     return;
 
-                string[] countries =
+                var httpRequestMetadata = new Core.HttpRequestMetadata
                 {
-                    "Albania",
-                    "Andorra",
-                    "Armenia",
-                    "Austria",
-                    "Azerbaijan",
-                    "Belarus",
-                    "Belgium",
-                    "Bosnia and Herzegovina",
-                    "Bulgaria",
-                    "Croatia",
-                    "Cyprus",
-                    "Czech Republic",
-                    "Denmark",
-                    "Estonia",
-                    "Finland",
-                    "France",
-                    "Georgia",
-                    "Germany",
-                    "Greece",
-                    "Hungary",
-                    "Iceland",
-                    "Ireland",
-                    "Italy",
-                    "Kazakhstan",
-                    "Kosovo",
-                    "Latvia",
-                    "Liechtenstein",
-                    "Lithuania",
-                    "Luxembourg",
-                    "Macedonia",
-                    "Malta",
-                    "Moldova",
-                    "Monaco",
-                    "Montenegro",
-                    "Netherlands",
-                    "Norway",
-                    "Poland",
-                    "Portugal",
-                    "Romania",
-                    "Russia",
-                    "San Marino",
-                    "Serbia",
-                    "Slovakia",
-                    "Slovenia",
-                    "Spain",
-                    "Sweden",
-                    "Switzerland",
-                    "Turkey",
-                    "Ukraine",
-                    "United Kingdom",
-                    "Vatican City"
+                    URI = BlackListPump.Instance.AegisURI,
+                    UseWebProxy = BlackListPump.Instance.UseWebProxy,
+                    WebProxy = BlackListPump.Instance.WebProxy,
+                    UseNonDefaultTimeout = BlackListPump.Instance.UseNonDefaultTimeout,
+                    NonDefaultTimeout = BlackListPump.Instance.NonDefaultTimeout
                 };
 
-                foreach (var country in countries)
+                try
                 {
-                    var httpRequestMetadata = new Core.HttpRequestMetadata
+                    BlackListPump.Instance.BlackList =
+                        BlackListManager.Load(
+                            new AegisBlackListLoader(),
+                            httpRequestMetadata,
+                            new HttpClientFactory());
+                }
+                catch (TaskCanceledException exception)
+                {
+                    if (exception.CancellationToken.IsCancellationRequested)
                     {
-                        URI =
-                            new Uri("http://aegisfilter.azurewebsites.net/blacklistmonitor" + "?country=" + country),
-                        UseWebProxy = BlackListPump.Instance.UseWebProxy,
-                        WebProxy = BlackListPump.Instance.WebProxy,
-                        UseNonDefaultTimeout = BlackListPump.Instance.UseNonDefaultTimeout,
-                        NonDefaultTimeout = BlackListPump.Instance.NonDefaultTimeout
-                    };
-
-                    try
-                    {
-                        BlackListPump.Instance.BlackList =
-                            BlackListManager.Load(  
-                                new AegisBlackListLoader(),
-                                httpRequestMetadata,
-                                new HttpClientFactory());
-
-                        NewRelicInsightsClient.UploadEvents(new List<NewRelicInsightsEvent>
-                        {
-                            new BlackListUpdatedNewRelicInsightsEvent
-                            {
-                                EventType = "AegisMonitor",
-                                Country = country,
-                                NumScrapers = BlackListPump.Instance.BlackList.Count
-                            }
-                        }, new Daishi.NewRelic.Insights.HttpClientFactory(), NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
-
+                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
                     }
-                    catch (TaskCanceledException exception)
+                    else
                     {
-                        if (exception.CancellationToken.IsCancellationRequested)
-                        {
-                            UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                        }
-                        else
-                        {
-                            // If the exception.CancellationToken.IsCancellationRequested is false,
-                            // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                            // Add a custom message in order to ensure that tasks are not cancelled.
-                            UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
-                                "Request timeout.");
-                        }
+                        // If the exception.CancellationToken.IsCancellationRequested is false,
+                        // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                        // Add a custom message in order to ensure that tasks are not canceled.
+                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
+                            "Request timeout.");
                     }
-                    catch (Exception exception)
-                    {
-                        // UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                    }
+                }
+                catch (Exception exception)
+                {
+                    UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
                 }
             }
         }
+
 
         /// <summary>Requests a registered object to unregister.</summary>
         /// <param name="immediate">
