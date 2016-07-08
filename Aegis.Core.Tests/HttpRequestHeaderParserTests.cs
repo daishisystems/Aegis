@@ -684,11 +684,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="IPAddressHttpParserTests" /> ensures that logic pertaining to
-    ///     <see cref="IPAddressHttpParser" /> executes correctly.
+    ///     <see cref="HttpRequestHeaderParserTests" /> ensures that logic pertaining
+    ///     to
+    ///     <see cref="HttpRequestHeaderParser" /> executes correctly.
     /// </summary>
     [TestClass]
-    public class IPAddressHttpParserTests
+    public class HttpRequestHeaderParserTests
     {
         /// <summary>
         ///     <see cref="InvalidHeaderNameReturnsFalseAndOutputsEmptyCollection" />
@@ -703,7 +704,7 @@ namespace Aegis.Core.Tests
             IEnumerable<string> httpRequestHeaderValues;
 
             var canParseHttpRequestHeaderValues =
-                IPAddressHttpParser.TryGetHttpRequestHeaderValues(string.Empty,
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(string.Empty,
                     request.Headers, out httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
@@ -723,7 +724,7 @@ namespace Aegis.Core.Tests
             IEnumerable<string> httpRequestHeaderValues;
 
             var canParseHttpRequestHeaderValues =
-                IPAddressHttpParser.TryGetHttpRequestHeaderValues("TEST", null,
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues("TEST", null,
                     out httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
@@ -744,51 +745,11 @@ namespace Aegis.Core.Tests
             IEnumerable<string> httpRequestHeaderValues;
 
             var canParseHttpRequestHeaderValues =
-                IPAddressHttpParser.TryGetHttpRequestHeaderValues("TEST", request.Headers,
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues("TEST", request.Headers,
                     out httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
             Assert.AreEqual(0, httpRequestHeaderValues.Count());
-        }
-
-        /// <summary>
-        ///     <see cref="CommaDelimitedHttpRequestHeaderValueIsSplit" /> ensures that a
-        ///     HTTP header that consists of a comma-delimited collection of values is
-        ///     split into individual, trimmed segments.
-        /// </summary>
-        [TestMethod]
-        public void CommaDelimitedHttpRequestHeaderValueIsSplit()
-        {
-            const string commaDelimitedHttpRequestHeaderValue = "TEST1, TEST2,     TEST3   , ,";
-
-            var splitHttpRequestHeaderValues =
-                IPAddressHttpParser.SplitHttpRequestHeaderValue(commaDelimitedHttpRequestHeaderValue);
-
-            var values = splitHttpRequestHeaderValues as string[] ?? splitHttpRequestHeaderValues.ToArray();
-
-            Assert.AreEqual(3, values.Length);
-            Assert.AreEqual("TEST1", values[0]);
-            Assert.AreEqual("TEST2", values[1]);
-            Assert.AreEqual("TEST3", values[2]);
-        }
-
-        /// <summary>
-        ///     <see cref="NonDelimitedHttpRequestHeaderValueIsSplit" /> ensures that a
-        ///     HTTP header that does not consist of a comma-delimited collection of values
-        ///     is returned as-is.
-        /// </summary>
-        [TestMethod]
-        public void NonDelimitedHttpRequestHeaderValueIsSplit()
-        {
-            const string commaDelimitedHttpRequestHeaderValue = "TEST1   ";
-
-            var splitHttpRequestHeaderValues =
-                IPAddressHttpParser.SplitHttpRequestHeaderValue(commaDelimitedHttpRequestHeaderValue);
-
-            var values = splitHttpRequestHeaderValues as string[] ?? splitHttpRequestHeaderValues.ToArray();
-
-            Assert.AreEqual(1, values.Length);
-            Assert.AreEqual("TEST1", values[0]);
         }
 
         /// <summary>
@@ -803,7 +764,7 @@ namespace Aegis.Core.Tests
             IEnumerable<IPAddress> ipAddresses;
 
             var httpRequestHeaderValueContainsIPAddress =
-                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(null,
+                HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(null,
                     out ipAddresses);
 
             Assert.IsFalse(httpRequestHeaderValueContainsIPAddress);
@@ -823,7 +784,7 @@ namespace Aegis.Core.Tests
             IEnumerable<IPAddress> ipAddresses;
 
             var httpRequestHeaderValueContainsIPAddress =
-                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
                     out ipAddresses);
 
             Assert.IsTrue(httpRequestHeaderValueContainsIPAddress);
@@ -847,7 +808,7 @@ namespace Aegis.Core.Tests
             IEnumerable<IPAddress> ipAddresses;
 
             var httpRequestHeaderValueContainsIPAddress =
-                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
                     out ipAddresses);
 
             Assert.IsTrue(httpRequestHeaderValueContainsIPAddress);
@@ -873,7 +834,7 @@ namespace Aegis.Core.Tests
             IEnumerable<IPAddress> ipAddresses;
 
             var httpRequestHeaderValueContainsIPAddress =
-                IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
                     out ipAddresses);
 
             Assert.IsFalse(httpRequestHeaderValueContainsIPAddress);

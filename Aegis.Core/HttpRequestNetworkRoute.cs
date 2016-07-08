@@ -7,76 +7,104 @@ using System.Net.Http.Headers;
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="NetworkRoute" /> retains the full network route; that is, the
-    ///     list of <see cref="IPAddress" /> instances, through which a connecting
+    ///     <see cref="NetworkRouteMapper" /> retains the full network route; that is,
+    ///     the list of <see cref="IPAddress" /> instances, through which a connecting
     ///     client accessed a HTTP resource, including the original client
     ///     <see cref="IPAddress" />, and subsequent proxy <see cref="IPAddress" />
     ///     instances, if applicable, and where disclosed.
     /// </summary>
-    public abstract class NetworkRoute
+    public abstract class NetworkRouteMapper
     {
-        protected readonly List<string> UnparsableIPAddressMetadata = new List<string>();
-        protected IEnumerable<string> IPAddressMetadata;
+        protected IEnumerable<string> HttpRequestHeaderValues;
 
-        public List<IPAddress> IPAddresses { get; } = new List<IPAddress>();
+        public IEnumerable<IPAddress> ParsedIPAddresses { get; protected set; }
 
-        public abstract void GetIPAddressMetadata();
+        public IEnumerable<string> UnparsableHttpRequestHeaders { get; protected set; }
 
-        public abstract void ParseIPAddresses();
+        public abstract void GetHttpRequestHeaderValues();
+
+        public abstract void GetIPAddresses();
     }
 
-    public class HttpRequestNetworkRoute : NetworkRoute
+    public class HttpRequestNetworkRouteMapper : NetworkRouteMapper
     {
         private readonly string _httpRequestHeaderName;
         private readonly HttpRequestHeaders _httpRequestHeaders;
 
-        public HttpRequestNetworkRoute(string httpRequestHeaderName, HttpRequestHeaders httpRequestHeaders)
+        public HttpRequestNetworkRouteMapper(string httpRequestHeaderName,
+            HttpRequestHeaders httpRequestHeaders)
         {
             _httpRequestHeaderName = httpRequestHeaderName;
             _httpRequestHeaders = httpRequestHeaders;
-
         }
 
-        public override void GetIPAddressMetadata()
+        public override void GetHttpRequestHeaderValues()
         {
             if (string.IsNullOrEmpty(_httpRequestHeaderName) || _httpRequestHeaders == null)
             {
                 throw new ArgumentException("HTTP metadata not specified.");
             }
 
-            var canGetHttpRequestHeaderValues = IPAddressHttpParser
+            var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
                 .TryGetHttpRequestHeaderValues(_httpRequestHeaderName, _httpRequestHeaders,
-                    out IPAddressMetadata);
+                    out HttpRequestHeaderValues);
 
             if (!canGetHttpRequestHeaderValues)
             {
-                throw new Exception("Unable to retrieve any '" + _httpRequestHeaderName + "' HTTP headers");
+                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
             }
         }
 
-        public override void ParseIPAddresses()
+        public override void GetIPAddresses()
         {
-            if (IPAddressMetadata == null || !IPAddressMetadata.Any())
+            if (HttpRequestHeaderValues == null || !HttpRequestHeaderValues.Any())
             {
-                throw new ArgumentException("No IP address metadata to parse.");
+                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
             }
 
-            foreach (var metadata in IPAddressMetadata)
+            var unparsableHttpRequestHeaders = new List<string>();
+            var parsedIpAddresses = new List<IPAddress>();
+
+            foreach (var httpRequestHeaderValue in HttpRequestHeaderValues)
             {
                 IEnumerable<IPAddress> ipAddresses;
 
-                var ipAddressMetadataContainsIPAddresses =
-                    IPAddressHttpParser.HttpRequestHeaderValueContainsIPAddress(metadata, out ipAddresses);
+                var httpRequestHeaderValueContainsIPAddresses =
+                    HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
+                        out ipAddresses);
 
-                if (!ipAddressMetadataContainsIPAddresses)
+                if (!httpRequestHeaderValueContainsIPAddresses)
                 {
-                    UnparsableIPAddressMetadata.Add(metadata);
+                    unparsableHttpRequestHeaders.Add(httpRequestHeaderValue);
                 }
                 else
                 {
-                    IPAddresses.AddRange(ipAddresses);
+                    parsedIpAddresses.AddRange(ipAddresses);
                 }
             }
+
+            UnparsableHttpRequestHeaders = unparsableHttpRequestHeaders;
+            ParsedIPAddresses = parsedIpAddresses;
+        }
+    }
+
+    [Serializable]
+    public class NoHttpRequestHeadersFoundException : Exception
+    {
+        public NoHttpRequestHeadersFoundException(string httpRequestHeaderName)
+        {
+            HttpRequestHeaderName = httpRequestHeaderName;
+        }
+
+        public string HttpRequestHeaderName { get; private set; }
+    }
+
+    public class NetworkRoute
+    {
+        public void Map(NetworkRouteMapper networkRouteMapper)
+        {
+            networkRouteMapper.GetHttpRequestHeaderValues();
+            networkRouteMapper.GetIPAddresses();
         }
     }
 }

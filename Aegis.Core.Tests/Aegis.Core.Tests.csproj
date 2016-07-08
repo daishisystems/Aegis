@@ -71,7 +71,7 @@
     <Compile Include="MemoryCacheTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BlackListManagerTests.cs" />
-    <Compile Include="IPAddressHttpParserTests.cs" />
+    <Compile Include="HttpRequestHeaderParserTests.cs" />
     <Compile Include="WhiteListItemTests.cs" />
     <Compile Include="WhiteListManagerTests.cs" />
   </ItemGroup>

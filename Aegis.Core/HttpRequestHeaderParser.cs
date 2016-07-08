@@ -674,61 +674,119 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
+
+using System.Collections.Generic;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
 namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="IPAddressParseResult" /> defines the final state of an
-    ///     <see cref="IPAddressHttpParser.TryParseIPAddress" /> operation.
+    ///     <see cref="HttpRequestHeaderParser" /> facilitates the parsing of HTTP
+    ///     requests in order to extract <see cref="IPAddress" /> metadata, as well as
+    ///     the formatting of that metadata.
     /// </summary>
-    public enum IPAddressParseResult
+    public static class HttpRequestHeaderParser
     {
         /// <summary>
-        ///     <see cref="Unknown" /> implies that an unhandled condition occurred while
-        ///     parsing the HTTP request.
+        ///     <see cref="TryGetHttpRequestHeaderValues" /> attempts to return the HTTP
+        ///     header value(s) pertaining to the HTTP header associated with the
+        ///     <see cref="headerName" /> index.
         /// </summary>
-        Unknown,
+        /// <param name="headerName">
+        ///     <see cref="headerName" /> is the name of the HTTP header to parse.
+        /// </param>
+        /// <param name="headers">
+        ///     <see cref="headers" /> is the collection of
+        ///     <see cref="HttpRequestHeaders" /> to parse.
+        /// </param>
+        /// <param name="httpRequestHeaderValues">
+        ///     <see cref="httpRequestHeaderValues" /> is a collection of raw HTTP header
+        ///     values parsed from the HTTP request.
+        /// </param>
+        /// <returns>
+        ///     <see cref="TryGetHttpRequestHeaderValues" /> returns <c>true</c> if
+        ///     <see cref="headers" /> is successfully parsed. Otherwise, <c>false</c>.
+        /// </returns>
+        public static bool TryGetHttpRequestHeaderValues(string headerName, HttpRequestHeaders headers,
+            out IEnumerable<string> httpRequestHeaderValues)
+        {
+            if (string.IsNullOrEmpty(headerName) || headers == null)
+            {
+                httpRequestHeaderValues = new List<string>();
+                return false;
+            }
+
+            var canParseHttpRequestHeaderValues = headers.TryGetValues(headerName,
+                out httpRequestHeaderValues);
+
+            if (canParseHttpRequestHeaderValues)
+            {
+                return true;
+            }
+
+            httpRequestHeaderValues = new List<string>();
+            return false;
+        }
 
         /// <summary>
-        ///     <see cref="NoHeaders" /> implies that a HTTP request did not contain the
-        ///     specified header value.
+        ///     <see cref="HttpRequestHeaderValueContainsIPAddress" /> determines whether
+        ///     or not <see cref="httpRequestHeaderValue" /> contains at least 1 IP
+        ///     address, and outputs all <see cref="IPAddress" /> instances found in
+        ///     <see cref="httpRequestHeaderValue" />.
         /// </summary>
-        NoHeaders,
+        /// <param name="httpRequestHeaderValue">
+        ///     <see cref="httpRequestHeaderValue" /> is the HTTP request header-value that
+        ///     will be determined to contain at least 1 IP address.
+        /// </param>
+        /// <param name="ipAddresses">
+        ///     <see cref="ipAddresses" /> is a collection of
+        ///     <see cref="IPAddress" /> instances that have been found in
+        ///     <see cref="httpRequestHeaderValue" />.
+        /// </param>
+        /// <returns>
+        ///     <see cref="HttpRequestHeaderValueContainsIPAddress" /> returns
+        ///     <c>true</c> if <see cref="httpRequestHeaderValue" /> contains at least 1 IP
+        ///     address. Otherwise, <c>false</c>.
+        /// </returns>
+        public static bool HttpRequestHeaderValueContainsIPAddress(string httpRequestHeaderValue,
+            out IEnumerable<IPAddress> ipAddresses)
+        {
+            if (string.IsNullOrEmpty(httpRequestHeaderValue))
+            {
+                ipAddresses = new List<IPAddress>();
+                return false;
+            }
 
-        /// <summary>
-        ///     <see cref="SingleHeaderValid" /> implies that a single instance of the
-        ///     specified header exists, and that the header value is a valid
-        ///     <see cref="IPAddress" /> instance.
-        /// </summary>
-        SingleHeaderValid,
+            var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
 
-        /// <summary>
-        ///     <see cref="SingleHeaderEmptyOrInvalid" /> implies that a single instance of
-        ///     the specified header exists, and that the header value is not a valid
-        ///     <see cref="IPAddress" /> instance.
-        /// </summary>
-        SingleHeaderEmptyOrInvalid,
+            var matches = ipAddressRegex.Matches(httpRequestHeaderValue);
 
-        /// <summary>
-        ///     <see cref="MultipleHeadersAllValid" /> implies that multiple instances of
-        ///     the specified header exists, and that each header value is a valid
-        ///     <see cref="IPAddress" />.
-        /// </summary>
-        MultipleHeadersAllValid,
+            if (matches.Count > 0)
+            {
+                var parsedIPAddresses = new List<IPAddress>();
 
-        /// <summary>
-        ///     <see cref="MultipleHeadersSomeInvalid" /> implies that multiple instances
-        ///     of the specified header exists, and that some header values are not valid
-        ///     <see cref="IPAddress" /> instances.
-        /// </summary>
-        MultipleHeadersSomeInvalid,
+                foreach (var match in matches)
+                {
+                    IPAddress ipAddress;
+                    var isValidIPAddress = IPAddress.TryParse(match.ToString(), out ipAddress);
 
-        /// <summary>
-        ///     <see cref="MultipleHeadersAllInvalid" /> implies that multiple instances of
-        ///     the specified header exists, and that all header values are not valid
-        ///     <see cref="IPAddress" /> instances.
-        /// </summary>
-        MultipleHeadersAllInvalid
+                    if (isValidIPAddress)
+                    {
+                        parsedIPAddresses.Add(ipAddress);
+                    }
+                }
+
+                if (parsedIPAddresses.Count > 0)
+                {
+                    ipAddresses = parsedIPAddresses;
+                    return true;
+                }
+            }
+
+            ipAddresses = new List<IPAddress>();
+            return false;
+        }
     }
 }
