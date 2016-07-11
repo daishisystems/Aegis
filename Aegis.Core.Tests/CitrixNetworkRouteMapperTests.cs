@@ -676,131 +676,211 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
-using System.Configuration;
+using System.Linq;
 using System.Net;
-using System.Web.Hosting;
-using Aegis.Core;
-using FluentScheduler;
+using System.Net.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Filter
+namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
-    ///     executes at regular intervals.
+    ///     <see cref="CitrixNetworkRouteMapperTests" /> ensures that logic pertaining
+    ///     to
+    ///     <see cref="CitrixNetworkRouteMapper" /> instances executes correctly.
     /// </summary>
-    /// <remarks>
-    ///     <see
-    ///         PublishTaskshTask" /> registers with the ASP.NET
-    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
-    ///     seconds.
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    public class GetFilterListsTask : IJob, IRegisteredObject
+    [TestClass]
+    public class CitrixNetworkRouteMapperTests
     {
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public GetFilterListsTask()
+        /// <summary>
+        ///     <see cref="InvalidHttpRequestHeaderNameThrowsException" /> ensures that an
+        ///     <see cref="ArgumentException" /> is thrown if an invalid HTTP request
+        ///     header-name is specified.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof (ArgumentException))]
+        public void InvalidHttpRequestHeaderNameThrowsException()
         {
-            HostingEnvironment.RegisterObject(this);
+            var networkRouteMapper = new CitrixNetworkRouteMapper(null, null);
+            networkRouteMapper.GetHttpRequestHeaderValues();
         }
 
         /// <summary>
-        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It integrates both lists and provides up-to-date collections of
-        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
+        ///     <see cref="InvalidHttpRequestHeadersThrowsException" /> ensures that an
+        ///     <see cref="ArgumentException" /> is thrown if an invalid HTTP request
+        ///     headers collection is specified.
         /// </summary>
-        /// <remarks>
-        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
-        ///     blacklist metadata pertaining to malicious activity that occurred within
-        ///     the last 24 hours.
-        /// </remarks>
-        public void Execute()
+        [TestMethod]
+        [ExpectedException(typeof (ArgumentException))]
+        public void InvalidHttpRequestHeadersThrowsException()
         {
-            lock (_lock)
-            {
-                if (_shuttingDown)
-                    return;
-
-                try
-                {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
-
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
-
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
-
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
-
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
-
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
-                    var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
-
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
-
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
-                }
-                catch (Exception)
-                {
-                    // Fail silently and ignore errors for POC
-                }
-            }
+            var networkRouteMapper = new CitrixNetworkRouteMapper("TEST", null);
+            networkRouteMapper.GetHttpRequestHeaderValues();
         }
 
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
+        /// <summary>
+        ///     <see cref="EmptyHttpRequestHeaderCollectionThrowsException" /> ensures that
+        ///     a <see cref="NoHttpRequestHeadersFoundException" /> is thrown if no HTTP
+        ///     request headers are found.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof (NoHttpRequestHeadersFoundException))]
+        public void EmptyHttpRequestHeaderCollectionThrowsException()
         {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
+            var request = new HttpRequestMessage();
 
-            HostingEnvironment.UnregisterObject(this);
+            var networkRouteMapper = new CitrixNetworkRouteMapper("TEST", request.Headers);
+            networkRouteMapper.GetHttpRequestHeaderValues();
+        }
+
+        /// <summary>
+        ///     <see cref="SingleHttpRequestHeaderIsReturned" /> ensures that a single HTTP
+        ///     request header is returned when parsing a HTTP request.
+        /// </summary>
+        [TestMethod]
+        public void SingleHttpRequestHeaderIsReturned()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("TEST", "TEST");
+
+            var networkRouteMapper = new CitrixNetworkRouteMapper("TEST", request.Headers);
+            networkRouteMapper.GetHttpRequestHeaderValues();
+
+            Assert.AreEqual(1, networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.Count());
+            Assert.AreEqual("TEST", networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.First());
+        }
+
+        /// <summary>
+        ///     <see cref="MultipleHttpRequestHeadersAreReturned" /> ensures that multiple
+        ///     HTTP request headers are returned when parsing a HTTP request.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHttpRequestHeadersAreReturned()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("TEST", "TEST1");
+            request.Headers.Add("TEST", "TEST2");
+
+            var networkRouteMapper = new CitrixNetworkRouteMapper("TEST", request.Headers);
+            networkRouteMapper.GetHttpRequestHeaderValues();
+
+            Assert.AreEqual(2, networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.Count());
+            var httpRequestHeaderValues =
+                networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.ToList();
+            Assert.AreEqual("TEST1", httpRequestHeaderValues[0]);
+            Assert.AreEqual("TEST2", httpRequestHeaderValues[1]);
+        }
+
+        /// <summary>
+        ///     <see cref="NullHttpRequestHeadersThrowsException" /> ensures that a
+        ///     <see cref="NoHttpRequestHeadersFoundException" /> is thrown when an
+        ///     uninitialised HTTP request headers collection is specified.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof (NoHttpRequestHeadersFoundException))]
+        public void NullHttpRequestHeadersThrowsException()
+        {
+            NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper(null, null);
+            networkRouteMapper.GetIPAddresses();
+        }
+
+        /// <summary>
+        ///     <see cref="EmptyHttpRequestHeadersThrowsException" /> ensures that a
+        ///     <see cref="NoHttpRequestHeadersFoundException" /> is thrown when an empty
+        ///     HTTP request headers collection is specified.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof (NoHttpRequestHeadersFoundException))]
+        public void EmptyHttpRequestHeadersThrowsException()
+        {
+            var request = new HttpRequestMessage();
+
+            NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper(null, request.Headers);
+            networkRouteMapper.GetIPAddresses();
+        }
+
+        /// <summary>
+        ///     <see cref="SingleIPAddressIsParsedWithZeroUnparsableHttpHeaders" /> ensures
+        ///     that a single <see cref="IPAddress" /> instance is returned, and the
+        ///     associated collection of
+        ///     <see cref="NetworkRouteMetadata.UnparsableHttpRequestHeaderValues" />
+        ///     remains empty.
+        /// </summary>
+        [TestMethod]
+        public void SingleIPAddressIsParsedWithZeroUnparsableHttpHeaders()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("TEST", "X - FORWARD - FOR:TEST127.0.0.1,TEST 127.0.0.x ,[ABC]");
+
+            NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper("TEST", null);
+
+            var httpRequestHeaderValues =
+                request.Headers.Select(httpRequestHeader => httpRequestHeader.Value.First()).ToList();
+
+            networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues = httpRequestHeaderValues;
+            networkRouteMapper.GetIPAddresses();
+
+            Assert.AreEqual(1, networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Count());
+            Assert.AreEqual("127.0.0.1",
+                networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.First().ToString());
+            Assert.IsFalse(networkRouteMapper.NetworkRouteMetadata.UnparsableHttpRequestHeaderValues.Any());
+        }
+
+        /// <summary>
+        ///     <see cref="MultipleIPAddressesAreParsedWithZeroUnparsableHttpHeaders" />
+        ///     ensures that multiple <see cref="IPAddress" /> instances are returned, and
+        ///     the associated collection of
+        ///     <see cref="NetworkRouteMetadata.UnparsableHttpRequestHeaderValues" />
+        ///     remains empty.
+        /// </summary>
+        [TestMethod]
+        public void MultipleIPAddressesAreParsedWithZeroUnparsableHttpHeaders()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("TEST", "X - FORWARD - FOR:TEST127.0.0.1,TEST 127.0.0.x ,[ABC]");
+            request.Headers.Add("TEST2", "X - FORWARD - FOR:TEST127.0.0.2,TEST 127.0.0.x ,[ABC]");
+
+            NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper("TEST", null);
+
+            var httpRequestHeaderValues =
+                request.Headers.Select(httpRequestHeader => httpRequestHeader.Value.First()).ToList();
+
+            networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues = httpRequestHeaderValues;
+            networkRouteMapper.GetIPAddresses();
+
+            Assert.AreEqual(2, networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Count());
+
+            var parsedIPAddresses = networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.ToList();
+
+            Assert.AreEqual("127.0.0.1", parsedIPAddresses[0].ToString());
+            Assert.AreEqual("127.0.0.2", parsedIPAddresses[1].ToString());
+            Assert.IsFalse(networkRouteMapper.NetworkRouteMetadata.UnparsableHttpRequestHeaderValues.Any());
+        }
+
+        /// <summary>
+        ///     <see cref="UnparsableHttpRequestHeaderValuesAreReturned" /> ensures that
+        ///     HTTP request headers that do not contain <see cref="IPAddress" /> instances
+        ///     are added to
+        ///     <see cref="NetworkRouteMetadata.UnparsableHttpRequestHeaderValues" />.
+        /// </summary>
+        [TestMethod]
+        public void UnparsableHttpRequestHeaderValuesAreReturned()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Add("TEST", "X - FORWARD - FOR:TEST127.0.0,TEST 127.0.0.x ,[ABC]");
+
+            NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper("TEST", null);
+
+            var httpRequestHeaderValues =
+                request.Headers.Select(httpRequestHeader => httpRequestHeader.Value.First()).ToList();
+
+            networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues = httpRequestHeaderValues;
+            networkRouteMapper.GetIPAddresses();
+
+            Assert.AreEqual(1,
+                networkRouteMapper.NetworkRouteMetadata.UnparsableHttpRequestHeaderValues.Count());
+            Assert.AreEqual("X - FORWARD - FOR:TEST127.0.0,TEST 127.0.0.x ,[ABC]",
+                networkRouteMapper.NetworkRouteMetadata.UnparsableHttpRequestHeaderValues.First());
+            Assert.IsFalse(networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Any());
         }
     }
 }
