@@ -680,7 +680,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
 using System.Web.Hosting;
-using Aegis.Monitor.Core;
+using Aegis.Core;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Filter
@@ -690,9 +690,14 @@ namespace Aegis.Monitor.Filter
     ///     executes at regular intervals.
     /// </summary>
     /// <remarks>
-    ///     <see cref="Aegis.Monitor.Core.PublishTask" /> registers with the ASP.NET
+    ///     <see
+    ///         PublishTaskshTask" /> registers with the ASP.NET
     ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
     ///     seconds.
+    /// 
+    /// 
+    /// 
+    /// 
     /// </remarks>
     public class GetFilterListsTask : IJob, IRegisteredObject
     {
@@ -707,8 +712,8 @@ namespace Aegis.Monitor.Filter
 
         /// <summary>
         ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It intergrates both lists and provides up-to-date collections of
-        ///     malicious, and excempt <see cref="IPAddress" /> metadata.
+        ///     Aegis. It integrates both lists and provides up-to-date collections of
+        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
         /// </summary>
         /// <remarks>
         ///     <see cref="Execute" /> runs at regular intervals. Each interval returns

@@ -135,7 +135,7 @@ SELECT * FROM	(
 		IPAddress, 
 		COUNT(IPAddress) AS HyperActivity, 
 		SUM(Total) AS TotalNumHits,
-		SUM(Total)/COUNT(IPAddress) AS AVGNumHits,
+		SUM(Total)/COUNT(IPAddress) AS AVGNumHits, 
 		MAX(ServerDateTime) AS LatestServerTime
 	FROM dbo.BlackList
 	WHERE ServerDateTime >= GETDATE() - 1 /* 1st call - last 24 hours. Subsequent calls - since previous */
@@ -145,7 +145,42 @@ SELECT * FROM	(
 
 WHERE HyperActivity > 1
 AND AVGNumHits >= 60
+AND IPAddress = '213.233.132.177'
 ORDER BY TotalNumHits DESC;
 
 SELECT '[' + LowerIPAddress + ']', '[' + UpperIPAddress + ']'
 FROM dbo.WhiteList;
+
+-----
+/* Ensure that whitelist ranges are correct in format */
+
+SELECT COUNT(*)
+FROM dbo.WhiteList
+WHERE LowerIPAddress LIKE '% '
+OR LowerIPAddress LIKE ' %'
+OR UpperIPAddress LIKE '% '
+OR UpperIPAddress LIKE ' %';
+
+SELECT * FROM dbo.WhiteList
+WHERE LowerIPAddress LIKE '%213%';
+
+INSERT dbo.BlackList (IPAddress, [Path], Total)
+VALUES ('213.233.132.177', 'TEST', 1000);
+
+DELETE FROM dbo.BlackList
+WHERE IPAddress = '213.233.132.177'
+AND Total != 30;
+
+SELECT TOP 10 * FROM DBO.BLACKLIST;
+
+SELECT * FROM DBO.BlackList
+WHERE IPAddress = '213.233.132.177';
+
+UPDATE DBO.BlackList SET
+	PATH = '/en-gb/availability'
+WHERE IPAddress = '213.233.132.177';
+
+SELECT * FROM dbo.blacklist
+WHERE IPAddress = '213.233.132.177';
+
+
