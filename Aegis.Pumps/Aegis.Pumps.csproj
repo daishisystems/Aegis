@@ -30,9 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Aegis.Monitor.Core">
-      <HintPath>..\Aegis.Inlet\Bin\Aegis.Monitor.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Daishi.NewRelic.Insights, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Daishi.NewRelic.1.0.2\lib\net452\Daishi.NewRelic.Insights.dll</HintPath>
       <Private>True</Private>
@@ -81,14 +78,14 @@
     <Compile Include="UploadNotifier.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Aegis.Core\Aegis.Core.csproj">
-      <Project>{687A614F-0265-4726-A494-7EE358C111B8}</Project>
-      <Name>Aegis.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Aegis.licenseheader" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aegis.Core\Aegis.Core.csproj">
+      <Project>{687a614f-0265-4726-a494-7ee358c111b8}</Project>
+      <Name>Aegis.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
