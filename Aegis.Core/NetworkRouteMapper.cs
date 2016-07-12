@@ -675,7 +675,6 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Generic;
 using System.Net;
 
 namespace Aegis.Core
@@ -691,16 +690,11 @@ namespace Aegis.Core
     public abstract class NetworkRouteMapper
     {
         /// <summary>
-        ///     <see cref="ParsedIPAddresses" /> is a collection of
-        ///     <see cref="IPAddress" /> instances parsed from a HTTP request.
+        ///     <see cref="NetworkRouteMetadata" /> is a collection of properties that
+        ///     describe a HTTP connection life-cycle, from point-of-origin, to destination
+        ///     web resource.
         /// </summary>
-        public IEnumerable<IPAddress> ParsedIPAddresses { get; protected set; }
-
-        /// <summary>
-        ///     <see cref="UnparsableHttpRequestHeaders" /> is a collection of HTTP request
-        ///     headers from which no <see cref="IPAddress" /> instance could be parsed.
-        /// </summary>
-        public IEnumerable<string> UnparsableHttpRequestHeaders { get; protected set; }
+        public NetworkRouteMetadata NetworkRouteMetadata { get; protected set; }
 
         /// <summary>
         ///     <see cref="GetHttpRequestHeaderValues" /> extracts all relevant header
@@ -714,4 +708,5 @@ namespace Aegis.Core
         /// </summary>
         public abstract void GetIPAddresses();
     }
+
 }

@@ -675,132 +675,70 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Net;
-using System.Web.Hosting;
-using Aegis.Core;
-using FluentScheduler;
 
-namespace Aegis.Monitor.Filter
+namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
-    ///     executes at regular intervals.
+    ///     <see cref="HttpHeaderParseResult" /> is a state defined by the result of
+    ///     parsing a HTTP request header collection.
     /// </summary>
-    /// <remarks>
-    ///     <see
-    ///         PublishTaskshTask" /> registers with the ASP.NET
-    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
-    ///     seconds.
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    public class GetFilterListsTask : IJob, IRegisteredObject
+    public enum HttpHeaderParseResult
     {
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public GetFilterListsTask()
-        {
-            HostingEnvironment.RegisterObject(this);
-        }
+        /// <summary>
+        ///     <see cref="Uninitialised" /> is the default state, prior to any parsing
+        ///     operation.
+        /// </summary>
+        Uninitialised,
 
         /// <summary>
-        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It integrates both lists and provides up-to-date collections of
-        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
+        ///     <see cref="NoHeaders" />: no HTTP request headers found.
         /// </summary>
-        /// <remarks>
-        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
-        ///     blacklist metadata pertaining to malicious activity that occurred within
-        ///     the last 24 hours.
-        /// </remarks>
-        public void Execute()
-        {
-            lock (_lock)
-            {
-                if (_shuttingDown)
-                    return;
+        NoHeaders,
 
-                try
-                {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
+        /// <summary>
+        ///     <see cref="SingleHeaderNoIPAddress" />: 1 header, no
+        ///     <see cref="IPAddress" /> instances. This suggests a malformed HTTP request
+        ///     header, or a potentially malicious HTTP request.
+        /// </summary>
+        SingleHeaderNoIPAddress,
 
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
+        /// <summary>
+        ///     <see cref="SingleHeaderSingleIPAddress" />: 1 HTTP request header, with 1
+        ///     <see cref="IPAddress" /> instance. This is the expected result for all
+        ///     standard HTTP requests.
+        /// </summary>
+        SingleHeaderSingleIPAddress,
 
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
+        /// <summary>
+        ///     <see cref="SingleHeaderMultipleIPAddresses" />: 1 HTTP request header, with
+        ///     multiple <see cref="IPAddress" /> instances. This suggests multiple network
+        ///     routes from point-of-origin to destination. E.g., the presence of
+        ///     X-Forward-For HTTP request headers in-transit.
+        /// </summary>
+        SingleHeaderMultipleIPAddresses,
 
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
+        /// <summary>
+        ///     <see cref="MultipleHeadersNoIPAddress" />: multiple HTTP request headers,
+        ///     no <see cref="IPAddress" />. This suggests malformed HTTP request headers,
+        ///     or a potentially malicious HTTP request.
+        /// </summary>
+        MultipleHeadersNoIPAddress,
 
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
+        /// <summary>
+        ///     <see cref="MultipleHeadersSingleIPAddress" />: multiple HTTP request
+        ///     headers, 1 <see cref="IPAddress" />. This suggests malformed HTTP request
+        ///     headers, or a potentially malicious HTTP request.
+        /// </summary>
+        MultipleHeadersSingleIPAddress,
 
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
-                    var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
-
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
-
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
-                }
-                catch (Exception)
-                {
-                    // Fail silently and ignore errors for POC
-                }
-            }
-        }
-
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
-        }
+        /// <summary>
+        ///     <see cref="MultipleHeadersMultipleIPAddresses" />: multiple HTTP request
+        ///     headers, with multiple <see cref="IPAddress" /> instances. Strongly
+        ///     suggests a potentially malicious HTTP request, or multiple network routes
+        ///     from point-of-origin to destination. E.g., the presence of X-Forward-For
+        ///     HTTP request headers in-transit.
+        /// </summary>
+        MultipleHeadersMultipleIPAddresses
     }
 }

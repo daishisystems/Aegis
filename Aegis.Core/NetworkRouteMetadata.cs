@@ -675,132 +675,82 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Configuration;
+using System.Linq;
 using System.Net;
-using System.Web.Hosting;
-using Aegis.Core;
-using FluentScheduler;
 
-namespace Aegis.Monitor.Filter
+namespace Aegis.Core
 {
     /// <summary>
-    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
-    ///     executes at regular intervals.
+    ///     <see cref="NetworkRouteMetadata" /> is a collection of properties that
+    ///     describe a HTTP connection life-cycle, from point-of-origin, to destination
+    ///     web resource.
     /// </summary>
-    /// <remarks>
-    ///     <see
-    ///         PublishTaskshTask" /> registers with the ASP.NET
-    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
-    ///     seconds.
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    public class GetFilterListsTask : IJob, IRegisteredObject
+    public class NetworkRouteMetadata
     {
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public GetFilterListsTask()
-        {
-            HostingEnvironment.RegisterObject(this);
-        }
+        /// <summary>
+        ///     <see cref="ParsedIPAddresses" /> is a collection of
+        ///     <see cref="IPAddress" /> instances, parsed from a HTTP request, that refer
+        ///     to each node in the HTTP request path, from point-of-origin to destination.
+        /// </summary>
+        public IEnumerable<IPAddress> ParsedIPAddresses { get; set; }
 
         /// <summary>
-        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It integrates both lists and provides up-to-date collections of
-        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
+        ///     <see cref="UnparsableHttpRequestHeaderValues" /> is a collection of HTTP
+        ///     request header values, from which no <see cref="IPAddress" /> instance
+        ///     could be parsed.
         /// </summary>
-        /// <remarks>
-        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
-        ///     blacklist metadata pertaining to malicious activity that occurred within
-        ///     the last 24 hours.
-        /// </remarks>
-        public void Execute()
-        {
-            lock (_lock)
+        public IEnumerable<string> UnparsableHttpRequestHeaderValues { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpRequestHeaderValues" /> is a collection of HTTP request
+        ///     header values associated with a HTTP request.
+        /// </summary>
+        public IEnumerable<string> HttpRequestHeaderValues { get; set; }
+
+        /// <summary>
+        ///     <see cref="HttpHeaderParseResult" /> returns a state defined by the result
+        ///     of parsing a HTTP request header collection. Both
+        ///     <see cref="HttpRequestHeaderValues" /> and <see cref="ParsedIPAddresses" />
+        ///     collections are compared in order to determine state.
+        /// </summary>
+        public HttpHeaderParseResult HttpHeaderParseResult {
+            get
             {
-                if (_shuttingDown)
-                    return;
-
-                try
+                if (HttpRequestHeaderValues == null || ParsedIPAddresses == null)
                 {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
-
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
-
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
-
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
-
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
-
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
-                    var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
-
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
-
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
+                    return HttpHeaderParseResult.Uninitialised;
                 }
-                catch (Exception)
+                if (!HttpRequestHeaderValues.Any())
                 {
-                    // Fail silently and ignore errors for POC
+                    return HttpHeaderParseResult.NoHeaders;
                 }
+                if (HttpRequestHeaderValues.Count() == 1 && !ParsedIPAddresses.Any())
+                {
+                    return HttpHeaderParseResult.SingleHeaderNoIPAddress;
+                }
+                if (HttpRequestHeaderValues.Count() == 1 && ParsedIPAddresses.Count() == 1)
+                {
+                    return HttpHeaderParseResult.SingleHeaderSingleIPAddress;
+                }
+                if (HttpRequestHeaderValues.Count() == 1 && ParsedIPAddresses.Count() > 1)
+                {
+                    return HttpHeaderParseResult.SingleHeaderMultipleIPAddresses;
+                }
+                if (HttpRequestHeaderValues.Count() > 1 && !ParsedIPAddresses.Any())
+                {
+                    return HttpHeaderParseResult.MultipleHeadersNoIPAddress;
+                }
+                if (HttpRequestHeaderValues.Count() > 1 && ParsedIPAddresses.Count() == 1)
+                {
+                    return HttpHeaderParseResult.MultipleHeadersSingleIPAddress;
+                }
+                if (HttpRequestHeaderValues.Count() > 1 && ParsedIPAddresses.Count() > 1)
+                {
+                    return HttpHeaderParseResult.MultipleHeadersMultipleIPAddresses;
+                }
+                return HttpHeaderParseResult.Uninitialised;
             }
-        }
-
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
-        {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
-            {
-                _shuttingDown = true;
-            }
-
-            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

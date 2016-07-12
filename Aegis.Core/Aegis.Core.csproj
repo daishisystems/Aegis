@@ -71,6 +71,7 @@
     <Compile Include="BlackList.cs" />
     <Compile Include="CitrixNetworkRouteMapper.cs" />
     <Compile Include="HttpClientFactory.cs" />
+    <Compile Include="HttpHeaderParseResult.cs" />
     <Compile Include="HttpRequestMetadata.cs" />
     <Compile Include="HttpRequestMetadataException.cs" />
     <Compile Include="HttpRequestMetadataValidator.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="MemoryCache.cs" />
     <Compile Include="IPAddressExtensions.cs" />
     <Compile Include="IPAddressGeoLocation.cs" />
+    <Compile Include="NetworkRouteMetadata.cs" />
     <Compile Include="NewRelicInsightsAegisEventCache.cs" />
     <Compile Include="NewRelicInsightsEvent.cs" />
     <Compile Include="NewRelicInsightsRegistry.cs" />

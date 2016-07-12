@@ -697,7 +697,6 @@ namespace Aegis.Core
     {
         private readonly string _httpRequestHeaderName;
         private readonly HttpRequestHeaders _httpRequestHeaders;
-        private IEnumerable<string> _httpRequestHeaderValues;
 
         /// <summary>Initialises a new <see cref="CitrixNetworkRouteMapper" /> instance.</summary>
         /// <param name="httpRequestHeaderName">
@@ -713,12 +712,22 @@ namespace Aegis.Core
         {
             _httpRequestHeaderName = httpRequestHeaderName;
             _httpRequestHeaders = httpRequestHeaders;
+            NetworkRouteMetadata = new NetworkRouteMetadata();
         }
 
         /// <summary>
         ///     <see cref="NetworkRouteMapper.GetHttpRequestHeaderValues" /> extracts all
         ///     relevant header values from a HTTP request.
         /// </summary>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when an invalid HTTP request
+        ///     header-name, or HTTP request header collection is specified.
+        /// </exception>
+        /// <exception cref="NoHttpRequestHeadersFoundException">
+        ///     Thrown when no HTTP
+        ///     request headers, corresponding to a specified HTTP request header-name, can
+        ///     be found.
+        /// </exception>
         public override void GetHttpRequestHeaderValues()
         {
             if (string.IsNullOrEmpty(_httpRequestHeaderName) || _httpRequestHeaders == null)
@@ -726,13 +735,28 @@ namespace Aegis.Core
                 throw new ArgumentException("HTTP request header metadata not specified.");
             }
 
-            var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
-                .TryGetHttpRequestHeaderValues(_httpRequestHeaderName, _httpRequestHeaders,
-                    out _httpRequestHeaderValues);
-
-            if (!canGetHttpRequestHeaderValues)
+            try
             {
-                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
+                IEnumerable<string> httpRequestHeaderValues;
+
+                var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
+                    .TryGetHttpRequestHeaderValues(_httpRequestHeaderName, _httpRequestHeaders,
+                        out httpRequestHeaderValues);
+
+                if (canGetHttpRequestHeaderValues)
+                {
+                    NetworkRouteMetadata.HttpRequestHeaderValues = httpRequestHeaderValues;
+                }
+                else
+                {
+                    NetworkRouteMetadata.HttpRequestHeaderValues = new List<string>();
+                    throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
+                }
+            }
+            catch (Exception)
+            {
+                NetworkRouteMetadata.HttpRequestHeaderValues = new List<string>();
+                throw;
             }
         }
 
@@ -741,9 +765,15 @@ namespace Aegis.Core
         ///     <see cref="IPAddress" />
         ///     instances from a HTTP request.
         /// </summary>
+        /// <exception cref="NoHttpRequestHeadersFoundException">
+        ///     Thrown when no HTTP
+        ///     request headers, corresponding to a specified HTTP request header-name, can
+        ///     be found.
+        /// </exception>
         public override void GetIPAddresses()
         {
-            if (_httpRequestHeaderValues == null || !_httpRequestHeaderValues.Any())
+            if (NetworkRouteMetadata.HttpRequestHeaderValues == null ||
+                !NetworkRouteMetadata.HttpRequestHeaderValues.Any())
             {
                 throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
             }
@@ -751,7 +781,10 @@ namespace Aegis.Core
             var unparsableHttpRequestHeaders = new List<string>();
             var parsedIpAddresses = new List<IPAddress>();
 
-            foreach (var httpRequestHeaderValue in _httpRequestHeaderValues)
+            NetworkRouteMetadata.UnparsableHttpRequestHeaderValues = unparsableHttpRequestHeaders;
+            NetworkRouteMetadata.ParsedIPAddresses = parsedIpAddresses;
+
+            foreach (var httpRequestHeaderValue in NetworkRouteMetadata.HttpRequestHeaderValues)
             {
                 IEnumerable<IPAddress> ipAddresses;
 
@@ -759,18 +792,15 @@ namespace Aegis.Core
                     HttpRequestHeaderParser.HttpRequestHeaderValueContainsIPAddress(httpRequestHeaderValue,
                         out ipAddresses);
 
-                if (!httpRequestHeaderValueContainsIPAddresses)
-                {
-                    unparsableHttpRequestHeaders.Add(httpRequestHeaderValue);
-                }
-                else
+                if (httpRequestHeaderValueContainsIPAddresses)
                 {
                     parsedIpAddresses.AddRange(ipAddresses);
                 }
+                else
+                {
+                    unparsableHttpRequestHeaders.Add(httpRequestHeaderValue);
+                }
             }
-
-            UnparsableHttpRequestHeaders = unparsableHttpRequestHeaders;
-            ParsedIPAddresses = parsedIpAddresses;
         }
     }
 }

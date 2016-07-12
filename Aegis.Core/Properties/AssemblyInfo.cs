@@ -683,7 +683,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("Aegis Core")]
-[assembly: AssemblyDescription("Core components used by all Aegis projects")]
+[assembly: AssemblyDescription("Core components used by all Aegis systems.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Paul Mooney")]
 [assembly: AssemblyProduct("Aegis Core")]
@@ -712,5 +712,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("1.0.6.0")]
-[assembly: AssemblyFileVersion("1.0.6.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]

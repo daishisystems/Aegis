@@ -675,132 +675,206 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Net;
-using System.Web.Hosting;
-using Aegis.Core;
-using FluentScheduler;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Monitor.Filter
+namespace Aegis.Core.Tests
 {
     /// <summary>
-    ///     <see cref="GetFilterListsTask" /> is a Fluent Scheduler command that
-    ///     executes at regular intervals.
+    ///     <see cref="NetworkRouteMetadataTests" /> ensures that logic pertaining to
+    ///     <see cref="NetworkRouteMetadata" /> instances executes correctly.
     /// </summary>
-    /// <remarks>
-    ///     <see
-    ///         PublishTaskshTask" /> registers with the ASP.NET
-    ///     process to allow graceful shutdown, and offers a wind-down time of up to 90
-    ///     seconds.
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    public class GetFilterListsTask : IJob, IRegisteredObject
+    [TestClass]
+    public class NetworkRouteMetadataTests
     {
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public GetFilterListsTask()
+        /// <summary>
+        ///     <see cref="InvalidParamatersResultsInUninitialised" /> ensures that
+        ///     <see cref="HttpHeaderParseResult.Uninitialised" /> is returned when either
+        ///     HTTP request header-values or parsed <see cref="IPAddress" /> collections
+        ///     are uninitialised.
+        /// </summary>
+        [TestMethod]
+        public void InvalidParamatersResultsInUninitialised()
         {
-            HostingEnvironment.RegisterObject(this);
+            var networkRouteMetadata = new NetworkRouteMetadata();
+            Assert.AreEqual(HttpHeaderParseResult.Uninitialised, networkRouteMetadata.HttpHeaderParseResult);
         }
 
         /// <summary>
-        ///     <see cref="Execute" /> retrieves the latest white/black-list metadata from
-        ///     Aegis. It integrates both lists and provides up-to-date collections of
-        ///     malicious, and exempt <see cref="IPAddress" /> metadata.
+        ///     <see cref="HoHeadersHttpHeaderParseResultIsReturned" /> ensures that
+        ///     <see cref="HttpHeaderParseResult.NoHeaders" /> is returned when the HTTP
+        ///     request header-values collection is empty.
         /// </summary>
-        /// <remarks>
-        ///     <see cref="Execute" /> runs at regular intervals. Each interval returns
-        ///     blacklist metadata pertaining to malicious activity that occurred within
-        ///     the last 24 hours.
-        /// </remarks>
-        public void Execute()
+        [TestMethod]
+        public void HoHeadersHttpHeaderParseResultIsReturned()
         {
-            lock (_lock)
+            var networkRouteMetadata = new NetworkRouteMetadata
             {
-                if (_shuttingDown)
-                    return;
+                HttpRequestHeaderValues = new List<string>(),
+                ParsedIPAddresses = new List<IPAddress>()
+            };
 
-                try
-                {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
-
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
-
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
-
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
-
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
-
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
-                    var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
-
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
-
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
-                }
-                catch (Exception)
-                {
-                    // Fail silently and ignore errors for POC
-                }
-            }
+            Assert.AreEqual(HttpHeaderParseResult.NoHeaders, networkRouteMetadata.HttpHeaderParseResult);
         }
 
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
+        /// <summary>
+        ///     <see cref="SingleHeaderNoIPAddressHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.SingleHeaderNoIPAddress" /> is returned
+        ///     when the HTTP request header-values collection contains a single entry, and
+        ///     the parsed <see cref="IPAddress" /> collection is empty.
+        /// </summary>
+        [TestMethod]
+        public void SingleHeaderNoIPAddressHttpHeaderParseResultIsReturned()
         {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
+            var networkRouteMetadata = new NetworkRouteMetadata
             {
-                _shuttingDown = true;
-            }
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST"
+                },
+                ParsedIPAddresses = new List<IPAddress>()
+            };
 
-            HostingEnvironment.UnregisterObject(this);
+            Assert.AreEqual(HttpHeaderParseResult.SingleHeaderNoIPAddress,
+                networkRouteMetadata.HttpHeaderParseResult);
+        }
+
+        /// <summary>
+        ///     <see cref="SingleHeaderSingleIPAddressHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.SingleHeaderSingleIPAddress" /> is
+        ///     returned when both HTTP request header-values and the parsed
+        ///     <see cref="IPAddress" /> collections contains a single entry.
+        /// </summary>
+        [TestMethod]
+        public void SingleHeaderSingleIPAddressHttpHeaderParseResultIsReturned()
+        {
+            var networkRouteMetadata = new NetworkRouteMetadata
+            {
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST"
+                },
+                ParsedIPAddresses = new List<IPAddress>
+                {
+                    IPAddress.Parse("127.0.0.1")
+                }
+            };
+
+            Assert.AreEqual(HttpHeaderParseResult.SingleHeaderSingleIPAddress,
+                networkRouteMetadata.HttpHeaderParseResult);
+        }
+
+        /// <summary>
+        ///     <see cref="SingleHeaderMultipleIPAddressesHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.SingleHeaderMultipleIPAddresses" /> is
+        ///     returned when the HTTP request header-values contains a single entry, and
+        ///     the parsed
+        ///     <see cref="IPAddress" /> collection contains multiple entries.
+        /// </summary>
+        [TestMethod]
+        public void SingleHeaderMultipleIPAddressesHttpHeaderParseResultIsReturned()
+        {
+            var networkRouteMetadata = new NetworkRouteMetadata
+            {
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST"
+                },
+                ParsedIPAddresses = new List<IPAddress>
+                {
+                    IPAddress.Parse("127.0.0.1"),
+                    IPAddress.Parse("127.0.0.2")
+                }
+            };
+
+            Assert.AreEqual(HttpHeaderParseResult.SingleHeaderMultipleIPAddresses,
+                networkRouteMetadata.HttpHeaderParseResult);
+        }
+
+        /// <summary>
+        ///     <see cref="MultipleHeadersNoIPAddressHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.MultipleHeadersNoIPAddress" /> is returned
+        ///     when the HTTP request header-values contains multiple entries, and the
+        ///     parsed
+        ///     <see cref="IPAddress" /> collection is empty.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHeadersNoIPAddressHttpHeaderParseResultIsReturned()
+        {
+            var networkRouteMetadata = new NetworkRouteMetadata
+            {
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST1",
+                    "TEST2"
+                },
+                ParsedIPAddresses = new List<IPAddress>()
+            };
+
+            Assert.AreEqual(HttpHeaderParseResult.MultipleHeadersNoIPAddress,
+                networkRouteMetadata.HttpHeaderParseResult);
+        }
+
+        /// <summary>
+        ///     <see cref="MultipleHeadersSingleIPAddressHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.MultipleHeadersSingleIPAddress" /> is
+        ///     returned when the HTTP request header-values contains multiple entries, and
+        ///     the parsed
+        ///     <see cref="IPAddress" /> collection contains a single entry.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHeadersSingleIPAddressHttpHeaderParseResultIsReturned()
+        {
+            var networkRouteMetadata = new NetworkRouteMetadata
+            {
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST1",
+                    "TEST2"
+                },
+                ParsedIPAddresses = new List<IPAddress>
+                {
+                    IPAddress.Parse("127.0.0.1")
+                }
+            };
+
+            Assert.AreEqual(HttpHeaderParseResult.MultipleHeadersSingleIPAddress,
+                networkRouteMetadata.HttpHeaderParseResult);
+        }
+
+        /// <summary>
+        ///     <see
+        ///         cref="MultipleHeadersMultipleIPAddressesHttpHeaderParseResultIsReturned" />
+        ///     ensures that
+        ///     <see cref="HttpHeaderParseResult.MultipleHeadersMultipleIPAddresses" /> is
+        ///     returned both the HTTP request header-values, and the parsed
+        ///     <see cref="IPAddress" /> collections contain multiple entries.
+        /// </summary>
+        [TestMethod]
+        public void MultipleHeadersMultipleIPAddressesHttpHeaderParseResultIsReturned()
+        {
+            var networkRouteMetadata = new NetworkRouteMetadata
+            {
+                HttpRequestHeaderValues = new List<string>
+                {
+                    "TEST1",
+                    "TEST2"
+                },
+                ParsedIPAddresses = new List<IPAddress>
+                {
+                    IPAddress.Parse("127.0.0.1"),
+                    IPAddress.Parse("127.0.0.2")
+                }
+            };
+
+            Assert.AreEqual(HttpHeaderParseResult.MultipleHeadersMultipleIPAddresses,
+                networkRouteMetadata.HttpHeaderParseResult);
         }
     }
 }
