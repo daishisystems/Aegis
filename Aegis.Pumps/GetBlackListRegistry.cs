@@ -692,7 +692,7 @@ namespace Aegis.Pumps
                 .WithName(BlackListPump.Instance.RecurringTaskName)
                 .ToRunNow()
                 .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
-                .Seconds();
+                .Minutes();
         }
     }
 }
