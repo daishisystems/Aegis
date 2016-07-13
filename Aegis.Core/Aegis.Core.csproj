@@ -75,6 +75,7 @@
     <Compile Include="HttpRequestMetadata.cs" />
     <Compile Include="HttpRequestMetadataException.cs" />
     <Compile Include="HttpRequestMetadataValidator.cs" />
+    <Compile Include="IPAddressGeoLocationRaw.cs" />
     <Compile Include="NetworkRoute.cs" />
     <Compile Include="NetworkRouteMapper.cs" />
     <Compile Include="HttpRequestHeaderParser.cs" />

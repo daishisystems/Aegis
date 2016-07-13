@@ -707,94 +707,38 @@ namespace Aegis.Core
     /// </remarks>
     public class BlackList
     {
-        private volatile Dictionary<string, List<BlackListItem>>
-            _blackListsByCountry;
-
-        private Dictionary<string, IPAddressGeoLocation> _cachedIPAddressGeoLocations;
-        private DateTime _ipAddressGeoLocationLastUpdated;
-
-        static BlackList()
-        {
-
-        }
+        private Dictionary<string, List<BlackListItem>> blackListsByCountry;
+        private readonly object lockData;
 
         private BlackList()
         {
-            _blackListsByCountry =
-                new Dictionary<string, List<BlackListItem>>();
-
-            _ipAddressGeoLocationLastUpdated = DateTime.Now;
-
-            _cachedIPAddressGeoLocations = new Dictionary<string, IPAddressGeoLocation>();
-        }
-
-        /// <summary>
-        ///     <see cref="BlackListsByCountry" /> is the underlying collection of
-        ///     <see cref="BlackListItem" />
-        ///     instances, segmented by <see cref="BlackListItem.Country" />.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///         ToDo: Change type to <see cref="ConcurrentDictionary{TKey,TValue}" />
-        ///         in order to avoid a race condition, should overlapping processes
-        ///         attempt to add the same key. Use
-        ///         <see cref="ConcurrentDictionary{TKey,TValue}.TryGetValue" />.
-        ///     </para>
-        ///     <para>
-        ///         ToDO: Change <see cref="List{T}"></see> to
-        ///         <see cref="ConcurrentDictionary{TKey,TValue}" />/> in order to avoid a
-        ///         race condition, should overlapping processes attempt to add the same
-        ///         key. This ensures that duplicates will not result. Use
-        ///         <see cref="ConcurrentDictionary{TKey,TValue}.AddOrUpdate" />.
-        ///     </para>
-        /// </remarks>
-        public Dictionary<string, List<BlackListItem>> BlackListsByCountry {
-            get { return _blackListsByCountry; }
-            set { _blackListsByCountry = value; }
+            this.lockData = new object();
+            this.blackListsByCountry = new Dictionary<string, List<BlackListItem>>();
         }
 
         public static BlackList Instance { get; } = new BlackList();
 
-        /// <summary>
-        ///     <see cref="GetCachedIPAddressGeoLocations" /> returns a collection of
-        ///     <see cref="IPAddressGeoLocation" /> instances, cached, so that
-        ///     <see cref="IPAddress" /> lookups are not necessary upon every retrieval of
-        ///     blacklisted metadata.
-        /// </summary>
-        /// <param name="cacheAgeInDays">The age of the cache, in days.</param>
-        /// <returns>
-        ///     <see cref="Dictionary{TIPAddress,TIPAddressGeoLocation}" /> that represents
-        ///     a list of <see cref="IPAddress" /> raw keys, and associated
-        ///     <see cref="IPAddressGeoLocation" /> instances.
-        /// </returns>
-        /// <remarks>
-        ///     The collection of <see cref="IPAddressGeoLocation" /> instances should
-        ///     be purged at regular intervals, to allow for
-        ///     <see cref="IPAddress" /> rotation and global DNS refresh.
-        /// </remarks>
-        public Dictionary<string, IPAddressGeoLocation> GetCachedIPAddressGeoLocations(
-            out int cacheAgeInDays)
+        public void SetNewData(Dictionary<string, List<BlackListItem>> newBlackListsByCountry)
         {
-            cacheAgeInDays = (DateTime.Now - _ipAddressGeoLocationLastUpdated).Days;
-
-            return _cachedIPAddressGeoLocations;
+            lock (this.lockData)
+            {
+                this.blackListsByCountry = newBlackListsByCountry;
+            }
         }
 
-        /// <summary>
-        ///     <see cref="SetCachedIPAddressGeoLocations" /> assigns
-        ///     <see cref="ipAddressGeoLocations" /> to this instance' internal cache of
-        ///     <see cref="IPAddressGeoLocation" /> instances.
-        /// </summary>
-        /// <param name="ipAddressGeoLocations">
-        ///     The <see cref="ipAddressGeoLocations" /> to
-        ///     add to this instance' internal cache of <see cref="IPAddressGeoLocation" />
-        ///     instances.
-        /// </param>
-        public void SetCachedIPAddressGeoLocations(
-            Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations)
+        public void FillWithItems(string country, List<BlackListItem> destination)
         {
-            _ipAddressGeoLocationLastUpdated = DateTime.Now;
-            _cachedIPAddressGeoLocations = ipAddressGeoLocations;
+            lock (this.lockData)
+            {
+                List<BlackListItem> blackListItems;
+
+                if (!this.blackListsByCountry.TryGetValue(country, out blackListItems))
+                {
+                    return;
+                }
+
+                destination.AddRange(blackListItems);
+            }
         }
     }
 }

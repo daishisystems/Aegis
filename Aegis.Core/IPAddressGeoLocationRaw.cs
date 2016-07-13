@@ -676,34 +676,15 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using Newtonsoft.Json;
 
 namespace Aegis.Core
 {
-    public class IPAddressGeoLocation
+    public class IPAddressGeoLocationRaw
     {
-        public IPAddressGeoLocation(IPAddressGeoLocationRaw data) : this(data.City, data.CountryName)
-        {
-        }
+        public string City { get; set; }
 
-        public IPAddressGeoLocation(string city, string country)
-        {
-            if (!string.IsNullOrWhiteSpace(city))
-            {
-                this.City = city.ToLowerInvariant().Trim();
-            }
-
-            if (!string.IsNullOrWhiteSpace(country))
-            {
-                this.CountryName = country.ToLowerInvariant().Trim();
-            }
-
-            this.TimeStamp = DateTime.UtcNow;
-        }
-
-        public string City { get; }
-
-        public string CountryName { get; }
-
-        public DateTime TimeStamp { get; }
+        [JsonProperty(PropertyName = "country_name")]
+        public string CountryName { get; set; }
     }
 }

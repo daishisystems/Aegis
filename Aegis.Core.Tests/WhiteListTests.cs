@@ -675,35 +675,80 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
+using System.Collections.Generic;
+using System.Net;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Core
+namespace Aegis.Core.Tests
 {
-    public class IPAddressGeoLocation
+    using System.Linq;
+
+    /// <summary>
+    ///     <see cref="WhiteListTests" /> ensures that logic pertaining to
+    ///     <see cref="WhiteList" /> instances executes correctly.
+    /// </summary>
+    [TestClass]
+    public class WhiteListTests
     {
-        public IPAddressGeoLocation(IPAddressGeoLocationRaw data) : this(data.City, data.CountryName)
+        /// <summary>
+        ///     <see cref="IpAddressIsWhitelisted" /> ensures that a white-listed
+        ///     <see cref="IPAddress" /> is determined to be white-listed.
+        /// </summary>
+        [TestMethod]
+        public void IpAddressIsWhitelisted()
         {
+            var ipAddress = IPAddress.Parse("195.27.14.131");
+
+            var whiteListedIpAddresses = new List<WhiteListItem>
+            {
+                new WhiteListItem("195.27.14.131"),
+                new WhiteListItem("195.27.14.132")
+            };
+
+            var whitelist = new WhiteList(whiteListedIpAddresses);
+            Assert.IsTrue(whitelist.IsWhiteListed(ipAddress));
         }
 
-        public IPAddressGeoLocation(string city, string country)
+        /// <summary>
+        ///     <see cref="IpAddressRangeIsWhiteListed" /> ensures that a white-listed
+        ///     <see cref="IPAddress" />-range is determined to be white-listed.
+        /// </summary>
+        [TestMethod]
+        public void IpAddressRangeIsWhiteListed()
         {
-            if (!string.IsNullOrWhiteSpace(city))
-            {
-                this.City = city.ToLowerInvariant().Trim();
-            }
+            var ipAddress = IPAddress.Parse("195.27.14.131");
 
-            if (!string.IsNullOrWhiteSpace(country))
+            var whiteListedIpAddressRanges = new List<WhiteListItem>
             {
-                this.CountryName = country.ToLowerInvariant().Trim();
-            }
+                new WhiteListItem("195.27.14.1", "195.27.14.255")
+            };
 
-            this.TimeStamp = DateTime.UtcNow;
+            var whitelist = new WhiteList(whiteListedIpAddressRanges);
+            Assert.IsTrue(whitelist.IsWhiteListed(ipAddress));
         }
 
-        public string City { get; }
+        /// <summary>
+        ///     <see cref="IpAddressesAreSegmentedByType" /> ensures that
+        ///     <see cref="IPAddress" /> instances are segmented by either single, or range
+        ///     categories.
+        /// </summary>
+        [TestMethod]
+        public void IpAddressesAreSegmentedByType()
+        {
+            var whiteListedIpAddresses = new List<WhiteListItem>
+            {
+                new WhiteListItem("195.27.14.131", "195.27.14.131"),
+                new WhiteListItem("195.27.14.1", "195.27.14.255"),
+                new WhiteListItem("195.27.20.1", "195.27.20.255")
+            };
 
-        public string CountryName { get; }
+            var whitelist = new WhiteList(whiteListedIpAddresses);
 
-        public DateTime TimeStamp { get; }
+            Assert.IsTrue(whitelist.IsWhiteListed("195.27.14.131"));
+            Assert.IsTrue(whitelist.IsWhiteListed("195.27.14.1"));
+            Assert.IsTrue(whitelist.IsWhiteListed("195.27.20.10"));
+
+            Assert.IsFalse(whitelist.IsWhiteListed("195.27.30.1"));
+        }
     }
 }

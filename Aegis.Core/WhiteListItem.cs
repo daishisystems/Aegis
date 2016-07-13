@@ -693,19 +693,29 @@ namespace Aegis.Core
     /// </remarks>
     public class WhiteListItem
     {
+        public WhiteListItem(string ipAddress): this(ipAddress, ipAddress)
+        {
+        }
+
+        public WhiteListItem(string lowerIpAddress, string upperIpAddress)
+        {
+            this.LowerIPAddress = IPAddress.Parse(lowerIpAddress);
+            this.UpperIPAddress = IPAddress.Parse(upperIpAddress);
+        }
+
         /// <summary>
         ///     <see cref="LowerIPAddress" /> is the <see cref="IPAddress" /> that marks
         ///     the beginning <see cref="IPAddress" /> in an <see cref="IPAddress" />
         ///     range, or it is a single <see cref="IPAddress" />.
         /// </summary>
-        public IPAddress LowerIPAddress { get; set; }
+        public IPAddress LowerIPAddress { get; }
 
         /// <summary>
         ///     <see cref="UpperIPAddress" /> is the <see cref="IPAddress" /> that marks
         ///     the end <see cref="IPAddress" /> in an <see cref="IPAddress" />
         ///     range, or it is a single <see cref="IPAddress" />.
         /// </summary>
-        public IPAddress UpperIPAddress { get; set; }
+        public IPAddress UpperIPAddress { get; }
 
         /// <summary>
         ///     <see cref="IsRange" /> determines whether or not this

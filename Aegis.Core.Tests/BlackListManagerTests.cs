@@ -690,8 +690,8 @@ namespace Aegis.Core.Tests
         {
             var ipAddress = "195.27.14.131";
 
-            Func<List<BlackListItem>> getBlackListItems =
-                () => new List<BlackListItem>
+            List<BlackListItem> blackListItems =
+                new List<BlackListItem>
                 {
                     new BlackListItem
                     {
@@ -699,15 +699,14 @@ namespace Aegis.Core.Tests
                     }
                 };
 
-            var blackListsByCountry =
-                BlackListManager.SegmentBlackListByCountry(getBlackListItems, string.Empty, null,
-                    new Dictionary<string, IPAddressGeoLocation>
+            var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(
+                blackListItems,
+                string.Empty,
+                new WhiteList(new List<WhiteListItem>()), 
+                new Dictionary<string, IPAddressGeoLocation>
                     {
                         {
-                            ipAddress, new IPAddressGeoLocation
-                            {
-                                CountryName = "Ireland"
-                            }
+                            ipAddress, new IPAddressGeoLocation(null, "Ireland")
                         }
                     });
 
