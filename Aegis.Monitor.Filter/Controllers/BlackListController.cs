@@ -703,25 +703,15 @@ namespace Aegis.Monitor.Filter.Controllers
         /// </returns>
         [Route("blacklist")]
         public IEnumerable<BlackListItem> GetBlackList([FromUri] string[] country)
-
         {
             var blackList = new List<BlackListItem>();
 
-            foreach (var c in country)
+            foreach (var countryName in country)
             {
-                List<BlackListItem> blackListItems;
-
-                var blackListExists =
-                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (blackListExists)
-                {
-                    blackList.AddRange(blackListItems);
-                }
+                BlackList.Instance.FillWithItems(countryName.ToLowerInvariant(), blackList);
             }
 
-            if (blackList.Count.Equals(0))
+            if (blackList.Count == 0)
             {
                 throw new HttpResponseException(HttpStatusCode.NotFound);
             }
@@ -731,30 +721,8 @@ namespace Aegis.Monitor.Filter.Controllers
 
         [Route("blacklistmonitor")]
         public IEnumerable<BlackListItem> GetBlackListMonitor([FromUri] string[] country)
-
         {
-            var blackList = new List<BlackListItem>();
-
-            foreach (var c in country)
-            {
-                List<BlackListItem> blackListItems;
-
-                var blackListExists =
-                    BlackList.Instance.BlackListsByCountry.TryGetValue(c.ToLowerInvariant(),
-                        out blackListItems);
-
-                if (blackListExists)
-                {
-                    blackList.AddRange(blackListItems);
-                }
-            }
-
-            if (blackList.Count.Equals(0))
-            {
-                throw new HttpResponseException(HttpStatusCode.NotFound);
-            }
-
-            return blackList;
+            return this.GetBlackList(country);
         }
     }
 }

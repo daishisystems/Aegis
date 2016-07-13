@@ -696,12 +696,7 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void WhiteListItemIsAnIPAddressRange()
         {
-            var whiteListItem = new WhiteListItem
-            {
-                LowerIPAddress = IPAddress.Parse("195.27.14.130"),
-                UpperIPAddress = IPAddress.Parse("195.27.14.131")
-            };
-
+            var whiteListItem = new WhiteListItem("195.27.14.130", "195.27.14.131");
             Assert.IsTrue(whiteListItem.IsRange);
         }
 
@@ -714,18 +709,10 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void WhiteListItemIsNotAnIPAddressRange()
         {
-            var whiteListItem = new WhiteListItem
-            {
-                LowerIPAddress = IPAddress.Parse("195.27.14.131")
-            };
-
+            var whiteListItem = new WhiteListItem("195.27.14.131");
             Assert.IsFalse(whiteListItem.IsRange);
 
-            whiteListItem = new WhiteListItem
-            {
-                UpperIPAddress = IPAddress.Parse("195.27.14.131")
-            };
-
+            whiteListItem = new WhiteListItem("195.27.14.131");
             Assert.IsFalse(whiteListItem.IsRange);
         }
     }

@@ -692,7 +692,7 @@ namespace Aegis.Core
         /// </summary>
         /// <param name="ipAddress">The <see cref="IPAddress" /> that is to be validated.</param>
         /// <returns>A <see cref="bool" /> indicating <c>true</c>, if
-        ///     <see cref="ipAddress" /> falls within a private IP range.</returns>
+        /// <see cref="ipAddress" /> falls within a private IP range.</returns>
         public static bool IsPrivate(this IPAddress ipAddress)
         {
             var splitIPAddress = ipAddress.ToString()
@@ -727,8 +727,7 @@ namespace Aegis.Core
         ///     constrained by <see cref="lowerIPAddress" /> and
         ///     <see cref="upperIPAddress" />.
         /// </returns>
-        public static bool IsInRange(this IPAddress ipAddress,
-            IPAddress lowerIPAddress, IPAddress upperIPAddress)
+        public static bool IsInRange(this IPAddress ipAddress, IPAddress lowerIPAddress, IPAddress upperIPAddress)
         {
             var addressFamily = lowerIPAddress.AddressFamily;
             var lowerBytes = lowerIPAddress.GetAddressBytes();
@@ -786,9 +785,9 @@ namespace Aegis.Core
         ///     </para>
         ///     <para>ToDo: Add a synchronous equivalent method.</para>
         /// </remarks>
-        public static async Task<IPAddressGeoLocation>
-            GetIPAddressGeoLocationAsync(this IPAddress ipAddress,
-                string geoLocationProviderUri)
+        public static async Task<IPAddressGeoLocation> GetIPAddressGeoLocationAsync(
+            this IPAddress ipAddress,
+            string geoLocationProviderUri)
         {
             var content = new MemoryStream();
 
@@ -801,13 +800,16 @@ namespace Aegis.Core
                 using (var responseStream = response.GetResponseStream())
                 {
                     if (responseStream != null)
+                    {
                         await responseStream.CopyToAsync(content);
+                    }
                 }
             }
 
-            return
-                JsonConvert.DeserializeObject<IPAddressGeoLocation>(
+            var data = JsonConvert.DeserializeObject<IPAddressGeoLocationRaw>(
                     Encoding.UTF8.GetString(content.ToArray()));
+
+            return new IPAddressGeoLocation(data);
         }
     }
 }

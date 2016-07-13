@@ -680,6 +680,8 @@ using System.Net;
 
 namespace Aegis.Core
 {
+    using System.Linq;
+
     /// <summary>
     ///     <see cref="WhiteList" /> is a <see cref="WhiteListItem" />
     ///     container, consisting of a collection of <see cref="WhiteListItem" />
@@ -706,39 +708,53 @@ namespace Aegis.Core
     /// </remarks>
     public class WhiteList
     {
-        private volatile List<WhiteListItem> _ipAddressRanges;
+        private readonly List<WhiteListItem> ipAddressRanges;
+        private readonly HashSet<string> singleIpAddresses;
 
-        private volatile HashSet<string> _singleIPAddresses;
-
-        static WhiteList()
+        public WhiteList(List<WhiteListItem> whiteListedItems)
         {
+            this.singleIpAddresses = new HashSet<string>();
+            this.ipAddressRanges = new List<WhiteListItem>();
 
-        }
-
-        private WhiteList()
-        {
-            _singleIPAddresses = new HashSet<string>();
-            _ipAddressRanges = new List<WhiteListItem>();
+            foreach (var item in whiteListedItems)
+            {
+                if (item.IsRange)
+                {
+                    this.ipAddressRanges.Add(item);
+                }
+                else
+                {
+                    this.singleIpAddresses.Add(item.LowerIPAddress.ToString());
+                }
+            }
         }
 
         /// <summary>
-        ///     <see cref="SingleIPAddresses" /> is a simple collection of string-based IP
-        ///     addresses.
+        ///     <see cref="IsWhiteListed" /> determines whether or not
+        ///     <see cref="ipAddress" /> is whitelisted.
         /// </summary>
-        public HashSet<string> SingleIPAddresses {
-            get { return _singleIPAddresses; }
-            set { _singleIPAddresses = value; }
+        /// <param name="ipAddress">The <see cref="IPAddress" /> to validate.</param>
+        /// <returns><c>True</c>, if <see cref="ipAddress" /> is white-listed.</returns>
+        /// <remarks>
+        ///     <see cref="IsWhiteListed" /> compares <see cref="ipAddress" /> to
+        ///     an underlying collection of single IP addresses, as well as a range of
+        ///     <see cref="IPAddress" /> instances. If <see cref="ipAddress" /> is
+        ///     contained within the range of single addresses, or falls within one of the
+        ///     IP address ranges, it is considered white-listed.
+        /// </remarks>
+        public bool IsWhiteListed(string ipAddress)
+        {
+            return this.IsWhiteListed(IPAddress.Parse(ipAddress));
         }
 
-        /// <summary>
-        ///     <see cref="IPAddressRanges" /> is a collection of <see cref="IPAddress" />
-        ///     instances that define a range of IP addresses.
-        /// </summary>
-        public List<WhiteListItem> IPAddressRanges {
-            get { return _ipAddressRanges; }
-            set { _ipAddressRanges = value; }
-        }
+        public bool IsWhiteListed(IPAddress ipAddress)
+        {
+            if (this.singleIpAddresses.Contains(ipAddress.ToString()))
+            {
+                return true;
+            }
 
-        public static WhiteList Instance { get; } = new WhiteList();
+            return this.ipAddressRanges.Any(item => ipAddress.IsInRange(item.LowerIPAddress, item.UpperIPAddress));
+        }
     }
 }

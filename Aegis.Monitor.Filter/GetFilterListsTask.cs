@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Net;
 using System.Web.Hosting;
 using Aegis.Core;
@@ -703,6 +704,7 @@ namespace Aegis.Monitor.Filter
     public class GetFilterListsTask : IJob, IRegisteredObject
     {
         private readonly object _lock = new object();
+        private readonly Dictionary<string, IPAddressGeoLocation> geoLocationCache = new Dictionary<string, IPAddressGeoLocation>();
 
         private volatile bool _shuttingDown;
 
@@ -726,63 +728,57 @@ namespace Aegis.Monitor.Filter
             lock (_lock)
             {
                 if (_shuttingDown)
+                {
                     return;
+                }
 
                 try
                 {
-                    var sqlAzureConnectionString =
-                        ConfigurationManager.ConnectionStrings[
-                            "SQLAzureConnectionString"].ConnectionString;
-
-                    HashSet<string> singleWhiteListedIPAddresses;
-                    List<WhiteListItem> whiteListedIPAddressRanges;
-
-                    WhiteListManager.SegmentIPAddressesByType(
-                        out singleWhiteListedIPAddresses,
-                        out whiteListedIPAddressRanges,
-                        () => WhiteListManager.LoadWhiteListItemsFromAzure(
-                            sqlAzureConnectionString));
-
-                    WhiteList.Instance.SingleIPAddresses =
-                        singleWhiteListedIPAddresses;
-                    WhiteList.Instance.IPAddressRanges =
-                        whiteListedIPAddressRanges;
-
-                    var hyperActivity =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["HyperActivity"]);
-
-                    var avgNumHits =
-                        int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
-
-                    var geoLocationProviderURI =
-                        ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-
-                    int ipAddressGeoLocationCacheAge;
-                    var cachedIPAddressGeoLocations =
-                        BlackList.Instance.GetCachedIPAddressGeoLocations(
-                            out ipAddressGeoLocationCacheAge);
-
+                    // remove old entries from GeoLocation cache
                     var ipAddressGeoLocationCacheMaxAge =
-                        int.Parse(
-                            ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
+                        int.Parse(ConfigurationManager.AppSettings["IPAddressGeoLocationCacheMaxAge"]);
 
-                    if (ipAddressGeoLocationCacheAge >= ipAddressGeoLocationCacheMaxAge)
-                    {
-                        cachedIPAddressGeoLocations.Clear();
-                    }
+                    var cacheTimeStampThreshold = DateTime.UtcNow.AddDays(-ipAddressGeoLocationCacheMaxAge);
 
-                    BlackList.Instance.BlackListsByCountry =
-                        BlackListManager.SegmentBlackListByCountry(
-                            () =>
-                                BlackListManager.LoadBlackListItemsFromAzure(
-                                    sqlAzureConnectionString, hyperActivity,
-                                    avgNumHits), geoLocationProviderURI, WhiteList.Instance,
-                            cachedIPAddressGeoLocations);
+                    var cacheOldKeys =
+                        this.geoLocationCache.Where(x => x.Value.TimeStamp < cacheTimeStampThreshold).Select(x => x.Key).ToList();
+
+                    cacheOldKeys.ForEach(x => this.geoLocationCache.Remove(x));
+
+                    // get Azure connection string
+                    var sqlAzureConnectionString =
+                        ConfigurationManager.ConnectionStrings["SQLAzureConnectionString"].ConnectionString;
+
+                    // load whitelist data from Azure
+                    var whitelistData = WhiteListManager.LoadWhiteListItemsFromAzure(sqlAzureConnectionString);
+
+                    // transform whitelist data
+                    var whitelist = new WhiteList(whitelistData);
+
+                    // load blacklist data from azure
+                    var azureHyperActivity = int.Parse(ConfigurationManager.AppSettings["HyperActivity"]);
+                    var azureAvgNumHits = int.Parse(ConfigurationManager.AppSettings["AVGNumHits"]);
+
+                    var blacklistData = BlackListManager.LoadBlackListItemsFromAzure(
+                        sqlAzureConnectionString,
+                        azureHyperActivity,
+                        azureAvgNumHits);
+
+                    // check blacklist data with GeoIP and whitelist
+                    var geoLocationProviderUri = ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
+
+                    var blacklistDataByCountry = BlackListManager.SegmentBlackListByCountry(
+                        blacklistData,
+                        geoLocationProviderUri,
+                        whitelist,
+                        this.geoLocationCache);
+
+                    // set new blacklist
+                    BlackList.Instance.SetNewData(blacklistDataByCountry);
                 }
                 catch (Exception)
                 {
-                    // Fail silently and ignore errors for POC
+                    // TODO Fail silently and ignore errors for POC. Send error to NewRelic?
                 }
             }
         }

@@ -76,6 +76,7 @@
     <Compile Include="NetworkRouteMetadataTests.cs" />
     <Compile Include="WhiteListItemTests.cs" />
     <Compile Include="WhiteListManagerTests.cs" />
+    <Compile Include="WhiteListTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aegis.Core\Aegis.Core.csproj">
