@@ -705,7 +705,7 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
         {
-            Assert.AreEqual(1, BlackListPump.Instance.RecurringTaskInterval);
+            Assert.AreEqual(10, BlackListPump.Instance.RecurringTaskInterval);
         }
 
         /// <summary>
