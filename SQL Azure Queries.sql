@@ -145,7 +145,6 @@ SELECT * FROM	(
 
 WHERE HyperActivity > 1
 AND AVGNumHits >= 60
-AND IPAddress = '213.233.132.177'
 ORDER BY TotalNumHits DESC;
 
 SELECT '[' + LowerIPAddress + ']', '[' + UpperIPAddress + ']'

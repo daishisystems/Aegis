@@ -748,7 +748,7 @@ namespace Aegis.Pumps
         /// </summary>
         /// <remarks>A default interval is provided, if one is not provided.</remarks>
         public int RecurringTaskInterval {
-            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 10; }
+            get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 600; }
             set { _recurringTaskInterval = value; }
         }
 
