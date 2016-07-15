@@ -688,16 +688,23 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void BlackListsAreSegmentedByCountry()
         {
-            var ipAddress = "195.27.14.131";
+            var ipAddress1 = "195.27.14.131";
+            var ipAddress2 = "195.27.14.132";
 
             List<BlackListItem> blackListItems =
                 new List<BlackListItem>
                 {
                     new BlackListItem
                     {
-                        IPAddress = IPAddress.Parse(ipAddress)
+                        IPAddress = IPAddress.Parse(ipAddress1)
+                    },
+                    new BlackListItem
+                    {
+                        IPAddress = IPAddress.Parse(ipAddress2)
                     }
                 };
+
+            List<IPAddressGeoLocation> newGeoLocationItems;
 
             var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(
                 blackListItems,
@@ -706,17 +713,18 @@ namespace Aegis.Core.Tests
                 new Dictionary<string, IPAddressGeoLocation>
                     {
                         {
-                            ipAddress, new IPAddressGeoLocation(null, "Ireland")
+                            ipAddress1, new IPAddressGeoLocation(IPAddress.Any, null, "Ireland")
+                        },
+                        {
+                            ipAddress2, new IPAddressGeoLocation(IPAddress.Any, null, null)
                         }
-                    });
+                    },
+                out newGeoLocationItems);
 
-            List<BlackListItem> irishBlackListItems;
-            var irishListExists =
-                blackListsByCountry.TryGetValue("ireland",
-                    out irishBlackListItems);
+            CollectionAssert.Contains(blackListsByCountry.Keys, "ireland");
 
-            Assert.IsTrue(irishListExists);
-            Assert.AreEqual(1, irishBlackListItems.Count);
+            Assert.AreEqual(1, blackListsByCountry["ireland"].Count);
+            Assert.AreEqual(1, blackListsByCountry[string.Empty].Count);
         }
     }
 }

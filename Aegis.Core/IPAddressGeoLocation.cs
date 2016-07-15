@@ -676,17 +676,24 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Net;
 
 namespace Aegis.Core
 {
     public class IPAddressGeoLocation
     {
-        public IPAddressGeoLocation(IPAddressGeoLocationRaw data) : this(data.City, data.CountryName)
+        public IPAddressGeoLocation(IPAddress ipAddress, IPAddressGeoLocationRaw data) : this(ipAddress, data.City, data.CountryName)
         {
         }
 
-        public IPAddressGeoLocation(string city, string country)
+        public IPAddressGeoLocation(IPAddress ipAddress, string city, string country)
         {
+            // set empty string as default (in case of unknown city/country information)
+            // instead of null value which will raise an exception when such values
+            // would be used in a dictionary or other places
+            this.City = string.Empty;
+            this.CountryName = string.Empty;
+
             if (!string.IsNullOrWhiteSpace(city))
             {
                 this.City = city.ToLowerInvariant().Trim();
@@ -697,8 +704,11 @@ namespace Aegis.Core
                 this.CountryName = country.ToLowerInvariant().Trim();
             }
 
+            this.IpAddress = ipAddress;
             this.TimeStamp = DateTime.UtcNow;
         }
+
+        public IPAddress IpAddress { get; }
 
         public string City { get; }
 
