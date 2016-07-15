@@ -66,6 +66,7 @@
     <Compile Include="AegisEventCache.cs" />
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="AegisRegistry.cs" />
+    <Compile Include="AzureSqlManager.cs" />
     <Compile Include="BlackListItem.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />

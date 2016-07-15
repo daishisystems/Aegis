@@ -809,7 +809,7 @@ namespace Aegis.Core
             var data = JsonConvert.DeserializeObject<IPAddressGeoLocationRaw>(
                     Encoding.UTF8.GetString(content.ToArray()));
 
-            return new IPAddressGeoLocation(data);
+            return new IPAddressGeoLocation(ipAddress, data);
         }
     }
 }

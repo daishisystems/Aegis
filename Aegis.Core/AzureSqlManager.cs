@@ -677,197 +677,32 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
-using System.Net;
 
 namespace Aegis.Core
 {
-    /// <summary>
-    ///     <see cref="BlackListManager" /> provides methods that load
-    ///     <see cref="BlackListItem" /> instances from SQL AZure, as well as
-    ///     segmenting those instances into collections, grouped by
-    ///     <see cref="BlackListItem.Country" />.
-    /// </summary>
-    public static class BlackListManager
+    public static class AzureSqlManager
     {
-        /// <summary>
-        ///     <see cref="LoadBlackListItemsFromAzure" /> returns a collection of
-        ///     <see cref="BlackListItem" /> instances, loaded directly from Aegis
-        ///     Streaming Analytics in the cloud.
-        /// </summary>
-        /// <param name="connectionString">The SQL Azure connection-string.</param>
-        /// <param name="hyperActivity">
-        ///     The number of times that any given
-        ///     <see cref="IPAddress" /> has exceeded the threshold that defines the number
-        ///     of acceptable HTTP requests per minute.
-        /// </param>
-        /// <param name="avgNumHits">
-        ///     The average number of HTTP requests, issued by any
-        ///     given <see cref="IPAddress" />, in the last 24 hours.
-        /// </param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, loaded
-        ///     directly from Aegis Streaming Analytics in the cloud.
-        /// </returns>
-        public static List<BlackListItem> LoadBlackListItemsFromAzure(
-            string connectionString, int hyperActivity, int avgNumHits)
+        public static void UploadGeoLocationData(string sqlAzureConnectionString, List<IPAddressGeoLocation> items)
         {
-            const string commandText = @"SELECT * FROM	(
+            const string SqlCommand =
+                "INSERT INTO dbo.IpGeoLocation (IpAddress, Country, City, TimeStamp) VALUES (@IpAddress, @Country, @City, @TimeStamp)";
 
-                SELECT
-                    IPAddress,
-                    COUNT(IPAddress)AS HyperActivity,
-                    SUM(Total) AS TotalNumHits,
-                    SUM(Total) / COUNT(IPAddress) AS AVGNumHits,
-                    MAX(ServerDateTime) AS LatestServerTime
-
-                FROM dbo.BlackList
-
-                WHERE ServerDateTime >= GETDATE() - 1
-
-                GROUP BY IPAddress  
-
-				            ) AS BlackList
-
-            WHERE HyperActivity > @HYPERACTIVITY
-            AND AVGNumHits >= @AVGNUMHITS
-            ORDER BY TotalNumHits DESC;";
-
-            using (
-                var connection =
-                    new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(sqlAzureConnectionString))
             {
-                var command = new SqlCommand(commandText,
-                    connection);
-                command.Parameters.Add("@HYPERACTIVITY",
-                    SqlDbType.Int);
-                command.Parameters["@HYPERACTIVITY"].Value = hyperActivity;
-
-                command.Parameters.Add("@AVGNUMHITS", SqlDbType.Int);
-                command.Parameters["@AVGNUMHITS"].Value = avgNumHits;
-
                 connection.Open();
-
-                var reader = command.ExecuteReader();
-
-                var blackListItems = new List<BlackListItem>();
-
-                while (reader.Read())
+                foreach (var item in items)
                 {
-                    var rawIPAddress = reader.GetString(0);
-
-                    blackListItems.Add(new BlackListItem
+                    using (var cmd = new SqlCommand(SqlCommand, connection))
                     {
-                        IPAddress = IPAddress.Parse(rawIPAddress),
-                        RawIPAddress = rawIPAddress,
-                        HyperActivity = reader.GetInt32(1),
-                        TotalNumHits = reader.GetInt32(2),
-                        AvgNumHits = reader.GetInt32(3),
-                        LatestServerTime = reader.GetDateTime(4)
-                    });
+                        cmd.Parameters.AddWithValue("@IpAddress", item.IpAddress.ToString());
+                        cmd.Parameters.AddWithValue("@Country", item.CountryName);
+                        cmd.Parameters.AddWithValue("@City", item.City);
+                        cmd.Parameters.AddWithValue("@TimeStamp", item.TimeStamp);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
-
-                return blackListItems;
             }
-        }
-
-        /// <summary>
-        ///     <para>
-        ///         <see cref="SegmentBlackListByCountry" /> should be leveraged as a
-        ///         recurring, single-threaded event. It is sufficiently abstracted to
-        ///         allow for unit-testing.
-        ///     </para>
-        ///     <para>
-        ///         <see cref="SegmentBlackListByCountry" /> loads and segments blacklist
-        ///         data from
-        ///         <see cref="Func{TResult}" />, a provider of
-        ///         <see cref="BlackListItem" /> instances.
-        ///     </para>
-        /// </summary>
-        /// <param name="blacklistItems">
-        ///     <see cref="blacklistItems" /> is an abstracted
-        ///     <see cref="Func{TResult}" /> that allows
-        ///     <see cref="BlackListItem" /> instances to be loaded from multiple sources.
-        /// </param>
-        /// <param name="geoLocationProviderUri">
-        ///     The geolocation provider
-        ///     <see cref="Uri" />, used to retrieve <see cref="IPAddressGeoLocation" />
-        ///     metadata for any given <see cref="IPAddress" />.
-        /// </param>
-        /// <param name="whiteList">
-        ///     If explicitly specified, a <see cref="WhiteList" />
-        ///     prevents any white-listed <see cref="IPAddress" /> instances from being
-        ///     added to the <see cref="BlackListItem" /> collection returned by this
-        ///     method.
-        /// </param>
-        /// <param name="ipAddressGeoLocations">
-        ///     A collection of
-        ///     <see cref="IPAddressGeoLocation" /> instances, cached, so that
-        ///     <see cref="IPAddress" /> lookups are not necessary upon every retrieval of
-        ///     blacklisted metadata.
-        /// </param>
-        /// <param name="newGeoLocationItems"></param>
-        /// <returns>
-        ///     A collection of <see cref="BlackListItem" /> instances, segmented by
-        ///     <see cref="BlackListItem.Country" />.
-        /// </returns>
-        /// <remarks>
-        ///     Each <see cref="BlackListItem" /> is processed sequentially, during
-        ///     which,
-        ///     <see cref="BlackListItem.IPAddress" /> properties that are determined to be
-        ///     <para>1. Private IP addresses</para>
-        ///     <para>2. White-listed IP addresses</para>
-        ///     are ignored. Otherwise, the <see cref="BlackListItem.IPAddress" /> property
-        ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
-        /// </remarks>
-        public static Dictionary<string, List<BlackListItem>> SegmentBlackListByCountry(
-            List<BlackListItem> blacklistItems,
-            string geoLocationProviderUri,
-            WhiteList whiteList,
-            Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations,
-            out List<IPAddressGeoLocation> newGeoLocationItems)
-        {
-            newGeoLocationItems = new List<IPAddressGeoLocation>();
-            var blackListsByCountry = new Dictionary<string, List<BlackListItem>>();
-
-            foreach (var item in blacklistItems)
-            {
-                // discard private or whitelisted items
-                if (item.IPAddress.IsPrivate() || whiteList.IsWhiteListed(item.IPAddress))
-                {
-                    continue;
-                }
-
-                // check GeoLocation cache
-                IPAddressGeoLocation ipAddressGeoLocation;
-                var ipAddressStr = item.IPAddress.ToString();
-
-                if (!ipAddressGeoLocations.TryGetValue(ipAddressStr, out ipAddressGeoLocation))
-                {
-                    // check GeoIP and add to cache
-                    ipAddressGeoLocation = item.IPAddress.GetIPAddressGeoLocationAsync(geoLocationProviderUri).Result;
-
-                    ipAddressGeoLocations.Add(ipAddressStr, ipAddressGeoLocation);
-                    newGeoLocationItems.Add(ipAddressGeoLocation);
-                }
-
-                // update item country
-                item.Country = ipAddressGeoLocation.CountryName;
-
-                // add item to the right list 
-                List<BlackListItem> blackListItems;
-
-                if (!blackListsByCountry.TryGetValue(item.Country, out blackListItems))
-                {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(item.Country, blackListItems);
-                }
-
-                blackListItems.Add(item);
-            }
-
-            return blackListsByCountry;
         }
     }
 }

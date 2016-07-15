@@ -680,6 +680,10 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System;
+using System.Configuration;
+using System.Net;
+using Daishi.NewRelic.Insights;
 using FluentScheduler;
 
 namespace Aegis.Monitor.Filter
@@ -694,7 +698,47 @@ namespace Aegis.Monitor.Filter
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
+            this.InitializeNewRelic();
+
             JobManager.Initialize(new FilterRegistry());
+        }
+
+        private void InitializeNewRelic()
+        {
+            try
+            {
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.AccountID =
+                    ConfigurationManager.AppSettings["NewRelicInsightsAccountID"];
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.APIKey =
+                    ConfigurationManager.AppSettings["NewRelicInsightsAPIKey"];
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.URI =
+                    new Uri(ConfigurationManager.AppSettings["NewRelicInsightsURI"]);
+
+                var webProxy = ConfigurationManager.AppSettings["proxy"];
+
+                if (!string.IsNullOrEmpty(webProxy))
+                {
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseWebProxy = true;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.WebProxy =
+                        new WebProxy(webProxy);
+                }
+
+                var newRelicInsightsNonDefaultTimeout =
+                    ConfigurationManager.AppSettings["NewRelicInsightsNonDefaultTimeout"];
+
+                if (!string.IsNullOrEmpty(newRelicInsightsNonDefaultTimeout))
+                {
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseNonDefaultTimeout = true;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.NonDefaultTimeout =
+                        new TimeSpan(0, 0, int.Parse(newRelicInsightsNonDefaultTimeout));
+                }
+
+                NewRelicInsightsClient.Instance.Initialise();
+            }
+            catch (Exception)
+            {
+                // ToDo: Provide a fall-back solution if New Relic Insights is offline.
+            }
         }
     }
 }

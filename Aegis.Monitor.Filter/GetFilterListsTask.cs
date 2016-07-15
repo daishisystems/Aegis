@@ -683,6 +683,7 @@ using System.Net;
 using System.Web.Hosting;
 using Aegis.Core;
 using FluentScheduler;
+using Daishi.NewRelic.Insights;
 
 namespace Aegis.Monitor.Filter
 {
@@ -766,19 +767,46 @@ namespace Aegis.Monitor.Filter
 
                     // check blacklist data with GeoIP and whitelist
                     var geoLocationProviderUri = ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
+                    List<IPAddressGeoLocation> newGeoLocationItems;
 
                     var blacklistDataByCountry = BlackListManager.SegmentBlackListByCountry(
                         blacklistData,
                         geoLocationProviderUri,
                         whitelist,
-                        this.geoLocationCache);
+                        this.geoLocationCache,
+                        out newGeoLocationItems);
 
                     // set new blacklist
                     BlackList.Instance.SetNewData(blacklistDataByCountry);
+
+                    // upload new geolocation data to Azure
+                    if (newGeoLocationItems.Count > 0)
+                    {
+                        // TODO temporary disabled
+                        //AzureSqlManager.UploadGeoLocationData(sqlAzureConnectionString, newGeoLocationItems);
+                    }
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
-                    // TODO Fail silently and ignore errors for POC. Send error to NewRelic?
+                    // try to send error to new relic
+                    try
+                    {
+                        var newRelicInsightsAegisEvent = new ExceptionNewRelicEvent
+                                                             {
+                                                    ApplicationName = "Monitor.Filter",
+                                                    ComponentName = "GetFilterListsTask.Execute",
+                                                    ErrorMessage = exception.Message,
+                                                    InnerErrorMessage =
+                                                        exception.InnerException?
+                                                            .Message ?? "None"
+                                                             };
+
+                        NewRelicInsightsClient.Instance.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                    }
+                    catch (Exception)
+                    {
+                        // ToDo: Provide a fall-back solution if New Relic Insights is offline.
+                    }
                 }
             }
         }
