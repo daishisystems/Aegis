@@ -675,76 +675,40 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Threading.Tasks;
 using System.Web.Hosting;
-using Daishi.NewRelic.Insights;
 using FluentScheduler;
-using HttpClientFactory = Aegis.Core.HttpClientFactory;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.SchedulerJobs
 {
-    /// <summary>
-    ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
-    ///     Aegis for the most up-to-date black-list, and retains a copy of this
-    ///     black-list in memory.
-    /// </summary>
-    internal class GetBlackListJob : IJob, IRegisteredObject
+    internal abstract class ClientJob : IJob, IRegisteredObject
     {
-        private readonly object _lock = new object();
+        protected readonly object LockObject = new object();
+        protected readonly Client ClientInstance;
 
-        private bool _shuttingDown;
-
-        /// <summary>
-        ///     <see cref="Execute" /> invokes a process that returns the most up-to-date
-        ///     black-list from Aegis.
-        /// </summary>
-        public void Execute()
+        protected ClientJob(Client client)
         {
-            lock (_lock)
-            {
-                if (_shuttingDown)
-                    return;
-
-                var httpRequestMetadata = new Core.HttpRequestMetadata
-                {
-                    URI = BlackListPump.Instance.AegisURI,
-                    UseWebProxy = BlackListPump.Instance.UseWebProxy,
-                    WebProxy = BlackListPump.Instance.WebProxy,
-                    UseNonDefaultTimeout = BlackListPump.Instance.UseNonDefaultTimeout,
-                    NonDefaultTimeout = BlackListPump.Instance.NonDefaultTimeout
-                };
-
-                try
-                {
-                    BlackListPump.Instance.BlackList =
-                        BlackListManager.Load(
-                            new AegisBlackListLoader(),
-                            httpRequestMetadata,
-                            new HttpClientFactory());
-                }
-                catch (TaskCanceledException exception)
-                {
-                    if (exception.CancellationToken.IsCancellationRequested)
-                    {
-                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                    }
-                    else
-                    {
-                        // If the exception.CancellationToken.IsCancellationRequested is false,
-                        // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                        // Add a custom message in order to ensure that tasks are not canceled.
-                        UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance,
-                            "Request timeout.");
-                    }
-                }
-                catch (Exception exception)
-                {
-                    UploadExceptionToNewRelicInsights(exception, NewRelicInsightsClient.Instance);
-                }
-            }
+            this.ClientInstance = client;
         }
 
+        protected bool IsShuttingDown { get; private set; }
+
+        public void Execute()
+        {
+            lock (this.LockObject)
+            {
+                if (this.IsShuttingDown)
+                {
+                    return;
+                }
+
+                if (!Client.IsInitialised)
+                {
+                    return;
+                }
+
+                this.DoExecute();
+            }
+        }
 
         /// <summary>Requests a registered object to unregister.</summary>
         /// <param name="immediate">
@@ -753,58 +717,14 @@ namespace Aegis.Pumps
         /// </param>
         public void Stop(bool immediate)
         {
-            lock (_lock)
+            lock (this.LockObject)
             {
-                _shuttingDown = true;
+                this.IsShuttingDown = true;
             }
 
             HostingEnvironment.UnregisterObject(this);
         }
 
-        /// <summary>
-        ///     <see cref="UploadExceptionToNewRelicInsights" /> uploads
-        ///     <see cref="Exception" /> metadata to New Relic Insights.
-        /// </summary>
-        /// <param name="exception">
-        ///     The <see cref="Exception" /> to upload to New Relic
-        ///     Insights.
-        /// </param>
-        /// <param name="newRelicInsightsClient">
-        ///     The <see cref="NewRelicInsightsClient" />
-        ///     instance that facilitates the <see cref="Exception" />-upload.
-        /// </param>
-        /// <param name="customExceptionMessage">
-        ///     A custom message, generally used in place
-        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
-        ///     isolate the specific underlying issue.
-        /// </param>
-        private static void UploadExceptionToNewRelicInsights(Exception exception,
-            NewRelicInsightsClient newRelicInsightsClient,
-            string customExceptionMessage = null)
-        {
-            var blackListClientErrorNewRelicInsightsEvent =
-                new BlackListClientErrorNewRelicInsightsEvent
-                {
-                    EventType = "AegisErrors",
-                    ComponentName = "Black-list load-job",
-                    ErrorMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                        customExceptionMessage, exception),
-                    InnerErrorMessage =
-                        exception.InnerException?.Message ?? string.Empty
-                };
-
-            try
-            {
-                NewRelicInsightsClient.UploadEvents(
-                    new[] {blackListClientErrorNewRelicInsightsEvent},
-                    new Daishi.NewRelic.Insights.HttpClientFactory(),
-                    newRelicInsightsClient.NewRelicInsightsMetadata);
-            }
-
-            catch (Exception)
-            {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
-            }
-        }
+        protected abstract void DoExecute();
     }
 }

@@ -676,150 +676,115 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Aegis.Core;
-using Daishi.NewRelic.Insights;
-using FluentScheduler;
-
-// ToDo: Need to check a wider time-range - 24 hours, for example
+using Jil;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="BlackListPump" /> is a Singleton instance that continuously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListPump
+    public static class AegisServiceManager
     {
-
-        private volatile bool _hasStarted;
-        //private int _recurringTaskInterval;
-        //private string _recurringTaskName;
-
-        static BlackListPump()
+        private static class ServiceNames
         {
-
+            public const string Blacklist = "blacklist";
         }
 
-        private BlackListPump()
+        public static IEnumerable<BlackListItem> GetBlackListData(Settings settings)
         {
-            //BlackList = new ConcurrentDictionary<string, BlackListItem>();
-            //NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, ServiceNames.Blacklist);
+            var httpClientFactory = new HttpClientFactory();
+
+            return DoGetBlackListData(httpRequestMetadata, httpClientFactory);
         }
 
-        //public static BlackListPump Instance { get; } = new BlackListPump();
+        private static Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, string uriServiceName)
+        {
+            var uriString = $"{settings.AegisServiceUri}/{uriServiceName}";
+
+            return new Core.HttpRequestMetadata
+            {
+                URI = new Uri(uriString),
+                UseWebProxy = settings.WebProxy != null,
+                WebProxy = settings.WebProxy,
+                UseNonDefaultTimeout = settings.WebNonDefaultTimeout.HasValue,
+                NonDefaultTimeout = settings.WebNonDefaultTimeout ?? TimeSpan.Zero
+            };
+        }
 
         /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
+        ///     <see cref="BlackListLoader.Load" /> loads a collection of
+        ///     <see cref="BlackListItem" />
+        ///     instances.
         /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continuously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        //public string RecurringTaskName {
-        //    get
-        //    {
-        //        return string.IsNullOrEmpty(_recurringTaskName)
-        //            ? "GetBlackListJob"
-        //            : _recurringTaskName;
-        //    }
-        //    set { _recurringTaskName = value; }
-        //}
-
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continuously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        //public int RecurringTaskInterval {
-        //    get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 600; }
-        //    set { _recurringTaskInterval = value; }
-        //}
-
-        // ToDo: replace with instance of HTTPRequestMetadata. Requires larger refactor.
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        //public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        //public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
+        /// <param name="httpRequestMetadata">
+        ///     The <see cref="Core.HttpRequestMetadata" />
+        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
+        ///     metadata.
+        /// </param>
+        /// <param name="httpClientFactory">
+        ///     The <see cref="HttpClientFactory" /> used to
+        ///     construct a <see cref="HttpClient" />.
+        /// </param>
+        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
         /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when Internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
+        ///     <para>
+        ///         Throws a <see cref="HttpRequestMetadataException" /> if
+        ///         <see cref="httpRequestMetadata" /> is invalid.
+        ///     </para>
+        ///     <para>
+        ///         Throws a <see cref="BlackListDownloadException" /> the black-list
+        ///         cannot be downloaded, read from, or parsed successfully.
+        ///     </para>
         /// </remarks>
-        //public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        //public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        //public TimeSpan NonDefaultTimeout { get; set; }
-
-        //ToDo: New Relic Insights property can be removed.
-        /// <summary>
-        ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
-        ///     properties that pertain to a New Relic Insights event, as well as New Relic
-        ///     Insights connection-specific properties, such as URI, proxy, etc.
-        /// </summary>
-        //public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        private static IEnumerable<BlackListItem> DoGetBlackListData(
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory)
         {
-            //JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
-        }
+            HttpRequestMetadataException httpRequestMetadataException;
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            //JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            var httpRequestMetadataIsValid = HttpRequestMetadataValidator.TryValidate(
+                httpRequestMetadata,
+                out httpRequestMetadataException);
+
+            if (!httpRequestMetadataIsValid)
+            {
+                throw httpRequestMetadataException;
+            }
+
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new BlackListDownloadException(
+                        "Downloading black-list resulting in: HTTP " + response.StatusCode);
+                }
+
+                try
+                {
+                    var blackListMetadata = response.Content.ReadAsStringAsync().Result;
+
+                    using (var reader = new StringReader(blackListMetadata))
+                    {
+                        var options = new Options(dateFormat: DateTimeFormat.ISO8601);
+                        return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    throw new BlackListDownloadException("Unable to parse the black-list", exception);
+                }
+            }
         }
     }
 }

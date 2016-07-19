@@ -72,6 +72,7 @@
     <Compile Include="BlackListClientErrorNewRelicInsightsEventTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
     <Compile Include="BlackListManagerTests.cs" />
+    <Compile Include="ClientTests.cs" />
     <Compile Include="HTTPRequestMetadataCacheTests.cs" />
     <Compile Include="IPAddressValidatorTests.cs" />
     <Compile Include="MockBlackListLoader.cs" />
