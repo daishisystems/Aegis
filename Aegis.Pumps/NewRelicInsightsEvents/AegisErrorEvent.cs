@@ -676,150 +676,93 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
-using Aegis.Core;
-using Daishi.NewRelic.Insights;
-using FluentScheduler;
+//using Daishi.NewRelic.Insights;
+using Jil;
 
-// ToDo: Need to check a wider time-range - 24 hours, for example
-
-namespace Aegis.Pumps
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     /// <summary>
-    ///     <see cref="BlackListPump" /> is a Singleton instance that continuously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     <see cref="AegisErrorEvent" /> is an error event that
+    ///     occurs during Aegis processing.
     /// </summary>
-    public class BlackListPump
+    public class AegisErrorEvent : ClientEvent // NewRelicInsightsEvent
     {
+        /// <summary>
+        ///     <see cref="ErrorMessage" /> is the friendly message pertaining to the
+        ///     underlying <see cref="Exception" />.
+        /// </summary>
+        [JilDirective(Name = "errorMessage")]
+        public string ErrorMessage { get; set; }
 
-        private volatile bool _hasStarted;
-        //private int _recurringTaskInterval;
-        //private string _recurringTaskName;
+        /// <summary>
+        ///     <see cref="InnerErrorMessage" /> is the friendly message pertaining to the
+        ///     underlying <see cref="Exception.InnerException" />, if applicable.
+        /// </summary>
+        [JilDirective(Name = "innerErrorMessage")]
+        public string InnerErrorMessage { get; set; }
 
-        static BlackListPump()
+        ///// <summary>
+        /////     <see cref="ApplicationName" /> is the friendly name of the application in
+        /////     which the error occurred.
+        ///// </summary>
+        //[JilDirective(Name = "applicationName")]
+        //public string ApplicationName => Client.ClientName;
+
+        /// <summary>
+        ///     <see cref="ComponentName" /> is the friendly name of the component, within
+        ///     the application, in which the error occurred.
+        /// </summary>
+        [JilDirective(Name = "componentName")]
+        public string ComponentName { get; set; }
+
+        /// <summary>
+        ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
+        ///     expressed in Unix ticks.
+        /// </summary>
+        //[JilDirective(Name = "unixTimeStamp")]
+        //public int UnixTimeStamp
+        //    => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+
+        /// <summary>
+        ///     <see cref="MachineName" /> is the name of the underlying server, upon which
+        ///     the application is running.
+        /// </summary>
+        //[JilDirective(Name = "machineName")]
+        //public string MachineName => GetMachineName(() => Environment.MachineName);
+
+        /// <summary>
+        ///     <see cref="EventType" /> is the New Relic Insights to which this
+        ///     <see cref="AegisErrorEvent" /> will be uploaded.
+        /// </summary>
+        [JilDirective(Name = "eventType")]
+        public override string EventType
         {
-
+            get { return Utils.EventTypes.AegisErrors; }
+            set { }
         }
 
-        private BlackListPump()
-        {
-            //BlackList = new ConcurrentDictionary<string, BlackListItem>();
-            //NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
-        }
-
-        //public static BlackListPump Instance { get; } = new BlackListPump();
-
         /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
+        ///     <see cref="GetMachineName" /> returns the name of the underlying server,
+        ///     upon which the application is running.
         /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continuously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        //public string RecurringTaskName {
-        //    get
+        /// <param name="getMachineName">
+        ///     A function that returns the name of the underlying
+        ///     server, upon which the application is running.
+        /// </param>
+        /// <returns>
+        ///     The name of the underlying server, upon which the application is
+        ///     running.
+        /// </returns>
+        //private static string GetMachineName(Func<string> getMachineName)
+        //{
+        //    try
         //    {
-        //        return string.IsNullOrEmpty(_recurringTaskName)
-        //            ? "GetBlackListJob"
-        //            : _recurringTaskName;
+        //        return getMachineName();
         //    }
-        //    set { _recurringTaskName = value; }
+        //    catch (Exception)
+        //    {
+        //        return "UNKNOWN";
+        //    }
         //}
-
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continuously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        //public int RecurringTaskInterval {
-        //    get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 600; }
-        //    set { _recurringTaskInterval = value; }
-        //}
-
-        // ToDo: replace with instance of HTTPRequestMetadata. Requires larger refactor.
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        //public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        //public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when Internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        //public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        //public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        //public TimeSpan NonDefaultTimeout { get; set; }
-
-        //ToDo: New Relic Insights property can be removed.
-        /// <summary>
-        ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
-        ///     properties that pertain to a New Relic Insights event, as well as New Relic
-        ///     Insights connection-specific properties, such as URI, proxy, etc.
-        /// </summary>
-        //public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
-        {
-            //JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
-        }
-
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
-        {
-            //JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
-        }
     }
 }

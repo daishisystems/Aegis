@@ -691,47 +691,47 @@ namespace Aegis.Pumps.Tests
         ///     that a default <see cref="BlackListPump.RecurringTaskName" /> is assigned,
         ///     if one is not provided.
         /// </summary>
-        [TestMethod]
-        public void DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided()
-        {
-            Assert.AreEqual("GetBlackListJob", BlackListPump.Instance.RecurringTaskName);
-        }
+        //[TestMethod]
+        //public void DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided()
+        //{
+        //    Assert.AreEqual("GetBlackListJob", BlackListPump.Instance.RecurringTaskName);
+        //}
 
         /// <summary>
         ///     <see cref="DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
         ///     ensures that a default <see cref="BlackListPump.RecurringTaskInterval" />
         ///     is assigned, if one is not provided.
         /// </summary>
-        [TestMethod]
-        public void DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
-        {
-            Assert.AreEqual(600, BlackListPump.Instance.RecurringTaskInterval);
-        }
+        //[TestMethod]
+        //public void DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
+        //{
+        //    Assert.AreEqual(600, BlackListPump.Instance.RecurringTaskInterval);
+        //}
 
         /// <summary>
         ///     <see cref="CustomRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
         ///     that a custom <see cref="BlackListPump.RecurringTaskName" /> is assigned,
         ///     when provided.
         /// </summary>
-        [TestMethod]
-        public void CustomRecurringTaskNameIsAssignedIfOneIsNotProvided()
-        {
-            BlackListPump.Instance.RecurringTaskName = "Custom";
+        //[TestMethod]
+        //public void CustomRecurringTaskNameIsAssignedIfOneIsNotProvided()
+        //{
+        //    BlackListPump.Instance.RecurringTaskName = "Custom";
 
-            Assert.AreEqual("Custom", BlackListPump.Instance.RecurringTaskName);
-        }
+        //    Assert.AreEqual("Custom", BlackListPump.Instance.RecurringTaskName);
+        //}
 
         /// <summary>
         ///     <see cref="CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
         ///     ensures that a custom <see cref="BlackListPump.RecurringTaskInterval" />
         ///     is assigned, when provided.
         /// </summary>
-        [TestMethod]
-        public void CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
-        {
-            BlackListPump.Instance.RecurringTaskInterval = 5;
+        //[TestMethod]
+        //public void CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
+        //{
+        //    BlackListPump.Instance.RecurringTaskInterval = 5;
 
-            Assert.AreEqual(5, BlackListPump.Instance.RecurringTaskInterval);
-        }
+        //    Assert.AreEqual(5, BlackListPump.Instance.RecurringTaskInterval);
+        //}
     }
 }

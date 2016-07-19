@@ -676,150 +676,244 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Net;
-using Aegis.Core;
+using System.Net.Http.Headers;
 using Daishi.NewRelic.Insights;
-using FluentScheduler;
-
-// ToDo: Need to check a wider time-range - 24 hours, for example
+using Aegis.Core;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="BlackListPump" /> is a Singleton instance that continuously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
-    /// </summary>
-    public class BlackListPump
+    public class Client
     {
+        public static Client Instance { get; private set; }
+        public static string ClientName { get; private set; }
+        //public static Client Instance = new Client();
 
-        private volatile bool _hasStarted;
-        //private int _recurringTaskInterval;
-        //private string _recurringTaskName;
+        public static bool IsInitialised => Instance != null;
 
-        static BlackListPump()
-        {
+        //private bool isInitialised;
+        //private string applicationName;
+        public readonly Settings Settings;
+        public readonly SettingsOnlineClient SettingsOnline;
+        public readonly BlackListClient BlackList;
+        private SchedulerRegistry scheduler;
 
-        }
 
-        private BlackListPump()
-        {
-            //BlackList = new ConcurrentDictionary<string, BlackListItem>();
-            //NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
-        }
-
-        //public static BlackListPump Instance { get; } = new BlackListPump();
-
-        /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
-        /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continuously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        //public string RecurringTaskName {
-        //    get
-        //    {
-        //        return string.IsNullOrEmpty(_recurringTaskName)
-        //            ? "GetBlackListJob"
-        //            : _recurringTaskName;
-        //    }
-        //    set { _recurringTaskName = value; }
+        //private Client()
+        //{
+        //    this.isInitialised = false;
         //}
 
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continuously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        //public int RecurringTaskInterval {
-        //    get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 600; }
-        //    set { _recurringTaskInterval = value; }
-        //}
-
-        // ToDo: replace with instance of HTTPRequestMetadata. Requires larger refactor.
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        //public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        //public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
-        /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when Internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
-        /// </remarks>
-        //public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        //public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        //public TimeSpan NonDefaultTimeout { get; set; }
-
-        //ToDo: New Relic Insights property can be removed.
-        /// <summary>
-        ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
-        ///     properties that pertain to a New Relic Insights event, as well as New Relic
-        ///     Insights connection-specific properties, such as URI, proxy, etc.
-        /// </summary>
-        //public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        private Client(Settings settings)
         {
-            //JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            this.Settings = settings;
+            this.SettingsOnline = new SettingsOnlineClient();
+            this.BlackList = new BlackListClient();
+            //this.applicationName = appName;
+            //this.scheduler = new SchedulerRegistry();
         }
 
         /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list.
+        /// Initialise client. Does not throw any standard exception.
         /// </summary>
-        public void ShutDown()
+        /// <returns></returns>
+        public static bool Initialise(string clientName, Settings settings)
         {
-            //JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            // initialise and do proper cleanup in case of problems
+            try
+            {
+                DoInitialise(clientName, settings, true);
+
+                //// set current client application name
+                //ClientName = clientName;
+
+                // check if Aegis is enabled in the config
+                //if (!AegisHelper.IsEnabledInConfigFile(configIsAegisEnabled))
+                //{
+                //    // not enabled
+                //    return true;
+                //}
+
+                // initialise object
+                //Instance = DoInitialise(settings);
+
+                // start scheduled tasks
+                //Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
+
+                // success - class initialised
+                return true;
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    var newRelicInsightsAegisEvent =
+                        new NewRelicInsightsEvents.AegisErrorEvent()
+                        {
+                            ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                            ErrorMessage = exception.Message,
+                            InnerErrorMessage = exception.InnerException?.Message ?? "None"
+                        };
+
+                    NewRelicInsightsClient.UploadEvents(new[] { newRelicInsightsAegisEvent },
+                        new Daishi.NewRelic.Insights.HttpClientFactory(),
+                        NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
+                }
+                catch (Exception)
+                {
+                    // ToDo: Provide a fall-back solution if New Relic Insights is offline.
+                }
+            }
+
+            // initialisation failed
+            return false;
+        }
+
+        public static void ShutDown()
+        {
+            // do nothing if not initialised
+            if (!IsInitialised)
+            {
+                return;
+            }
+
+            // set to non-initialised state
+            var self = Instance;
+            Instance = null;
+
+            // stop schedulers and clean all data (final data release leave to the GC)
+            self.scheduler?.ShutDown();
+            self.BlackList?.CleanUp();
+        }
+
+        public static bool OnAvailabilityController(HttpRequestHeaders requestHeaders, 
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // ignore on not initialized
+            if (!IsInitialised)
+            {
+                // do not block
+                return false;
+            }
+
+            // run logic
+            try
+            {
+                return Instance.DoAvailabilityController(requestHeaders, 
+                    requestUri,
+                    paramOrigin,
+                    paramDestination,
+                    paramDateIn,
+                    paramDateOut);
+            }
+            catch (Exception exception)
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = exception.Message,
+                        InnerErrorMessage = exception.InnerException?.Message ?? "None"
+                    };
+
+                NewRelicInsightsClient.Instance.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+            }
+
+            // do not block
+            return false;
+        }
+
+        public static void DoInitialise(string clientName, Settings settings, bool isSchedulingEnabled)
+        {
+            // set current client application name
+            ClientName = clientName;
+
+            var self = new Client(settings);
+            self.scheduler = new SchedulerRegistry();
+
+            // assign object to the instance
+            Instance = self;
+
+            // start scheduled tasks
+            Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
+        }
+
+        private bool DoAvailabilityController(HttpRequestHeaders requestHeaders, 
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // parse IP address
+            IPAddress ipAddress;
+
+            var ipAddressIsValid =
+                AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+                    requestHeaders, 
+                    out ipAddress);
+
+            if (!ipAddressIsValid)
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = "Could not parse IP Address.",
+                        InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
+                    };
+
+                NewRelicInsightsClient.Instance.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                return false;
+            }
+
+            // Add IP address to data-pump
+            // TODO ma byc nie statyczny
+            AegisEventCache.Add(new AegisEvent
+            {
+                IPAddress = ipAddress.ToString(),
+                Path = requestUri.AbsolutePath,
+                Time = DateTime.UtcNow.ToString("O"),
+                DateIn = paramDateIn?.ToString("O"),
+                DateOut = paramDateOut?.ToString("O"),
+                Destination = paramDestination,
+                Origin = paramOrigin
+            });
+
+            // Protect the endpoint
+            BlackListItem blackListItem;
+            if (!this.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackListItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // TODO sprawdz czy to nie symulacja, czy kraj wlaczony
+
+            // Log the malicious event
+            // TODO dodaj wiecej info o itemie - jakies ID itp.
+            var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                IpAddress = ipAddress.ToString(),
+                Country = blackListItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            NewRelicInsightsClient.Instance.
+                AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);
+
+            // block
+            return true;
         }
     }
 }
