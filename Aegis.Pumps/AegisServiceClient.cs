@@ -677,73 +677,210 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Aegis.Core;
+using Jil;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     AegisEventCache is an in-memory cache that retains a collection of
-    ///     <see cref="AegisEvent" /> instances in a static capacity.
-    /// </summary>
-    /// <remarks>
-    ///     <para>AegisEventCache should be instantiated upon application-startup.</para>
-    ///     <para>
-    ///         Application pool recycling or hardware failure will result in loss of
-    ///         data. This is not a concern, as <see cref="AegisEvent" /> instances are
-    ///         not critical in terms of retaining application resilience; a certain
-    ///         degree of data-loss is acceptable.
-    ///     </para>
-    /// </remarks>
-    /// <threadsafety static="true" instance="false">
-    ///     <see cref="AegisEvent" /> instances are added in a thread-safe manner.
-    ///     <see cref="AegisEventPublisher" /> will execute at regular intervals,
-    ///     during which, AegisEventCache will be purged. This will not introduce
-    ///     mutually-exclusive locking related issues, as per
-    ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
-    ///     post.
-    /// </threadsafety>
-    public class AegisEventCache
+    public class AegisServiceClient
     {
-        /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private static readonly MemoryCache<AegisEvent> Events = new MemoryCache<AegisEvent>(1000000);
-
-        /// <summary>
-        ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
-        ///     cache.
-        /// </summary>
-        /// <param name="event">
-        ///     <see cref="@event" /> is an instance of
-        ///     <see cref="AegisEvent" />.
-        /// </param>
-        /// <remarks>
-        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
-        /// </remarks>
-        public static void Add(AegisEvent @event)
+        private static class ServiceNames
         {
-            Events.Add(@event);
+            public const string Blacklist = "blacklist";
+            public const string SettingsOnline = "settings";
+            public const string AegisEvents = "aegisEvents";
         }
 
-        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
-        /// <param name="batchSize">
-        ///     <see cref="batchSize" /> determines the number of
-        ///     <see cref="AegisEvent" /> instances to publish per batch.
-        /// </param>
-        public static void Relay(int batchSize)
+        public bool GetBlackListData(
+            Settings settings,
+            DateTimeOffset? requestTimeStamp,
+            out List<BlackListItem> data,
+            out DateTimeOffset? timeStamp)
         {
-            Events.Process(batchSize, OnPublish);
-        }
+            data = null;
+            timeStamp = null;
 
-        public static bool OnPublish(List<AegisEvent> items)
-        {
-            try
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.Blacklist));
+            var httpClientFactory = new HttpClientFactory();
+
+            // get string data from service
+            string dataString;
+
+            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
-                WebRequestHelper.SendToProxy(items);
-                return true;
-            }
-            catch (Exception)
-            {
-                // failed silently and ignore for POC
                 return false;
             }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<List<BlackListItem>>(dataString, Options.ISO8601);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Unable to deserialise the BlackList", exception);
+            }
+        }
+
+        public bool GetSettingsOnlineData(
+            Settings settings,
+            DateTimeOffset? requestTimeStamp,
+            out SettingsOnlineData data,
+            out DateTimeOffset? timeStamp)
+        {
+            data = null;
+            timeStamp = null;
+
+            var uriService = CreateUri(settings, 
+                                        ServiceNames.SettingsOnline, 
+                                        new KeyValuePair<string,string>("key", settings.AegisServiceSettingsOnlineKey));
+
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, uriService);
+            var httpClientFactory = new HttpClientFactory();
+
+            // get string data from service
+            string dataString;
+
+            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            {
+                return false;
+            }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Unable to deserialise the SettingsOnlineData", exception);
+            }
+        }
+
+        public void SendAegisEvents(Settings settings, List<AegisEvent> items)
+        {
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.AegisEvents));
+            var httpClientFactory = new HttpClientFactory();
+
+            DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
+        }
+
+        private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
+        {
+            return new Core.HttpRequestMetadata
+                       {
+                           URI = uriService,
+                           UseWebProxy = settings.WebProxy != null,
+                           WebProxy = settings.WebProxy,
+                           UseNonDefaultTimeout = settings.WebNonDefaultTimeout.HasValue,
+                           NonDefaultTimeout = settings.WebNonDefaultTimeout ?? TimeSpan.Zero
+                       };
+        }
+
+        private Uri CreateUri(Settings settings, string uriServiceName, KeyValuePair<string, string>? param1 = null)
+        {
+            string uriString;
+
+            if (param1 != null)
+            {
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}/?{param1.Value.Key}={param1.Value.Value}";
+            }
+            else
+            {
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}";
+            }
+
+            return new Uri(uriString);
+        }
+
+        protected virtual bool DoGetStringData(
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory,
+            DateTimeOffset? requestTimeStamp,
+            out string data,
+            out DateTimeOffset? timeStamp)
+        {
+            data = null;
+            timeStamp = null;
+
+            HttpRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid = HttpRequestMetadataValidator.TryValidate(
+                httpRequestMetadata,
+                out httpRequestMetadataException);
+
+            if (!httpRequestMetadataIsValid)
+            {
+                throw httpRequestMetadataException;
+            }
+
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.IfModifiedSince = requestTimeStamp;
+
+                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception(
+                        "Downloading data resulting in: HTTP " + response.StatusCode);
+                }
+
+                // if data is not modified since last request
+                if (response.StatusCode == HttpStatusCode.NotModified)
+                {
+                    return false;
+                }
+
+                // retrieve data
+                data = response.Content.ReadAsStringAsync().Result;
+                timeStamp = response.Content.Headers.LastModified;
+                return true;
+            }
+        }
+
+        private void DoSendAegisEvents(
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory,
+            List<AegisEvent> items)
+        {
+            // TODO support httpClientFactory
+
+            var request = WebRequest.Create(httpRequestMetadata.URI);
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+
+            if (httpRequestMetadata.UseNonDefaultTimeout)
+            {
+                request.Timeout = httpRequestMetadata.NonDefaultTimeout.Milliseconds;
+            }
+
+            if (httpRequestMetadata.UseWebProxy)
+            {
+                request.Proxy = httpRequestMetadata.WebProxy;
+            }
+
+            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
+            var postData = "=" + itemsJson;
+            var byteArray = Encoding.UTF8.GetBytes(postData);
+
+            request.ContentLength = byteArray.Length;
+            var dataStream = request.GetRequestStream();
+
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+
+            request.GetResponse();
         }
     }
 }

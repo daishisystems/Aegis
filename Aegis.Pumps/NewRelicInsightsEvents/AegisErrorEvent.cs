@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-//using Daishi.NewRelic.Insights;
 using Jil;
 
 namespace Aegis.Pumps.NewRelicInsightsEvents
@@ -685,7 +684,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     ///     <see cref="AegisErrorEvent" /> is an error event that
     ///     occurs during Aegis processing.
     /// </summary>
-    public class AegisErrorEvent : ClientEvent // NewRelicInsightsEvent
+    public class AegisErrorEvent : ClientEvent
     {
         /// <summary>
         ///     <see cref="ErrorMessage" /> is the friendly message pertaining to the
@@ -701,34 +700,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "innerErrorMessage")]
         public string InnerErrorMessage { get; set; }
 
-        ///// <summary>
-        /////     <see cref="ApplicationName" /> is the friendly name of the application in
-        /////     which the error occurred.
-        ///// </summary>
-        //[JilDirective(Name = "applicationName")]
-        //public string ApplicationName => Client.ClientName;
-
         /// <summary>
         ///     <see cref="ComponentName" /> is the friendly name of the component, within
         ///     the application, in which the error occurred.
         /// </summary>
         [JilDirective(Name = "componentName")]
         public string ComponentName { get; set; }
-
-        /// <summary>
-        ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
-        ///     expressed in Unix ticks.
-        /// </summary>
-        //[JilDirective(Name = "unixTimeStamp")]
-        //public int UnixTimeStamp
-        //    => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
-
-        /// <summary>
-        ///     <see cref="MachineName" /> is the name of the underlying server, upon which
-        ///     the application is running.
-        /// </summary>
-        //[JilDirective(Name = "machineName")]
-        //public string MachineName => GetMachineName(() => Environment.MachineName);
 
         /// <summary>
         ///     <see cref="EventType" /> is the New Relic Insights to which this
@@ -740,29 +717,5 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             get { return Utils.EventTypes.AegisErrors; }
             set { }
         }
-
-        /// <summary>
-        ///     <see cref="GetMachineName" /> returns the name of the underlying server,
-        ///     upon which the application is running.
-        /// </summary>
-        /// <param name="getMachineName">
-        ///     A function that returns the name of the underlying
-        ///     server, upon which the application is running.
-        /// </param>
-        /// <returns>
-        ///     The name of the underlying server, upon which the application is
-        ///     running.
-        /// </returns>
-        //private static string GetMachineName(Func<string> getMachineName)
-        //{
-        //    try
-        //    {
-        //        return getMachineName();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return "UNKNOWN";
-        //    }
-        //}
     }
 }

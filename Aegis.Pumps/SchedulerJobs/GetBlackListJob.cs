@@ -680,6 +680,10 @@ using System.Threading.Tasks;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
+    using System.Collections.Generic;
+
+    using Aegis.Core;
+
     /// <summary>
     ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
     ///     Aegis for the most up-to-date black-list, and retains a copy of this
@@ -687,9 +691,7 @@ namespace Aegis.Pumps.SchedulerJobs
     /// </summary>
     internal class GetBlackListJob : ClientJob
     {
-        public const string JobName = "GetBlackListJob";
-
-        public GetBlackListJob(Client client) : base(client)
+        public GetBlackListJob(Client client) : base(client, "AegisGetBlackListJob")
         {
         }
 
@@ -701,19 +703,30 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // TODO support TimeStamp mechanism in request, to detect if data download is needed (data's changed)
-
                 // get blacklist data
-                var blackListData = AegisServiceManager.GetBlackListData(this.ClientInstance.Settings);
+                List<BlackListItem> blackListData;
+                DateTimeOffset? newTimeStamp;
+
+                var isUpdated = this.ClientInstance.AegisServiceManager.GetBlackListData(
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.BlackList.TimeStamp,
+                    out blackListData,
+                    out newTimeStamp);
+
+                if (!isUpdated)
+                {
+                    return;
+                }
 
                 // set new data
-                this.ClientInstance.BlackList.SetNewData(blackListData);
+                this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
             }
             catch (TaskCanceledException exception)
             {
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
                         exception);
                 }
@@ -723,6 +736,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
                         exception,
                         "Request timeout.");
@@ -731,6 +745,7 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
                     exception);
             }

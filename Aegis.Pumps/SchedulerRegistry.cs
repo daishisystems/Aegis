@@ -692,17 +692,17 @@ namespace Aegis.Pumps
         public void Initialise(Client client, bool isSchedulingEnabled = true)
         {
             // add jobs
-            this.Add(new SchedulerJobs.GetBlackListJob(client), SchedulerJobs.GetBlackListJob.JobName)
+            this.Add(new SchedulerJobs.GetBlackListJob(client))
                 .ToRunNow()
                 .AndEvery(client.Settings.GetBlackListJobInternvalInSeconds)
                 .Seconds();
 
-            this.Add(new SchedulerJobs.GetSettingsOnlineJob(client), SchedulerJobs.GetSettingsOnlineJob.JobName)
+            this.Add(new SchedulerJobs.GetSettingsOnlineJob(client))
                 .ToRunNow()
                 .AndEvery(client.Settings.GetSettingsOnlineJobInternvalInSeconds)
                 .Seconds();
 
-            this.Add(new SchedulerJobs.SendAegisEventsJob(client), SchedulerJobs.SendAegisEventsJob.JobName)
+            this.Add(new SchedulerJobs.SendAegisEventsJob(client))
                 .ToRunNow()
                 .AndEvery(client.Settings.SendAegisEventsJobInternvalInSeconds)
                 .Seconds();
@@ -724,11 +724,11 @@ namespace Aegis.Pumps
             this.scheduledItems.Clear();
         }
 
-        private Schedule Add(IJob self, string name)
+        private Schedule Add(SchedulerJobs.ClientJob self)
         {
-            var sched = this.Schedule(self).WithName(name);
-            this.scheduledItems.Add(sched);
+            var sched = this.Schedule(self).WithName(self.JobName);
 
+            this.scheduledItems.Add(sched);
             return sched;
         }
     }

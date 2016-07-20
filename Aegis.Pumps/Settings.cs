@@ -683,6 +683,8 @@ namespace Aegis.Pumps
 {
     public class Settings
     {
+        public readonly string AegisServiceSettingsOnlineKey = "client";
+
         public readonly WebProxy WebProxy;
         public readonly TimeSpan? WebNonDefaultTimeout;
         public readonly string AegisServiceUri;

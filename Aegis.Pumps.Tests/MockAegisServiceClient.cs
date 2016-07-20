@@ -676,115 +676,28 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using Aegis.Core;
-using Jil;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Tests
 {
-    public static class AegisServiceManager
+    public class MockAegisServiceClient : AegisServiceClient
     {
-        private static class ServiceNames
-        {
-            public const string Blacklist = "blacklist";
-        }
+        public bool MockResult { get; set; }
 
-        public static IEnumerable<BlackListItem> GetBlackListData(Settings settings)
-        {
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, ServiceNames.Blacklist);
-            var httpClientFactory = new HttpClientFactory();
+        public string MockOutData { get; set; }
 
-            return DoGetBlackListData(httpRequestMetadata, httpClientFactory);
-        }
+        public DateTimeOffset? MockOutTimeStamp { get; set; }
 
-        private static Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, string uriServiceName)
-        {
-            var uriString = $"{settings.AegisServiceUri}/{uriServiceName}";
-
-            return new Core.HttpRequestMetadata
-            {
-                URI = new Uri(uriString),
-                UseWebProxy = settings.WebProxy != null,
-                WebProxy = settings.WebProxy,
-                UseNonDefaultTimeout = settings.WebNonDefaultTimeout.HasValue,
-                NonDefaultTimeout = settings.WebNonDefaultTimeout ?? TimeSpan.Zero
-            };
-        }
-
-        /// <summary>
-        ///     <see cref="BlackListLoader.Load" /> loads a collection of
-        ///     <see cref="BlackListItem" />
-        ///     instances.
-        /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
-        ///     metadata.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        /// <remarks>
-        ///     <para>
-        ///         Throws a <see cref="HttpRequestMetadataException" /> if
-        ///         <see cref="httpRequestMetadata" /> is invalid.
-        ///     </para>
-        ///     <para>
-        ///         Throws a <see cref="BlackListDownloadException" /> the black-list
-        ///         cannot be downloaded, read from, or parsed successfully.
-        ///     </para>
-        /// </remarks>
-        private static IEnumerable<BlackListItem> DoGetBlackListData(
+        protected override bool DoGetStringData(
             Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+            HttpClientFactory httpClientFactory,
+            DateTimeOffset? requestTimeStamp,
+            out string data,
+            out DateTimeOffset? timeStamp)
         {
-            HttpRequestMetadataException httpRequestMetadataException;
-
-            var httpRequestMetadataIsValid = HttpRequestMetadataValidator.TryValidate(
-                httpRequestMetadata,
-                out httpRequestMetadataException);
-
-            if (!httpRequestMetadataIsValid)
-            {
-                throw httpRequestMetadataException;
-            }
-
-            HttpClientHandler httpClientHandler;
-
-            using (var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler))
-            {
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new BlackListDownloadException(
-                        "Downloading black-list resulting in: HTTP " + response.StatusCode);
-                }
-
-                try
-                {
-                    var blackListMetadata = response.Content.ReadAsStringAsync().Result;
-
-                    using (var reader = new StringReader(blackListMetadata))
-                    {
-                        var options = new Options(dateFormat: DateTimeFormat.ISO8601);
-                        return JSON.Deserialize<IEnumerable<BlackListItem>>(reader, options);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    throw new BlackListDownloadException("Unable to parse the black-list", exception);
-                }
-            }
+            data = this.MockOutData;
+            timeStamp = this.MockOutTimeStamp;
+            return this.MockResult;
         }
     }
 }

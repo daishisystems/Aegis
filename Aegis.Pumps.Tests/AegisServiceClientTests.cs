@@ -675,76 +675,75 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System;
 using Aegis.Core;
+using Jil;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Tests
 {
-    /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
-    /// </summary>
-    public static class BlackListManager
+    using System.Collections.Generic;
+    using System.Linq;
+
+    [TestClass]
+    public class AegisServiceClientTests
     {
-        /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
-        /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
-        /// </param>
-        /// <param name="httpRequestMetadata"></param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
-        /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+        [TestMethod]
+        public void GetBlackList()
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
+            // TODO create another tests with https://demo7227109.mockable.io/blacklist/ireland
 
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
+            // create data
+            var data = new List<BlackListItem>()
+                           {
+                               new BlackListItem() { RawIPAddress = "192.168.0.1" },
+                               new BlackListItem() { RawIPAddress = "192.168.0.2" },
+                           };
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 
-            return indexedBlackList;
+
+            // create mock object
+            var mock = new MockAegisServiceClient();
+            mock.MockResult = true;
+            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
+            mock.MockOutData = dataJson;
+
+            var settings = new Settings(null, null, "http://test");
+
+            List<BlackListItem> resultData;
+            DateTimeOffset? resultTimeStamp;
+            mock.GetBlackListData(settings, null, out resultData, out resultTimeStamp);
+
+            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
+            Assert.AreEqual(data.Count, resultData.Count);
         }
 
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+        [TestMethod]
+        public void GetSettingsOnline()
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
+            // create data
+            var data = new SettingsOnlineData();
+            data.Blacklist = new SettingsOnlineData.BlackListData();
+            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
+            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
 
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 
-            return indexedBlackList;
+            // create mock object
+            var mock = new MockAegisServiceClient();
+            mock.MockResult = true;
+            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
+            mock.MockOutData = dataJson;
+
+            var settings = new Settings(null, null, "http://test");
+
+            SettingsOnlineData resultData;
+            DateTimeOffset? resultTimeStamp;
+            mock.GetSettingsOnlineData(settings, null, out resultData, out resultTimeStamp);
+
+            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
+            CollectionAssert.AreEqual(data.Blacklist.CountriesBlock.ToList(), resultData.Blacklist.CountriesBlock.ToList());
+            CollectionAssert.AreEqual(data.Blacklist.CountriesSimulate.ToList(), resultData.Blacklist.CountriesSimulate.ToList());
         }
     }
 }

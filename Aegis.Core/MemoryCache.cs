@@ -700,13 +700,13 @@ namespace Aegis.Core
         public bool Add(T item)
         {
             // add item to the queue
-            data.Enqueue(item);
+            this.data.Enqueue(item);
 
             // if queue is too big then remove an old item
-            if (data.Count > countLimit)
+            if (this.data.Count > this.countLimit)
             {
                 T itemRemoved;
-                data.TryDequeue(out itemRemoved);
+                this.data.TryDequeue(out itemRemoved);
                 return true;
             }
 
@@ -722,34 +722,34 @@ namespace Aegis.Core
         /// <returns>Number of processed items</returns>
         public int Process(int batchSize, Func<List<T>, bool> processorFunc)
         {
-            lock (lockProcess)
+            lock (this.lockProcess)
             {
-                return DoProcess(batchSize, processorFunc);
+                return this.DoProcess(batchSize, processorFunc);
             }
         }
 
         private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
         {
             // add items to process
-            while (dataToProcess.Count < batchSize)
+            while (this.dataToProcess.Count < batchSize)
             {
                 T item;
-                if (!data.TryDequeue(out item))
+                if (!this.data.TryDequeue(out item))
                 {
                     break;
                 }
 
-                dataToProcess.Add(item);
+                this.dataToProcess.Add(item);
             }
 
             // ignore empty set
-            if (dataToProcess.Count == 0)
+            if (this.dataToProcess.Count == 0)
             {
                 return 0;
             }
 
             // take only first batchSize number of items to process
-            var batchItems = dataToProcess.Take(batchSize).ToList();
+            var batchItems = this.dataToProcess.Take(batchSize).ToList();
 
             // process data
             if (!processorFunc(batchItems))
@@ -759,7 +759,7 @@ namespace Aegis.Core
             }
 
             // process succeeded so remove items from the queue
-            dataToProcess.RemoveRange(0, batchItems.Count);
+            this.dataToProcess.RemoveRange(0, batchItems.Count);
             return batchItems.Count;
         }
     }

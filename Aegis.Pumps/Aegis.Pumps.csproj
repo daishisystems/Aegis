@@ -58,23 +58,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AegisBlackListLoader.cs" />
-    <Compile Include="AegisServiceManager.cs" />
+    <Compile Include="Actions.cs" />
+    <Compile Include="AegisEventCacheClient.cs" />
+    <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
-    <Compile Include="BlackListPump.cs" />
-    <Compile Include="BlackListClientErrorNewRelicInsightsEvent.cs" />
-    <Compile Include="BlackListDownloadException.cs" />
-    <Compile Include="BlackListLoader.cs" />
-    <Compile Include="BlackListManager.cs" />
-    <Compile Include="BlackListUpdatedNewRelicInsightsEvent.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="SchedulerJobs\ClientJob.cs" />
     <Compile Include="SchedulerJobs\GetBlackListJob.cs" />
-    <Compile Include="GetBlackListRegistry.cs" />
     <Compile Include="SchedulerJobs\GetSettingsOnlineJob.cs" />
     <Compile Include="HTTPRequestMetadata.cs" />
     <Compile Include="HttpRequestMetadataCache.cs" />
-    <Compile Include="IPAddressValidator.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisErrorEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\ClientEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\IpAddressBlacklistedEvent.cs" />
@@ -86,6 +79,7 @@
     <Compile Include="SchedulerJobs\SendAegisEventsJob.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsOnlineClient.cs" />
+    <Compile Include="SettingsOnlineData.cs" />
     <Compile Include="UploadNotification.cs" />
     <Compile Include="UploadNotificationException.cs" />
     <Compile Include="UploadNotifier.cs" />

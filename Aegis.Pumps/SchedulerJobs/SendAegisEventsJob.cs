@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Aegis.Core;
 
@@ -683,9 +684,7 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendAegisEventsJob : ClientJob
     {
-        public const string JobName = "SendAegisEvents";
-
-        public SendAegisEventsJob(Client client) : base(client)
+        public SendAegisEventsJob(Client client) : base(client, "AegisSendAegisEvents")
         {
         }
 
@@ -693,16 +692,18 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // TODO zmienic wysylanie danych - logika do Client, uzyc AegisServiceManager, wspierac ustawienia
-                // TODO AegisEventCache ma nie byc statyczny
-                AegisEventCache.Relay(this.ClientInstance.Settings.AegisCacheBatchSize);
+                // execute sending data
+                this.ClientInstance.AegisEventCache.Relay(
+                    this.ClientInstance.Settings.AegisCacheBatchSize, 
+                    this.OnPublish);
             }
             catch (TaskCanceledException exception)
             {
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
                         exception);
                 }
                 else
@@ -711,7 +712,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
                         exception,
                         "Request timeout.");
                 }
@@ -719,8 +721,32 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.UploadException(
-                    NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
                     exception);
+            }
+        }
+
+        private bool OnPublish(List<AegisEvent> items)
+        {
+            try
+            {
+                if (items.Count == 0)
+                {
+                    return true;
+                }
+
+                this.ClientInstance.AegisServiceManager.SendAegisEvents(this.ClientInstance.Settings, items);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    exception);
+
+                return false;
             }
         }
     }

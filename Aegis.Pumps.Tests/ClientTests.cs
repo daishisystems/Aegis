@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using Daishi.NewRelic.Insights;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
@@ -687,14 +688,16 @@ namespace Aegis.Pumps.Tests
         public void InitialisationAndShutDown()
         {
             var settings = new Settings(null, null, "http://test");
+            var newRelicClient = NewRelicInsightsClient.Instance;
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", settings, false);
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance);
+            Assert.IsNotNull(Client.Instance.NewRelicInsightsClient);
             Assert.IsNotNull(Client.Instance.Settings);
             Assert.IsNotNull(Client.Instance.BlackList);
 

@@ -676,12 +676,21 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
 
 namespace Aegis.Pumps
 {
     public class SettingsOnlineClient
     {
-        public string[] BlacklistedCountries { get; set; }
+        public SettingsOnlineData Data { get; private set; }
+
+        public DateTimeOffset? TimeStamp { get; private set; }
+
+        public bool IsAvailable => this.Data != null;
+
+        public void SetNewData(SettingsOnlineData newData, DateTimeOffset? timeStamp)
+        {
+            this.TimeStamp = timeStamp;
+            this.Data = newData;
+        }
     }
 }

@@ -675,24 +675,137 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using FluentScheduler;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
-    ///     initialises a recurring task that continuously polls Aegis for the most
-    ///     up-to-date black-list.
-    /// </summary>
-    internal class GetBlackListRegistry : Registry
+    public class Actions
     {
-        public GetBlackListRegistry()
+        public bool OnAvailabilityController(
+            Client client,
+            HttpRequestHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
         {
-            //Schedule<GetBlackListJob>()
-            //    .WithName(BlackListPump.Instance.RecurringTaskName)
-            //    .ToRunNow()
-            //    .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
-            //    .Seconds();
+            // run logic
+            try
+            {
+                return this.DoAvailabilityController(
+                    client,
+                    requestHeaders,
+                    requestUri,
+                    paramOrigin,
+                    paramDestination,
+                    paramDateIn,
+                    paramDateOut);
+            }
+            catch (Exception exception)
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = exception.Message,
+                        InnerErrorMessage = exception.InnerException?.Message ?? string.Empty
+                    };
+
+                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+            }
+
+            // do not block
+            return false;
+        }
+
+        private bool DoAvailabilityController(
+            Client client,
+            HttpRequestHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // parse IP address
+            IPAddress ipAddress;
+
+            var ipAddressIsValid =
+                AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+                    requestHeaders,
+                    out ipAddress);
+
+            if (!ipAddressIsValid)
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = "Could not parse IP Address.",
+                        InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
+                    };
+
+                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                return false;
+            }
+
+            // add IP address to data-pump
+            client.AegisEventCache.Add(new AegisEvent
+            {
+                IPAddress = ipAddress.ToString(),
+                Path = requestUri.AbsolutePath,
+                Time = DateTime.UtcNow.ToString("O"),
+                DateIn = paramDateIn?.ToString("O"),
+                DateOut = paramDateOut?.ToString("O"),
+                Destination = paramDestination,
+                Origin = paramOrigin
+            });
+
+            // are online settings available
+            if (!client.SettingsOnline.IsAvailable ||
+                client.SettingsOnline.Data.Blacklist == null)
+            {
+                // do not block
+                return false;
+            }
+
+            // protect the endpoint
+            BlackListItem blackItem;
+            if (!client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // check whether country is blocked or simulated
+            var isBlocked = client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            if (isBlocked != true && isSimulated != true)
+            {
+                // do not block - not blocked nor simulated
+                return false;
+            }
+
+            // log the malicious event
+            var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddress.ToString(),
+                Country = blackItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            client.NewRelicInsightsClient.
+                AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);
+
+            // return info whether to block or not
+            return isBlocked == true;
         }
     }
 }

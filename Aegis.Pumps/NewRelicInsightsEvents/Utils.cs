@@ -688,6 +688,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string AvailabilityRequest = "Availability-request";
             public const string GetBlackList = "GetBlackList";
             public const string GetSettingsOnline = "GetSettingsOnline";
+            public const string SendAegisEvents = "SendAegisEvents";
         }
 
         public class EventTypes
@@ -715,7 +716,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     isolate the specific underlying issue.
         /// </param>
         public static void UploadException(
-            //NewRelicInsightsClient newRelicInsightsClient,
+            NewRelicInsightsClient newRelicInsightsClient,
             string componentName,
             Exception exception,
             string customExceptionMessage = null)
@@ -735,7 +736,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 NewRelicInsightsClient.UploadEvents(
                     new[] { newRelicInsightsAegisEvent },
                     new Daishi.NewRelic.Insights.HttpClientFactory(),
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
+                    newRelicInsightsClient.NewRelicInsightsMetadata);
             }
             catch (Exception)
             {

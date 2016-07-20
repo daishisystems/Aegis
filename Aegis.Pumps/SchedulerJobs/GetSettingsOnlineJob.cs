@@ -682,9 +682,7 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class GetSettingsOnlineJob : ClientJob
     {
-        public const string JobName = "GetSettingsOnlineJob";
-
-        public GetSettingsOnlineJob(Client client) : base(client)
+        public GetSettingsOnlineJob(Client client) : base(client, "AegisGetSettingsOnlineJob")
         {
         }
 
@@ -692,19 +690,30 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // TODO support TimeStamp mechanism in request, to detect change to download data
+                // get settings online data
+                SettingsOnlineData settingsOnlineData;
+                DateTimeOffset? newTimeStamp;
 
-                // TODO get settings online data
-                //var settingsOnlineData = AegisServiceManager.GetSettingsOnlineData(this.client.Settings);
+                var isUpdated = this.ClientInstance.AegisServiceManager.GetSettingsOnlineData(
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline.TimeStamp,
+                    out settingsOnlineData,
+                    out newTimeStamp);
 
-                // TODO set new data
-                //this.client.SettingsOnline.SetNewData(settingsOnlineData);
+                if (!isUpdated)
+                {
+                    return;
+                }
+
+                // set new data
+                this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
             }
             catch (TaskCanceledException exception)
             {
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
                         exception);
                 }
@@ -714,6 +723,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
                         exception,
                         "Request timeout.");
@@ -722,6 +732,7 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
                     exception);
             }
