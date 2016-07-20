@@ -3,6 +3,7 @@ using FluentScheduler;
 
 namespace Aegis.Pumps
 {
+    // TODO deprecated
     public abstract class Pump
     {
         private volatile bool _hasStarted;

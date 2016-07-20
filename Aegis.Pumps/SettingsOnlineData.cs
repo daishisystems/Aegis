@@ -675,34 +675,26 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Configuration;
-using FluentScheduler;
+using System.Collections.Generic;
+using Jil;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="AegisRegistry" /> is a task-manager that controls the execution
-    ///     of scheduled <see cref="PublishTask" /> commands.
-    /// </summary>
-    public class AegisRegistry : Registry
+    public class SettingsOnlineData
     {
-        public AegisRegistry()
+        [JilDirective(Name = "blacklist")]
+        public BlackListData Blacklist { get; set; }
+
+        [JilDirective(Name = "isAegisOnBookingEnabled")]
+        public bool IsAegisOnBookingEnabled { get; set; }
+
+        public class BlackListData
         {
-            // set default value
-            var interval = 10;
+            [JilDirective(Name = "countriesBlock")]
+            public HashSet<string> CountriesBlock { get; set; }
 
-            // read interval from settings
-            var aegisPublishFrequencySeconds =
-                ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
-
-            if (!string.IsNullOrEmpty(aegisPublishFrequencySeconds))
-            {
-                // if the value is wrong it's better to fail
-                interval = int.Parse(aegisPublishFrequencySeconds);
-            }
-
-            // start scheduler
-            Schedule<PublishTask>().ToRunNow().AndEvery(interval).Seconds();
+            [JilDirective(Name = "countriesSimulate")]
+            public HashSet<string> CountriesSimulate { get; set; }
         }
     }
 }

@@ -687,6 +687,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     /// </summary>
     public class IpAddressBlacklistedEvent : ClientEvent
     {
+        [JilDirective(Name = "isBlocked")]
+        public bool IsBlocked { get; set; }
+
+        [JilDirective(Name = "isSimulated")]
+        public bool IsSimulated { get; set; }
+
         /// <summary>
         ///     <see cref="IPAddress" /> is the black-listed IP address that has attempted
         ///     access.

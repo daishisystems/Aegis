@@ -687,63 +687,50 @@ namespace Aegis.Pumps
     {
         public static Client Instance { get; private set; }
         public static string ClientName { get; private set; }
-        //public static Client Instance = new Client();
 
         public static bool IsInitialised => Instance != null;
 
-        //private bool isInitialised;
-        //private string applicationName;
+        public readonly NewRelicInsightsClient NewRelicInsightsClient;
         public readonly Settings Settings;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
-        private SchedulerRegistry scheduler;
+        public readonly AegisEventCacheClient AegisEventCache;
+        public readonly AegisServiceClient AegisServiceManager;
+        public readonly Actions Actions;
+        private readonly SchedulerRegistry scheduler;
 
-
-        //private Client()
-        //{
-        //    this.isInitialised = false;
-        //}
-
-        private Client(Settings settings)
+        private Client(NewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
+            if (newRelicInsightsClient == null)
+            {
+                throw new ArgumentNullException(nameof(newRelicInsightsClient));
+            }
+
             if (settings == null)
             {
                 throw new ArgumentNullException(nameof(settings));
             }
 
+            this.NewRelicInsightsClient = newRelicInsightsClient;
             this.Settings = settings;
             this.SettingsOnline = new SettingsOnlineClient();
             this.BlackList = new BlackListClient();
-            //this.applicationName = appName;
-            //this.scheduler = new SchedulerRegistry();
+            this.AegisEventCache = new AegisEventCacheClient();
+            this.AegisServiceManager = new AegisServiceClient();
+            this.Actions = new Actions();
+            this.scheduler = new SchedulerRegistry();
         }
 
         /// <summary>
         /// Initialise client. Does not throw any standard exception.
         /// </summary>
         /// <returns></returns>
-        public static bool Initialise(string clientName, Settings settings)
+        public static bool Initialise(string clientName, NewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
             // initialise and do proper cleanup in case of problems
             try
             {
-                DoInitialise(clientName, settings, true);
-
-                //// set current client application name
-                //ClientName = clientName;
-
-                // check if Aegis is enabled in the config
-                //if (!AegisHelper.IsEnabledInConfigFile(configIsAegisEnabled))
-                //{
-                //    // not enabled
-                //    return true;
-                //}
-
-                // initialise object
-                //Instance = DoInitialise(settings);
-
-                // start scheduled tasks
-                //Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
+                DoInitialise(clientName, newRelicInsightsClient, settings, true);
 
                 // success - class initialised
                 return true;
@@ -752,17 +739,10 @@ namespace Aegis.Pumps
             {
                 try
                 {
-                    var newRelicInsightsAegisEvent =
-                        new NewRelicInsightsEvents.AegisErrorEvent()
-                        {
-                            ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                            ErrorMessage = exception.Message,
-                            InnerErrorMessage = exception.InnerException?.Message ?? "None"
-                        };
-
-                    NewRelicInsightsClient.UploadEvents(new[] { newRelicInsightsAegisEvent },
-                        new Daishi.NewRelic.Insights.HttpClientFactory(),
-                        NewRelicInsightsClient.Instance.NewRelicInsightsMetadata);
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        newRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                        exception);
                 }
                 catch (Exception)
                 {
@@ -798,7 +778,7 @@ namespace Aegis.Pumps
             DateTime? paramDateIn,
             DateTime? paramDateOut)
         {
-            // ignore on not initialized
+            // ignore on non initialized
             if (!IsInitialised)
             {
                 // do not block
@@ -806,114 +786,32 @@ namespace Aegis.Pumps
             }
 
             // run logic
-            try
-            {
-                return Instance.DoAvailabilityController(requestHeaders, 
+            return Instance.Actions.OnAvailabilityController(
+                    Instance,
+                    requestHeaders, 
                     requestUri,
                     paramOrigin,
                     paramDestination,
                     paramDateIn,
                     paramDateOut);
-            }
-            catch (Exception exception)
-            {
-                var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
-                    {
-                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = exception.Message,
-                        InnerErrorMessage = exception.InnerException?.Message ?? "None"
-                    };
-
-                NewRelicInsightsClient.Instance.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
-            }
-
-            // do not block
-            return false;
         }
 
-        public static void DoInitialise(string clientName, Settings settings, bool isSchedulingEnabled)
+        public static void DoInitialise(
+            string clientName, 
+            NewRelicInsightsClient newRelicInsightsClient,
+            Settings settings, 
+            bool isSchedulingEnabled)
         {
             // set current client application name
             ClientName = clientName;
 
-            var self = new Client(settings);
-            self.scheduler = new SchedulerRegistry();
+            var self = new Client(newRelicInsightsClient, settings);
 
             // assign object to the instance
             Instance = self;
 
             // start scheduled tasks
             Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
-        }
-
-        private bool DoAvailabilityController(HttpRequestHeaders requestHeaders, 
-            Uri requestUri,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut)
-        {
-            // parse IP address
-            IPAddress ipAddress;
-
-            var ipAddressIsValid =
-                AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
-                    requestHeaders, 
-                    out ipAddress);
-
-            if (!ipAddressIsValid)
-            {
-                var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
-                    {
-                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = "Could not parse IP Address.",
-                        InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
-                    };
-
-                NewRelicInsightsClient.Instance.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
-                return false;
-            }
-
-            // Add IP address to data-pump
-            // TODO ma byc nie statyczny
-            AegisEventCache.Add(new AegisEvent
-            {
-                IPAddress = ipAddress.ToString(),
-                Path = requestUri.AbsolutePath,
-                Time = DateTime.UtcNow.ToString("O"),
-                DateIn = paramDateIn?.ToString("O"),
-                DateOut = paramDateOut?.ToString("O"),
-                Destination = paramDestination,
-                Origin = paramOrigin
-            });
-
-            // Protect the endpoint
-            BlackListItem blackListItem;
-            if (!this.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackListItem))
-            {
-                // do not block
-                return false;
-            }
-
-            // TODO sprawdz czy to nie symulacja, czy kraj wlaczony
-
-            // Log the malicious event
-            // TODO dodaj wiecej info o itemie - jakies ID itp.
-            var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
-            {
-                IpAddress = ipAddress.ToString(),
-                Country = blackListItem.Country,
-                AbsolutePath = requestUri.AbsolutePath,
-                FullPath = requestUri.PathAndQuery
-            };
-
-            NewRelicInsightsClient.Instance.
-                AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);
-
-            // block
-            return true;
         }
     }
 }

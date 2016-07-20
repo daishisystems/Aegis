@@ -685,10 +685,13 @@ namespace Aegis.Pumps.SchedulerJobs
         protected readonly object LockObject = new object();
         protected readonly Client ClientInstance;
 
-        protected ClientJob(Client client)
+        protected ClientJob(Client client, string jobName)
         {
             this.ClientInstance = client;
+            this.JobName = jobName;
         }
+
+        public string JobName { get; private set; }
 
         protected bool IsShuttingDown { get; private set; }
 

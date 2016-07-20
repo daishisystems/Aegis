@@ -691,7 +691,9 @@ namespace Aegis.Pumps
             this.blacklist = new ConcurrentDictionary<string, BlackListItem>();
         }
 
-        public void SetNewData(IEnumerable<BlackListItem> data)
+        public DateTimeOffset? TimeStamp { get; private set; }
+
+        public void SetNewData(IEnumerable<BlackListItem> data, DateTimeOffset? timeStamp)
         {
             // create new collection
             var blacklistNew = new ConcurrentDictionary<string, BlackListItem>();
@@ -702,12 +704,14 @@ namespace Aegis.Pumps
             }
 
             // swap
+            this.TimeStamp = timeStamp;
             this.blacklist = blacklistNew;
         }
 
         public void CleanUp()
         {
             this.blacklist.Clear();
+            this.TimeStamp = null;
         }
 
         public bool TryGetBlacklistedItem(string ipAddress, out BlackListItem blackListItem)

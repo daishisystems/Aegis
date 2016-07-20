@@ -676,150 +676,62 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Net;
+using System.Collections.Generic;
 using Aegis.Core;
-using Daishi.NewRelic.Insights;
-using FluentScheduler;
-
-// ToDo: Need to check a wider time-range - 24 hours, for example
 
 namespace Aegis.Pumps
 {
     /// <summary>
-    ///     <see cref="BlackListPump" /> is a Singleton instance that continuously
-    ///     polls Aegis for the most up-to-date black-list. It retains a copy of this
-    ///     black-list in memory, providing a thread-safe collection of black-list
-    ///     metadata for query.
+    ///     AegisEventCache is an in-memory cache that retains a collection of
+    ///     <see cref="AegisEvent" /> instances in a static capacity.
     /// </summary>
-    public class BlackListPump
+    /// <remarks>
+    ///     <para>AegisEventCache should be instantiated upon application-startup.</para>
+    ///     <para>
+    ///         Application pool recycling or hardware failure will result in loss of
+    ///         data. This is not a concern, as <see cref="AegisEvent" /> instances are
+    ///         not critical in terms of retaining application resilience; a certain
+    ///         degree of data-loss is acceptable.
+    ///     </para>
+    /// </remarks>
+    /// <threadsafety static="true" instance="false">
+    ///     <see cref="AegisEvent" /> instances are added in a thread-safe manner.
+    ///     <see cref="AegisEventPublisher" /> will execute at regular intervals,
+    ///     during which, AegisEventCache will be purged. This will not introduce
+    ///     mutually-exclusive locking related issues, as per
+    ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
+    ///     post.
+    /// </threadsafety>
+    public class AegisEventCacheClient
     {
-
-        private volatile bool _hasStarted;
-        //private int _recurringTaskInterval;
-        //private string _recurringTaskName;
-
-        static BlackListPump()
-        {
-
-        }
-
-        private BlackListPump()
-        {
-            //BlackList = new ConcurrentDictionary<string, BlackListItem>();
-            //NewRelicInsightsMetadata = new NewRelicInsightsMetadata();
-        }
-
-        //public static BlackListPump Instance { get; } = new BlackListPump();
+        /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
+        private readonly MemoryCache<AegisEvent> events = new MemoryCache<AegisEvent>(1000000);
 
         /// <summary>
-        ///     <see cref="BlackList" /> is the black-list returned from Aegis, indexed for
-        ///     search by IP address.
+        ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
+        ///     cache.
         /// </summary>
-        public ConcurrentDictionary<string, BlackListItem> BlackList { get; set; }
-
-        /// <summary>
-        ///     <see cref="HasStarted" /> returns <c>true</c> if the recurring black-list
-        ///     job has started.
-        /// </summary>
-        public bool HasStarted => _hasStarted;
-
-        /// <summary>
-        ///     <see cref="RecurringTaskName" /> is the friendly name assigned to the
-        ///     recurring task that continuously polls Aegis for the most up-to-date
-        ///     black-list. It is used as an index in order to reference the recurring
-        ///     task, once initialised.
-        /// </summary>
-        /// <remarks>A default name is assigned, if one is not provided.</remarks>
-        //public string RecurringTaskName {
-        //    get
-        //    {
-        //        return string.IsNullOrEmpty(_recurringTaskName)
-        //            ? "GetBlackListJob"
-        //            : _recurringTaskName;
-        //    }
-        //    set { _recurringTaskName = value; }
-        //}
-
-        /// <summary>
-        ///     <see cref="RecurringTaskInterval" /> is the interval at which the recurring
-        ///     task that continuously polls Aegis for the most up-to-date black-list is
-        ///     executed.
-        /// </summary>
-        /// <remarks>A default interval is provided, if one is not provided.</remarks>
-        //public int RecurringTaskInterval {
-        //    get { return _recurringTaskInterval > 0 ? _recurringTaskInterval : 600; }
-        //    set { _recurringTaskInterval = value; }
-        //}
-
-        // ToDo: replace with instance of HTTPRequestMetadata. Requires larger refactor.
-
-        /// <summary>
-        ///     <see cref="AegisURI" /> is the <see cref="Uri" /> from which the black-list
-        ///     is retrieved.
-        /// </summary>
-        //public Uri AegisURI { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseWebProxy" /> determines whether or not the leverage
-        ///     <see cref="WebProxy" />.
-        /// </summary>
-        //public bool UseWebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="WebProxy" />, if specified, will incorporate a HTTP proxy when
-        ///     issuing HTTP requests.
-        /// </summary>
+        /// <param name="event">
+        ///     <see cref="@event" /> is an instance of
+        ///     <see cref="AegisEvent" />.
+        /// </param>
         /// <remarks>
-        ///     The feature facilitates HTTP connectivity, even when Internet
-        ///     connectivity is funnelled through a proxy server: e.g, corporate networks.
+        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
         /// </remarks>
-        //public WebProxy WebProxy { get; set; }
-
-        /// <summary>
-        ///     <see cref="UseNonDefaultTimeout" /> determines whether or not the leverage
-        ///     <see cref="NonDefaultTimeout" />.
-        /// </summary>
-        //public bool UseNonDefaultTimeout { get; set; }
-
-        /// <summary>
-        ///     <see cref="NonDefaultTimeout" /> allows for a non-default HTTP request
-        ///     timeout.
-        /// </summary>
-        /// <remarks>
-        ///     This feature is a crumple-zone, ensuring that failed, or slow Internet
-        ///     connectivity will not create a bottleneck in consuming systems.
-        /// </remarks>
-        //public TimeSpan NonDefaultTimeout { get; set; }
-
-        //ToDo: New Relic Insights property can be removed.
-        /// <summary>
-        ///     <see cref="NewRelicInsightsMetadata" /> is a template that contains
-        ///     properties that pertain to a New Relic Insights event, as well as New Relic
-        ///     Insights connection-specific properties, such as URI, proxy, etc.
-        /// </summary>
-        //public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; private set; }
-
-        /// <summary>
-        ///     <see cref="Initialise" /> begins a recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list, and retains a copy of this
-        ///     black-list in memory, providing a thread-safe collection of black-list
-        ///     metadata for query.
-        /// </summary>
-        public void Initialise()
+        public void Add(AegisEvent @event)
         {
-            //JobManager.Initialize(new GetBlackListRegistry());
-            _hasStarted = true;
+            this.events.Add(@event);
         }
 
-        /// <summary>
-        ///     <see cref="ShutDown" /> stops the recurring task that continuously polls
-        ///     Aegis for the most up-to-date black-list.
-        /// </summary>
-        public void ShutDown()
+        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
+        /// <param name="batchSize">
+        ///     <see cref="batchSize" /> determines the number of
+        ///     <see cref="AegisEvent" /> instances to publish per batch.
+        /// </param>
+        /// <param name="processorFunc">Function to process items</param>
+        public void Relay(int batchSize, Func<List<AegisEvent>, bool> processorFunc)
         {
-            //JobManager.RemoveJob(RecurringTaskName);
-            _hasStarted = false;
+            this.events.Process(batchSize, processorFunc);
         }
     }
 }
