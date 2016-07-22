@@ -676,91 +676,211 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Aegis.Core;
+using Jil;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    public class MemoryCache<T>
+    public class AegisServiceClient
     {
-        private readonly int countLimit;
-        private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
-        private readonly List<T> dataToProcess = new List<T>();
-        private readonly object lockProcess = new object();
-
-        public MemoryCache(int countLimit)
+        private static class ServiceNames
         {
-            this.countLimit = countLimit;
+            public const string Blacklist = "blacklist";
+            public const string SettingsOnline = "settings";
+            public const string AegisEvents = "aegisEvents";
         }
 
-        /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
-        /// <param name="item"></param>
-        /// <returns>true if queue max limit is reached otherwise false</returns>
-        public bool Add(T item)
+        public bool GetBlackListData(
+            Settings settings,
+            DateTimeOffset? requestTimeStamp,
+            out List<BlackListItem> data,
+            out DateTimeOffset? timeStamp)
         {
-            // add item to the queue
-            this.data.Enqueue(item);
+            data = null;
+            timeStamp = null;
 
-            // if queue is too big then remove an old item
-            if (this.data.Count > this.countLimit)
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.Blacklist));
+            var httpClientFactory = new HttpClientFactory();
+
+            // get string data from service
+            string dataString;
+
+            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
-                T itemRemoved;
-                this.data.TryDequeue(out itemRemoved);
+                return false;
+            }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<List<BlackListItem>>(dataString, Options.ISO8601);
                 return true;
             }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     Process cached data. This is lock-like method and only one publishing
-        ///     is allowed at the time. Adding new items is never blocked.
-        /// </summary>
-        /// <param name="batchSize">Maximum number of items to process</param>
-        /// <param name="processorFunc">Function to process data</param>
-        /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
-        {
-            lock (this.lockProcess)
+            catch (Exception exception)
             {
-                return this.DoProcess(batchSize, processorFunc);
+                throw new Exception("Unable to deserialise the BlackList", exception);
             }
         }
 
-        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
+        public bool GetSettingsOnlineData(
+            Settings settings,
+            DateTimeOffset? requestTimeStamp,
+            out SettingsOnlineData data,
+            out DateTimeOffset? timeStamp)
         {
-            // add items to process
-            while (this.dataToProcess.Count < batchSize)
+            data = null;
+            timeStamp = null;
+
+            var uriService = CreateUri(settings, 
+                                        ServiceNames.SettingsOnline, 
+                                        new KeyValuePair<string,string>("key", settings.AegisServiceSettingsOnlineKey));
+
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, uriService);
+            var httpClientFactory = new HttpClientFactory();
+
+            // get string data from service
+            string dataString;
+
+            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
-                T item;
-                if (!this.data.TryDequeue(out item))
+                return false;
+            }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Unable to deserialise the SettingsOnlineData", exception);
+            }
+        }
+
+        public void SendAegisEvents(Settings settings, List<AegisEvent> items)
+        {
+            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.AegisEvents));
+            var httpClientFactory = new HttpClientFactory();
+
+            DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
+        }
+
+        private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
+        {
+            return new Core.HttpRequestMetadata
+                       {
+                           URI = uriService,
+                           UseWebProxy = settings.WebProxy != null,
+                           WebProxy = settings.WebProxy,
+                           UseNonDefaultTimeout = settings.WebNonDefaultTimeout.HasValue,
+                           NonDefaultTimeout = settings.WebNonDefaultTimeout ?? TimeSpan.Zero
+                       };
+        }
+
+        private Uri CreateUri(Settings settings, string uriServiceName, KeyValuePair<string, string>? param1 = null)
+        {
+            string uriString;
+
+            if (param1 != null)
+            {
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}/?{param1.Value.Key}={param1.Value.Value}";
+            }
+            else
+            {
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}";
+            }
+
+            return new Uri(uriString);
+        }
+
+        protected virtual bool DoGetStringData(
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory,
+            DateTimeOffset? requestTimeStamp,
+            out string data,
+            out DateTimeOffset? timeStamp)
+        {
+            data = null;
+            timeStamp = null;
+
+            HttpRequestMetadataException httpRequestMetadataException;
+
+            var httpRequestMetadataIsValid = HttpRequestMetadataValidator.TryValidate(
+                httpRequestMetadata,
+                out httpRequestMetadataException);
+
+            if (!httpRequestMetadataIsValid)
+            {
+                throw httpRequestMetadataException;
+            }
+
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.IfModifiedSince = requestTimeStamp;
+
+                var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    break;
+                    throw new Exception(
+                        "Downloading data resulting in: HTTP " + response.StatusCode);
                 }
 
-                this.dataToProcess.Add(item);
-            }
+                // if data is not modified since last request
+                if (response.StatusCode == HttpStatusCode.NotModified)
+                {
+                    return false;
+                }
 
-            // ignore empty set
-            if (this.dataToProcess.Count == 0)
+                // retrieve data
+                data = response.Content.ReadAsStringAsync().Result;
+                timeStamp = response.Content.Headers.LastModified;
+                return true;
+            }
+        }
+
+        private void DoSendAegisEvents(
+            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory,
+            List<AegisEvent> items)
+        {
+            // TODO support httpClientFactory
+
+            var request = WebRequest.Create(httpRequestMetadata.URI);
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+
+            if (httpRequestMetadata.UseNonDefaultTimeout)
             {
-                return 0;
+                request.Timeout = httpRequestMetadata.NonDefaultTimeout.Milliseconds;
             }
 
-            // take only first batchSize number of items to process
-            var batchItems = this.dataToProcess.Take(batchSize).ToList();
-
-            // process data
-            if (!processorFunc(batchItems))
+            if (httpRequestMetadata.UseWebProxy)
             {
-                // error in processing so do not remove items
-                return 0;
+                request.Proxy = httpRequestMetadata.WebProxy;
             }
 
-            // process succeeded so remove items from the queue
-            this.dataToProcess.RemoveRange(0, batchItems.Count);
-            return batchItems.Count;
+            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
+            var postData = "=" + itemsJson;
+            var byteArray = Encoding.UTF8.GetBytes(postData);
+
+            request.ContentLength = byteArray.Length;
+            var dataStream = request.GetRequestStream();
+
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+
+            request.GetResponse();
         }
     }
 }

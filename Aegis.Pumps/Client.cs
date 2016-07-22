@@ -676,91 +676,142 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http.Headers;
+using Daishi.NewRelic.Insights;
+using Aegis.Core;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    public class MemoryCache<T>
+    public class Client
     {
-        private readonly int countLimit;
-        private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
-        private readonly List<T> dataToProcess = new List<T>();
-        private readonly object lockProcess = new object();
+        public static Client Instance { get; private set; }
+        public static string ClientName { get; private set; }
 
-        public MemoryCache(int countLimit)
+        public static bool IsInitialised => Instance != null;
+
+        public readonly NewRelicInsightsClient NewRelicInsightsClient;
+        public readonly Settings Settings;
+        public readonly SettingsOnlineClient SettingsOnline;
+        public readonly BlackListClient BlackList;
+        public readonly AegisEventCacheClient AegisEventCache;
+        public readonly AegisServiceClient AegisServiceManager;
+        public readonly Actions Actions;
+        private readonly SchedulerRegistry scheduler;
+
+        private Client(NewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
-            this.countLimit = countLimit;
-        }
-
-        /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
-        /// <param name="item"></param>
-        /// <returns>true if queue max limit is reached otherwise false</returns>
-        public bool Add(T item)
-        {
-            // add item to the queue
-            this.data.Enqueue(item);
-
-            // if queue is too big then remove an old item
-            if (this.data.Count > this.countLimit)
+            if (newRelicInsightsClient == null)
             {
-                T itemRemoved;
-                this.data.TryDequeue(out itemRemoved);
-                return true;
+                throw new ArgumentNullException(nameof(newRelicInsightsClient));
             }
 
-            return false;
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            this.NewRelicInsightsClient = newRelicInsightsClient;
+            this.Settings = settings;
+            this.SettingsOnline = new SettingsOnlineClient();
+            this.BlackList = new BlackListClient();
+            this.AegisEventCache = new AegisEventCacheClient();
+            this.AegisServiceManager = new AegisServiceClient();
+            this.Actions = new Actions();
+            this.scheduler = new SchedulerRegistry();
         }
 
         /// <summary>
-        ///     Process cached data. This is lock-like method and only one publishing
-        ///     is allowed at the time. Adding new items is never blocked.
+        /// Initialise client. Does not throw any standard exception.
         /// </summary>
-        /// <param name="batchSize">Maximum number of items to process</param>
-        /// <param name="processorFunc">Function to process data</param>
-        /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
+        /// <returns></returns>
+        public static bool Initialise(string clientName, NewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
-            lock (this.lockProcess)
+            // initialise and do proper cleanup in case of problems
+            try
             {
-                return this.DoProcess(batchSize, processorFunc);
+                DoInitialise(clientName, newRelicInsightsClient, settings, true);
+
+                // success - class initialised
+                return true;
             }
+            catch (Exception exception)
+            {
+                try
+                {
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        newRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                        exception);
+                }
+                catch (Exception)
+                {
+                    // ToDo: Provide a fall-back solution if New Relic Insights is offline.
+                }
+            }
+
+            // initialisation failed
+            return false;
         }
 
-        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
+        public static void ShutDown()
         {
-            // add items to process
-            while (this.dataToProcess.Count < batchSize)
+            // do nothing if not initialised
+            if (!IsInitialised)
             {
-                T item;
-                if (!this.data.TryDequeue(out item))
-                {
-                    break;
-                }
-
-                this.dataToProcess.Add(item);
+                return;
             }
 
-            // ignore empty set
-            if (this.dataToProcess.Count == 0)
+            // set to non-initialised state
+            var self = Instance;
+            Instance = null;
+
+            // stop schedulers and clean all data (final data release leave to the GC)
+            self.scheduler?.ShutDown();
+            self.BlackList?.CleanUp();
+        }
+
+        public static bool OnAvailabilityController(HttpRequestHeaders requestHeaders, 
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // ignore on non initialized
+            if (!IsInitialised)
             {
-                return 0;
+                // do not block
+                return false;
             }
 
-            // take only first batchSize number of items to process
-            var batchItems = this.dataToProcess.Take(batchSize).ToList();
+            // run logic
+            return Instance.Actions.OnAvailabilityController(
+                    Instance,
+                    requestHeaders, 
+                    requestUri,
+                    paramOrigin,
+                    paramDestination,
+                    paramDateIn,
+                    paramDateOut);
+        }
 
-            // process data
-            if (!processorFunc(batchItems))
-            {
-                // error in processing so do not remove items
-                return 0;
-            }
+        public static void DoInitialise(
+            string clientName, 
+            NewRelicInsightsClient newRelicInsightsClient,
+            Settings settings, 
+            bool isSchedulingEnabled)
+        {
+            // set current client application name
+            ClientName = clientName;
 
-            // process succeeded so remove items from the queue
-            this.dataToProcess.RemoveRange(0, batchItems.Count);
-            return batchItems.Count;
+            var self = new Client(newRelicInsightsClient, settings);
+
+            // assign object to the instance
+            Instance = self;
+
+            // start scheduled tasks
+            Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
         }
     }
 }

@@ -675,75 +675,26 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Aegis.Core;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using Jil;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="BlackListManagerTests" /> ensures that logic pertaining to
-    ///     <see cref="BlackListManager" /> instances executes correctly.
-    /// </summary>
-    [TestClass]
-    public class BlackListManagerTests
+    public class SettingsOnlineData
     {
-        /// <summary>
-        ///     <see cref="BlackListManagerFormatsBlackListItemsForIndexing" /> ensures
-        ///     that <see cref="BlackListManager" /> instances format returned
-        ///     <see cref="BlackListItem" /> collections in a manner suitable for indexing.
-        /// </summary>
-        /// <remarks>
-        ///     The returned collection of <see cref="BlackListItem" /> instances
-        ///     should be loaded into a <see cref="ConcurrentDictionary{TKey,TValue}" />,
-        ///     where each key is the associated <see cref="BlackListItem.IPAddress" />.
-        /// </remarks>
-        [TestMethod]
-        public void BlackListManagerFormatsBlackListItemsForIndexing()
+        [JilDirective(Name = "blacklist")]
+        public BlackListData Blacklist { get; set; }
+
+        [JilDirective(Name = "isAegisOnBookingEnabled")]
+        public bool IsAegisOnBookingEnabled { get; set; }
+
+        public class BlackListData
         {
-            var indexedBlackList = BlackListManager.Load(new MockBlackListLoader(),
-                Core.HttpRequestMetadata.Empty(), new HttpClientFactory());
+            [JilDirective(Name = "countriesBlock")]
+            public HashSet<string> CountriesBlock { get; set; }
 
-            Assert.AreEqual(2, indexedBlackList.Count);
-        }
-
-        /// <summary>
-        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResource" />
-        ///     ensures that a black-list is correctly loaded from an active web resource.
-        /// </summary>
-        /// <remarks>
-        ///     Aegis black-listing is mocked at http://mockable.io, to simulate an
-        ///     active web resource.
-        /// </remarks>
-        [TestMethod]
-        public void BlackListManagerCorrectlyLoadsDataFromActiveWebResource()
-        {
-            var blackList = BlackListManager.Load(new AegisBlackListLoader(),
-                new Core.HttpRequestMetadata
-                {
-                    URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
-                }, new HttpClientFactory());
-
-            Assert.AreEqual(2, blackList.Count);
-        }
-
-        /// <summary>
-        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResourceAsync" />
-        ///     is the asynchronous equivalent of
-        ///     <see cref="BlackListManagerCorrectlyLoadsDataFromActiveWebResource" />.
-        /// </summary>
-        [TestMethod]
-        public async Task BlackListManagerCorrectlyLoadsDataFromActiveWebResourceAsync()
-        {
-            var blackList = await BlackListManager.LoadAsync(new AegisBlackListLoader(),
-                new Core.HttpRequestMetadata
-                {
-                    URI = new Uri("https://demo7227109.mockable.io/blacklist/ireland")
-                }, new HttpClientFactory());
-
-            Assert.AreEqual(2, blackList.Count);
+            [JilDirective(Name = "countriesSimulate")]
+            public HashSet<string> CountriesSimulate { get; set; }
         }
     }
 }

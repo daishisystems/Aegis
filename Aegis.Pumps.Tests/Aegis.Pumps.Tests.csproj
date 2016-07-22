@@ -69,12 +69,11 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="BlackListClientErrorNewRelicInsightsEventTests.cs" />
+    <Compile Include="AegisServiceClientTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
-    <Compile Include="BlackListManagerTests.cs" />
+    <Compile Include="ClientTests.cs" />
     <Compile Include="HTTPRequestMetadataCacheTests.cs" />
-    <Compile Include="IPAddressValidatorTests.cs" />
-    <Compile Include="MockBlackListLoader.cs" />
+    <Compile Include="MockAegisServiceClient.cs" />
     <Compile Include="MockHTTPRequestMetadata.cs" />
     <Compile Include="NewRelicInsightsExceptionMessageParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

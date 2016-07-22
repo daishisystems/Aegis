@@ -677,8 +677,9 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using Aegis.Core;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
     /// <summary>
     ///     AegisEventCache is an in-memory cache that retains a collection of
@@ -701,10 +702,10 @@ namespace Aegis.Core
     ///     <see href="https://en.wikipedia.org/wiki/Non-blocking_algorithm">this</see>
     ///     post.
     /// </threadsafety>
-    public class AegisEventCache
+    public class AegisEventCacheClient
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private static readonly MemoryCache<AegisEvent> Events = new MemoryCache<AegisEvent>(1000000);
+        private readonly MemoryCache<AegisEvent> events = new MemoryCache<AegisEvent>(1000000);
 
         /// <summary>
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
@@ -717,9 +718,9 @@ namespace Aegis.Core
         /// <remarks>
         ///     <para><see cref="@event" /> is added to the end of the cache.</para>
         /// </remarks>
-        public static void Add(AegisEvent @event)
+        public void Add(AegisEvent @event)
         {
-            Events.Add(@event);
+            this.events.Add(@event);
         }
 
         /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
@@ -727,23 +728,10 @@ namespace Aegis.Core
         ///     <see cref="batchSize" /> determines the number of
         ///     <see cref="AegisEvent" /> instances to publish per batch.
         /// </param>
-        public static void Relay(int batchSize)
+        /// <param name="processorFunc">Function to process items</param>
+        public void Relay(int batchSize, Func<List<AegisEvent>, bool> processorFunc)
         {
-            Events.Process(batchSize, OnPublish);
-        }
-
-        public static bool OnPublish(List<AegisEvent> items)
-        {
-            try
-            {
-                WebRequestHelper.SendToProxy(items);
-                return true;
-            }
-            catch (Exception)
-            {
-                // failed silently and ignore for POC
-                return false;
-            }
+            this.events.Process(batchSize, processorFunc);
         }
     }
 }

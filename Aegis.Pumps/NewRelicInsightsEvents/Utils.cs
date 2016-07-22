@@ -676,50 +676,72 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Daishi.NewRelic.Insights;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
-    /// <summary>
-    ///     <see cref="BlackListClientErrorNewRelicInsightsEventTests" /> ensures that
-    ///     all logic pertaining to
-    ///     <see cref="BlackListClientErrorNewRelicInsightsEvent" /> instances execute
-    ///     correctly.
-    /// </summary>
-    [TestClass]
-    public class BlackListClientErrorNewRelicInsightsEventTests
+    public class Utils
     {
-        /// <summary>
-        ///     <see cref="UnDetectableMachineNameReturnsDefaultValue" /> ensures that a
-        ///     default machine-name is returned when the actual machine-name cannot be
-        ///     detected.
-        /// </summary>
-        /// <remarks>
-        ///     This ensures that environments without the appropriate permissions do
-        ///     not cause the application to crash.
-        /// </remarks>
-        [TestMethod]
-        public void UnDetectableMachineNameReturnsDefaultValue()
+        public class ComponentNames
         {
-            Func<string> getMachineName = () => { throw new InvalidOperationException(); };
+            public const string ClientInitialisation = "Client initialisation";
+            public const string AvailabilityRequest = "Availability-request";
+            public const string GetBlackList = "GetBlackList";
+            public const string GetSettingsOnline = "GetSettingsOnline";
+            public const string SendAegisEvents = "SendAegisEvents";
+        }
 
-            var machineName = BlackListClientErrorNewRelicInsightsEvent.GetMachineName(getMachineName);
-
-            Assert.AreEqual("UNKNOWN", machineName);
+        public class EventTypes
+        {
+            public const string AegisErrors = "AegisErrors";
+            public const string AegisBlackListActivity = "AegisBlackListActivity";
         }
 
         /// <summary>
-        ///     <see cref="DetectableMachineNameReturnsActualMachineName" /> ensures that
-        ///     the actual machine-name is returned when the machine-name can be detected.
+        ///     <see cref="UploadException" /> uploads
+        ///     <see cref="Exception" /> metadata to New Relic Insights.
         /// </summary>
-        [TestMethod]
-        public void DetectableMachineNameReturnsActualMachineName()
+        /// <param name="componentName"></param>
+        /// <param name="exception">
+        ///     The <see cref="Exception" /> to upload to New Relic
+        ///     Insights.
+        /// </param>
+        /// <param name="newRelicInsightsClient">
+        ///     The <see cref="NewRelicInsightsClient" />
+        ///     instance that facilitates the <see cref="Exception" />-upload.
+        /// </param>
+        /// <param name="customExceptionMessage">
+        ///     A custom message, generally used in place
+        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
+        ///     isolate the specific underlying issue.
+        /// </param>
+        public static void UploadException(
+            NewRelicInsightsClient newRelicInsightsClient,
+            string componentName,
+            Exception exception,
+            string customExceptionMessage = null)
         {
-            Func<string> getMachineName = () => "MACHINE01";
+            try
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = componentName,
+                        ErrorMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
+                                    customExceptionMessage, exception),
+                        InnerErrorMessage =
+                                    exception.InnerException?.Message ?? string.Empty
+                    };
 
-            var machineName = BlackListClientErrorNewRelicInsightsEvent.GetMachineName(getMachineName);
-
-            Assert.AreEqual("MACHINE01", machineName);
+                NewRelicInsightsClient.UploadEvents(
+                    new[] { newRelicInsightsAegisEvent },
+                    new Daishi.NewRelic.Insights.HttpClientFactory(),
+                    newRelicInsightsClient.NewRelicInsightsMetadata);
+            }
+            catch (Exception)
+            {
+                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+            }
         }
     }
 }

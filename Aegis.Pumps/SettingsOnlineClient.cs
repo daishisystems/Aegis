@@ -675,46 +675,22 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Core;
+using System;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="BlackListLoader" /> loads a collection of
-    ///     <see cref="BlackListItem" /> instances.
-    /// </summary>
-    public abstract class BlackListLoader
+    public class SettingsOnlineClient
     {
-        /// <summary>
-        ///     <see cref="Load" /> loads a collection of <see cref="BlackListItem" />
-        ///     instances.
-        /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
-        ///     metadata.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public abstract IEnumerable<BlackListItem> Load(Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory);
+        public SettingsOnlineData Data { get; private set; }
 
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
-        ///     instances.</returns>
-        public abstract Task<IEnumerable<BlackListItem>> LoadAsync(
-            Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory);
+        public DateTimeOffset? TimeStamp { get; private set; }
+
+        public bool IsAvailable => this.Data != null;
+
+        public void SetNewData(SettingsOnlineData newData, DateTimeOffset? timeStamp)
+        {
+            this.TimeStamp = timeStamp;
+            this.Data = newData;
+        }
     }
 }

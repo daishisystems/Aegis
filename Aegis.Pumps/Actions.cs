@@ -676,91 +676,136 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    public class MemoryCache<T>
+    public class Actions
     {
-        private readonly int countLimit;
-        private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
-        private readonly List<T> dataToProcess = new List<T>();
-        private readonly object lockProcess = new object();
-
-        public MemoryCache(int countLimit)
+        public bool OnAvailabilityController(
+            Client client,
+            HttpRequestHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
         {
-            this.countLimit = countLimit;
-        }
-
-        /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
-        /// <param name="item"></param>
-        /// <returns>true if queue max limit is reached otherwise false</returns>
-        public bool Add(T item)
-        {
-            // add item to the queue
-            this.data.Enqueue(item);
-
-            // if queue is too big then remove an old item
-            if (this.data.Count > this.countLimit)
+            // run logic
+            try
             {
-                T itemRemoved;
-                this.data.TryDequeue(out itemRemoved);
-                return true;
+                return this.DoAvailabilityController(
+                    client,
+                    requestHeaders,
+                    requestUri,
+                    paramOrigin,
+                    paramDestination,
+                    paramDateIn,
+                    paramDateOut);
+            }
+            catch (Exception exception)
+            {
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = exception.Message,
+                        InnerErrorMessage = exception.InnerException?.Message ?? string.Empty
+                    };
+
+                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
             }
 
+            // do not block
             return false;
         }
 
-        /// <summary>
-        ///     Process cached data. This is lock-like method and only one publishing
-        ///     is allowed at the time. Adding new items is never blocked.
-        /// </summary>
-        /// <param name="batchSize">Maximum number of items to process</param>
-        /// <param name="processorFunc">Function to process data</param>
-        /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
+        private bool DoAvailabilityController(
+            Client client,
+            HttpRequestHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
         {
-            lock (this.lockProcess)
-            {
-                return this.DoProcess(batchSize, processorFunc);
-            }
-        }
+            // parse IP address
+            IPAddress ipAddress;
 
-        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
-        {
-            // add items to process
-            while (this.dataToProcess.Count < batchSize)
-            {
-                T item;
-                if (!this.data.TryDequeue(out item))
-                {
-                    break;
-                }
+            var ipAddressIsValid =
+                AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+                    requestHeaders,
+                    out ipAddress);
 
-                this.dataToProcess.Add(item);
-            }
-
-            // ignore empty set
-            if (this.dataToProcess.Count == 0)
+            if (!ipAddressIsValid)
             {
-                return 0;
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = "Could not parse IP Address.",
+                        InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
+                    };
+
+                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                return false;
             }
 
-            // take only first batchSize number of items to process
-            var batchItems = this.dataToProcess.Take(batchSize).ToList();
-
-            // process data
-            if (!processorFunc(batchItems))
+            // add IP address to data-pump
+            client.AegisEventCache.Add(new AegisEvent
             {
-                // error in processing so do not remove items
-                return 0;
+                IPAddress = ipAddress.ToString(),
+                Path = requestUri.AbsolutePath,
+                Time = DateTime.UtcNow.ToString("O"),
+                DateIn = paramDateIn?.ToString("O"),
+                DateOut = paramDateOut?.ToString("O"),
+                Destination = paramDestination,
+                Origin = paramOrigin
+            });
+
+            // are online settings available
+            if (!client.SettingsOnline.IsAvailable ||
+                client.SettingsOnline.Data.Blacklist == null)
+            {
+                // do not block
+                return false;
             }
 
-            // process succeeded so remove items from the queue
-            this.dataToProcess.RemoveRange(0, batchItems.Count);
-            return batchItems.Count;
+            // protect the endpoint
+            BlackListItem blackItem;
+            if (!client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // check whether country is blocked or simulated
+            var isBlocked = client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            if (isBlocked != true && isSimulated != true)
+            {
+                // do not block - not blocked nor simulated
+                return false;
+            }
+
+            // log the malicious event
+            var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddress.ToString(),
+                Country = blackItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            client.NewRelicInsightsClient.
+                AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);
+
+            // return info whether to block or not
+            return isBlocked == true;
         }
     }
 }

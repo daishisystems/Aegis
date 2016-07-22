@@ -676,91 +676,63 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using Daishi.NewRelic.Insights;
+using Jil;
 
-namespace Aegis.Core
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
-    public class MemoryCache<T>
+    public abstract class ClientEvent : NewRelicInsightsEvent
     {
-        private readonly int countLimit;
-        private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
-        private readonly List<T> dataToProcess = new List<T>();
-        private readonly object lockProcess = new object();
-
-        public MemoryCache(int countLimit)
-        {
-            this.countLimit = countLimit;
-        }
-
-        /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
-        /// <param name="item"></param>
-        /// <returns>true if queue max limit is reached otherwise false</returns>
-        public bool Add(T item)
-        {
-            // add item to the queue
-            this.data.Enqueue(item);
-
-            // if queue is too big then remove an old item
-            if (this.data.Count > this.countLimit)
-            {
-                T itemRemoved;
-                this.data.TryDequeue(out itemRemoved);
-                return true;
-            }
-
-            return false;
-        }
+        /// <summary>
+        ///     <see cref="EventType" /> is the New Relic Insights to which this
+        ///     <see cref="AegisErrorEvent" /> will be uploaded.
+        /// </summary>
+        [JilDirective(Name = "eventType")]
+        public abstract string EventType { get; set; }
 
         /// <summary>
-        ///     Process cached data. This is lock-like method and only one publishing
-        ///     is allowed at the time. Adding new items is never blocked.
+        ///     <see cref="ApplicationName" /> is the friendly name of the application in
+        ///     which the error occurred.
         /// </summary>
-        /// <param name="batchSize">Maximum number of items to process</param>
-        /// <param name="processorFunc">Function to process data</param>
-        /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
+        [JilDirective(Name = "applicationName")]
+        public string ApplicationName => Client.ClientName;
+
+        /// <summary>
+        ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
+        ///     expressed in Unix ticks.
+        /// </summary>
+        [JilDirective(Name = "unixTimeStamp")]
+        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+
+        /// <summary>
+        ///     <see cref="MachineName" /> is the name of the underlying server, upon which
+        ///     the application is running.
+        /// </summary>
+        [JilDirective(Name = "machineName")]
+        public string MachineName => GetMachineName(() => Environment.MachineName);
+
+        /// <summary>
+        ///     <see cref="GetMachineName" /> returns the name of the underlying server,
+        ///     upon which the application is running.
+        /// </summary>
+        /// <param name="getMachineName">
+        ///     A function that returns the name of the underlying
+        ///     server, upon which the application is running.
+        /// </param>
+        /// <returns>
+        ///     The name of the underlying server, upon which the application is
+        ///     running.
+        /// </returns>
+        private static string GetMachineName(Func<string> getMachineName)
         {
-            lock (this.lockProcess)
+            try
             {
-                return this.DoProcess(batchSize, processorFunc);
+                return getMachineName();
             }
-        }
-
-        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
-        {
-            // add items to process
-            while (this.dataToProcess.Count < batchSize)
+            catch (Exception)
             {
-                T item;
-                if (!this.data.TryDequeue(out item))
-                {
-                    break;
-                }
-
-                this.dataToProcess.Add(item);
+                return "UNKNOWN";
             }
-
-            // ignore empty set
-            if (this.dataToProcess.Count == 0)
-            {
-                return 0;
-            }
-
-            // take only first batchSize number of items to process
-            var batchItems = this.dataToProcess.Take(batchSize).ToList();
-
-            // process data
-            if (!processorFunc(batchItems))
-            {
-                // error in processing so do not remove items
-                return 0;
-            }
-
-            // process succeeded so remove items from the queue
-            this.dataToProcess.RemoveRange(0, batchItems.Count);
-            return batchItems.Count;
         }
     }
 }

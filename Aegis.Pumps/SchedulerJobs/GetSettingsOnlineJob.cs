@@ -675,76 +675,67 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
-using System.Net.Http;
+using System;
 using System.Threading.Tasks;
-using Aegis.Core;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.SchedulerJobs
 {
-    /// <summary>
-    ///     <see cref="BlackListManager" /> returns a collection of
-    ///     <see cref="BlackListItem" /> instances and formats them in a manner
-    ///     suitable for index.
-    /// </summary>
-    public static class BlackListManager
+    internal class GetSettingsOnlineJob : ClientJob
     {
-        /// <summary>
-        ///     <see cref="Load" /> accepts a collection of <see cref="BlackListItem" />
-        ///     instances returned by <see cref="blackListLoader" />, and formats them in a
-        ///     manner suitable for index.
-        /// </summary>
-        /// <param name="blackListLoader">
-        ///     Formats a collection of
-        ///     <see cref="BlackListItem" /> instances in a manner suitable for index.
-        /// </param>
-        /// <param name="httpRequestMetadata"></param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>
-        ///     An indexed <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.
-        /// </returns>
-        public static ConcurrentDictionary<string, BlackListItem> Load(
-            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+        public GetSettingsOnlineJob(Client client) : base(client, "AegisGetSettingsOnlineJob")
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in blackListLoader.Load(
-                httpRequestMetadata, httpClientFactory))
-            {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
-
-            return indexedBlackList;
         }
 
-        /// <summary>
-        ///     <see cref="LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="Load" />.
-        /// </summary>
-        /// <param name="blackListLoader">See <see cref="Load" />.</param>
-        /// <param name="httpRequestMetadata">See <see cref="Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="Load" />.</param>
-        /// <returns>An indexed <see cref="Task" /> of
-        ///     <see cref="ConcurrentDictionary{TKey,TValue}" /> of
-        ///     <see cref="BlackListItem" /> instances.</returns>
-        public static async Task<ConcurrentDictionary<string, BlackListItem>> LoadAsync(
-            BlackListLoader blackListLoader, Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+        protected override void DoExecute()
         {
-            var indexedBlackList = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in await blackListLoader.LoadAsync(
-                httpRequestMetadata, httpClientFactory))
+            try
             {
-                indexedBlackList.TryAdd(blackListItem.RawIPAddress, blackListItem);
-            }
+                // get settings online data
+                SettingsOnlineData settingsOnlineData;
+                DateTimeOffset? newTimeStamp;
 
-            return indexedBlackList;
+                var isUpdated = this.ClientInstance.AegisServiceManager.GetSettingsOnlineData(
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline.TimeStamp,
+                    out settingsOnlineData,
+                    out newTimeStamp);
+
+                if (!isUpdated)
+                {
+                    return;
+                }
+
+                // set new data
+                this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
+            }
+            catch (TaskCanceledException exception)
+            {
+                if (exception.CancellationToken.IsCancellationRequested)
+                {
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        exception);
+                }
+                else
+                {
+                    // If the exception.CancellationToken.IsCancellationRequested is false,
+                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                    // Add a custom message in order to ensure that tasks are not canceled.
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        exception,
+                        "Request timeout.");
+                }
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                    exception);
+            }
         }
     }
 }

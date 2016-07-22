@@ -675,24 +675,50 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using FluentScheduler;
+using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="GetBlackListRegistry" /> is a Fluent Scheduler directive that
-    ///     initialises a recurring task that continuously polls Aegis for the most
-    ///     up-to-date black-list.
-    /// </summary>
-    internal class GetBlackListRegistry : Registry
+    public class Settings
     {
-        public GetBlackListRegistry()
+        public readonly string AegisServiceSettingsOnlineKey = "client";
+
+        public readonly WebProxy WebProxy;
+        public readonly TimeSpan? WebNonDefaultTimeout;
+        public readonly string AegisServiceUri;
+        public readonly int AegisCacheBatchSize = 1000;
+        public readonly int GetBlackListJobInternvalInSeconds = 600;
+        public readonly int GetSettingsOnlineJobInternvalInSeconds = 1800;
+        public readonly int SendAegisEventsJobInternvalInSeconds = 10;
+
+        public Settings(
+            string webProxy,
+            string webNonDefaultTimeout,
+            string aegisServiceUri)
         {
-            Schedule<GetBlackListJob>()
-                .WithName(BlackListPump.Instance.RecurringTaskName)
-                .ToRunNow()
-                .AndEvery(BlackListPump.Instance.RecurringTaskInterval)
-                .Seconds();
+            if (string.IsNullOrWhiteSpace(aegisServiceUri))
+            {
+                throw new ArgumentException("Aegis service uri can't be empty", nameof(aegisServiceUri));
+            }
+
+            // web proxy
+            if (!string.IsNullOrWhiteSpace(webProxy))
+            {
+                this.WebProxy = new WebProxy(webProxy);
+            }
+
+            // web non-default time-out
+            this.WebNonDefaultTimeout = null;
+
+            if (!string.IsNullOrEmpty(webNonDefaultTimeout))
+            {
+                this.WebNonDefaultTimeout = new TimeSpan(0, 0, int.Parse(webNonDefaultTimeout));
+            }
+
+            // Aegis service uri
+            this.AegisServiceUri = aegisServiceUri;
         }
     }
 }

@@ -676,29 +676,79 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Threading.Tasks;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.SchedulerJobs
 {
+    using System.Collections.Generic;
+
+    using Aegis.Core;
+
     /// <summary>
-    ///     <see cref="BlackListDownloadException" /> is thrown when the black-list
-    ///     cannot be downloaded, read from, or parsed successfully.
+    ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
+    ///     Aegis for the most up-to-date black-list, and retains a copy of this
+    ///     black-list in memory.
     /// </summary>
-    [Serializable]
-    public class BlackListDownloadException : Exception
+    internal class GetBlackListJob : ClientJob
     {
-        public BlackListDownloadException()
+        public GetBlackListJob(Client client) : base(client, "AegisGetBlackListJob")
         {
-
         }
 
-        public BlackListDownloadException(string message) : base(message)
+        /// <summary>
+        ///     <see cref="DoExecute" /> invokes a process that returns the most up-to-date
+        ///     black-list from Aegis.
+        /// </summary>
+        protected override void DoExecute()
         {
+            try
+            {
+                // get blacklist data
+                List<BlackListItem> blackListData;
+                DateTimeOffset? newTimeStamp;
 
-        }
+                var isUpdated = this.ClientInstance.AegisServiceManager.GetBlackListData(
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.BlackList.TimeStamp,
+                    out blackListData,
+                    out newTimeStamp);
 
-        public BlackListDownloadException(string message, Exception inner) : base(message, inner)
-        {
+                if (!isUpdated)
+                {
+                    return;
+                }
 
+                // set new data
+                this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
+            }
+            catch (TaskCanceledException exception)
+            {
+                if (exception.CancellationToken.IsCancellationRequested)
+                {
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                        exception);
+                }
+                else
+                {
+                    // If the exception.CancellationToken.IsCancellationRequested is false,
+                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                    // Add a custom message in order to ensure that tasks are not canceled.
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                        exception,
+                        "Request timeout.");
+                }
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                    exception);
+            }
         }
     }
 }

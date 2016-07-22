@@ -675,34 +675,62 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Configuration;
-using FluentScheduler;
+using System.Net;
+using Jil;
 
-namespace Aegis.Core
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     /// <summary>
-    ///     <see cref="AegisRegistry" /> is a task-manager that controls the execution
-    ///     of scheduled <see cref="PublishTask" /> commands.
+    ///     <see cref="IpAddressBlacklistedEvent" /> contains metadata
+    ///     that describes an event whereupon a black-listed <see cref="IPAddress" />
+    ///     attempts to access a resource that is protected by Aegis.
     /// </summary>
-    public class AegisRegistry : Registry
+    public class IpAddressBlacklistedEvent : ClientEvent
     {
-        public AegisRegistry()
+        [JilDirective(Name = "isBlocked")]
+        public bool IsBlocked { get; set; }
+
+        [JilDirective(Name = "isSimulated")]
+        public bool IsSimulated { get; set; }
+
+        /// <summary>
+        ///     <see cref="IPAddress" /> is the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "ipAddress")]
+        public string IpAddress { get; set; }
+
+        /// <summary>
+        ///     Country of the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "country")]
+        public string Country { get; set; }
+
+        /// <summary>
+        ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "absolutePath")]
+        public string AbsolutePath { get; set; }
+
+        /// <summary>
+        ///     <see cref="FullPath" /> is the full path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "fullPath")]
+        public string FullPath { get; set; }
+
+        /// <summary>
+        ///     <see cref="EventType" /> is the New Relic Insights to which this
+        ///     <see cref="IpAddressBlacklistedEvent" /> will be uploaded.
+        /// </summary>
+        /// <remarks>Defaults to 'AegisBlackListActivity', unless otherwise specified.</remarks>
+        [JilDirective("eventType")]
+        public override string EventType
         {
-            // set default value
-            var interval = 10;
-
-            // read interval from settings
-            var aegisPublishFrequencySeconds =
-                ConfigurationManager.AppSettings["AegisPublishFrequencySeconds"];
-
-            if (!string.IsNullOrEmpty(aegisPublishFrequencySeconds))
-            {
-                // if the value is wrong it's better to fail
-                interval = int.Parse(aegisPublishFrequencySeconds);
-            }
-
-            // start scheduler
-            Schedule<PublishTask>().ToRunNow().AndEvery(interval).Seconds();
+            get { return Utils.EventTypes.AegisBlackListActivity; }
+            set { }
         }
     }
 }

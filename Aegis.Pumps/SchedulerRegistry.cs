@@ -675,67 +675,61 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Aegis.Core;
+using FluentScheduler;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="MockBlackListLoader" />returns a dummy collection of
-    ///     <see cref="BlackListItem" /> instances, suitable for test.
-    /// </summary>
-    internal class MockBlackListLoader : BlackListLoader
+    internal class SchedulerRegistry : Registry
     {
-        /// <summary>
-        ///     <see cref="BlackListLoader.Load" /> loads a collection of
-        ///     <see cref="BlackListItem" />
-        ///     instances.
-        /// </summary>
-        /// <param name="httpRequestMetadata">
-        ///     The <see cref="Core.HttpRequestMetadata" />
-        ///     associated with the HTTP request that returns <see cref="BlackListItem" />
-        ///     metadata.
-        /// </param>
-        /// <param name="httpClientFactory">
-        ///     The <see cref="HttpClientFactory" /> used to
-        ///     construct a <see cref="HttpClient" />.
-        /// </param>
-        /// <returns>A collection of <see cref="BlackListItem" /> instances.</returns>
-        public override IEnumerable<BlackListItem> Load(Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory)
+        private readonly List<Schedule> scheduledItems;
+
+        public SchedulerRegistry()
         {
-            return new List<BlackListItem>
-            {
-                new BlackListItem
-                {
-                    RawIPAddress = "10.0.0.1"
-                },
-                new BlackListItem
-                {
-                    RawIPAddress = "10.0.0.2"
-                },
-                new BlackListItem
-                {
-                    RawIPAddress = "10.0.0.2"
-                }
-            };
+            this.scheduledItems = new List<Schedule>();
         }
 
-        /// <summary>
-        ///     <see cref="BlackListLoader.LoadAsync" /> is the asynchronous equivalent of
-        ///     <see cref="BlackListLoader.Load" />.
-        /// </summary>
-        /// <param name="httpRequestMetadata">See <see cref="BlackListLoader.Load" />.</param>
-        /// <param name="httpClientFactory">See <see cref="BlackListLoader.Load" />.</param>
-        /// <returns>A <see cref="Task" /> of collection of <see cref="BlackListItem" />
-        ///     instances.</returns>
-        public override Task<IEnumerable<BlackListItem>> LoadAsync(
-            Core.HttpRequestMetadata httpRequestMetadata, HttpClientFactory httpClientFactory)
+        public void Initialise(Client client, bool isSchedulingEnabled = true)
         {
-            throw new NotImplementedException();
+            // add jobs
+            this.Add(new SchedulerJobs.GetBlackListJob(client))
+                .ToRunNow()
+                .AndEvery(client.Settings.GetBlackListJobInternvalInSeconds)
+                .Seconds();
+
+            this.Add(new SchedulerJobs.GetSettingsOnlineJob(client))
+                .ToRunNow()
+                .AndEvery(client.Settings.GetSettingsOnlineJobInternvalInSeconds)
+                .Seconds();
+
+            this.Add(new SchedulerJobs.SendAegisEventsJob(client))
+                .ToRunNow()
+                .AndEvery(client.Settings.SendAegisEventsJobInternvalInSeconds)
+                .Seconds();
+
+            // start schedulers
+            if (isSchedulingEnabled)
+            {
+                JobManager.Initialize(this);
+            }
+        }
+
+        public void ShutDown()
+        {
+            foreach (var sched in this.scheduledItems)
+            {
+                JobManager.RemoveJob(sched.Name);
+            }
+
+            this.scheduledItems.Clear();
+        }
+
+        private Schedule Add(SchedulerJobs.ClientJob self)
+        {
+            var sched = this.Schedule(self).WithName(self.JobName);
+
+            this.scheduledItems.Add(sched);
+            return sched;
         }
     }
 }

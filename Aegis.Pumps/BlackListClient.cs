@@ -675,33 +675,48 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Aegis.Core;
 
 namespace Aegis.Pumps
 {
-    /// <summary>
-    ///     <see cref="IPAddressValidator" /> determines whether or not any given IP
-    ///     address is valid, within the context of IP address blacklisting.
-    /// </summary>
-    public static class IPAddressValidator
+    public class BlackListClient
     {
-        /// <summary>
-        ///     <see cref="IPAddressIsBlacklisted" /> determines whether or not
-        ///     <see cref="ipAddress" /> is contained within <see cref="blackList" />, a
-        ///     collection of blacklisted metadata.
-        /// </summary>
-        /// <param name="ipAddress">The IP address to validate.</param>
-        /// <param name="blackList">The collection of blacklist metadata to refer.</param>
-        /// <param name="blackListItem">
-        ///     A <see cref="BlackListItem" />, returned if
-        ///     <see cref="ipAddress" /> is blacklisted.
-        /// </param>
-        /// <returns><c>True</c>, if <see cref="ipAddress" /> is blacklisted.</returns>
-        public static bool IPAddressIsBlacklisted(string ipAddress,
-            ConcurrentDictionary<string, BlackListItem> blackList, out BlackListItem blackListItem)
+        private ConcurrentDictionary<string, BlackListItem> blacklist;
+
+        public BlackListClient()
         {
-            return blackList.TryGetValue(ipAddress, out blackListItem);
+            this.blacklist = new ConcurrentDictionary<string, BlackListItem>();
+        }
+
+        public DateTimeOffset? TimeStamp { get; private set; }
+
+        public void SetNewData(IEnumerable<BlackListItem> data, DateTimeOffset? timeStamp)
+        {
+            // create new collection
+            var blacklistNew = new ConcurrentDictionary<string, BlackListItem>();
+
+            foreach (var blackListItem in data)
+            {
+                blacklistNew.TryAdd(blackListItem.RawIPAddress, blackListItem);
+            }
+
+            // swap
+            this.TimeStamp = timeStamp;
+            this.blacklist = blacklistNew;
+        }
+
+        public void CleanUp()
+        {
+            this.blacklist.Clear();
+            this.TimeStamp = null;
+        }
+
+        public bool TryGetBlacklistedItem(string ipAddress, out BlackListItem blackListItem)
+        {
+            return this.blacklist.TryGetValue(ipAddress, out blackListItem);
         }
     }
 }

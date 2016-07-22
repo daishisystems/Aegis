@@ -676,92 +676,78 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Configuration;
-using System.Web.Hosting;
-using FluentScheduler;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Aegis.Core;
 
-namespace Aegis.Core
+namespace Aegis.Pumps.SchedulerJobs
 {
-    /// <summary>
-    ///     <see cref="PublishTask" /> is a Fluent Scheduler command that executes at
-    ///     regular intervals.
-    /// </summary>
-    /// <remarks>
-    ///     <see cref="PublishTask" /> registers with the ASP.NET process to allow
-    ///     graceful shutdown, and offers a wind-down time of up to 90 seconds.
-    /// </remarks>
-    public class PublishTask : IJob, IRegisteredObject
+    internal class SendAegisEventsJob : ClientJob
     {
-
-        private readonly int _aegisCacheBatchSize;
-        private readonly object _lock = new object();
-
-        private volatile bool _shuttingDown;
-
-        public PublishTask()
+        public SendAegisEventsJob(Client client) : base(client, "AegisSendAegisEvents")
         {
-            var aegisCacheBatchSize =
-                ConfigurationManager.AppSettings["AegisCacheBatchSize"];
-
-            if (!string.IsNullOrEmpty(aegisCacheBatchSize))
-            {
-                int batchSize;
-                var canParse = int.TryParse(aegisCacheBatchSize, out batchSize);
-
-                // Set batch-size to 1000 if config setting is missing or invalid.
-                _aegisCacheBatchSize = canParse ? batchSize : 1000;
-            }
-            else
-            {
-                _aegisCacheBatchSize = 1000;
-            }
-
-            HostingEnvironment.RegisterObject(this);
         }
 
-        /// <summary>
-        ///     <see cref="Execute" /> runs at regular intervals, invoking
-        ///     <see cref="AegisEventCache" /> to persist a batch of
-        ///     <see cref="AegisEvent" /> instances to an Azure Event Hub.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///         <see cref="Execute" /> locks in order to ensure sequential access.
-        ///         Exceptions are ignored in POC-mode, the current project state.
-        ///     </para>
-        /// </remarks>
-        public void Execute()
+        protected override void DoExecute()
         {
-            lock (_lock)
+            try
             {
-                if (_shuttingDown)
-                    return;
-
-                try
+                // execute sending data
+                this.ClientInstance.AegisEventCache.Relay(
+                    this.ClientInstance.Settings.AegisCacheBatchSize, 
+                    this.OnPublish);
+            }
+            catch (TaskCanceledException exception)
+            {
+                if (exception.CancellationToken.IsCancellationRequested)
                 {
-                    AegisEventCache.Relay(_aegisCacheBatchSize);
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                        exception);
                 }
-                catch (Exception)
+                else
                 {
-                    // Fail silently and ignore errors for POC
+                    // If the exception.CancellationToken.IsCancellationRequested is false,
+                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                    // Add a custom message in order to ensure that tasks are not canceled.
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                        exception,
+                        "Request timeout.");
                 }
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    exception);
             }
         }
 
-        /// <summary>Requests a registered object to unregister.</summary>
-        /// <param name="immediate">
-        ///     true to indicate the registered object should
-        ///     unregister from the hosting environment before returning; otherwise, false.
-        /// </param>
-        public void Stop(bool immediate)
+        private bool OnPublish(List<AegisEvent> items)
         {
-            // Locking here will wait for the lock in Execute to be released until this code can continue.
-            lock (_lock)
+            try
             {
-                _shuttingDown = true;
-            }
+                if (items.Count == 0)
+                {
+                    return true;
+                }
 
-            HostingEnvironment.UnregisterObject(this);
+                this.ClientInstance.AegisServiceManager.SendAegisEvents(this.ClientInstance.Settings, items);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    exception);
+
+                return false;
+            }
         }
     }
 }

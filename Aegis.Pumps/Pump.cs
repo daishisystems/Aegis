@@ -3,6 +3,7 @@ using FluentScheduler;
 
 namespace Aegis.Pumps
 {
+    // TODO deprecated
     public abstract class Pump
     {
         private volatile bool _hasStarted;
@@ -18,16 +19,16 @@ namespace Aegis.Pumps
 
         public void Start()
         {
-            JobManager.Start();
+            //JobManager.Start();
 
-            for (var i = 0; i < _valve.CurrentPressure; i++)
-            {
-                JobManager.AddJob(
-                    new GetBlackListJob(),
-                    schedule => schedule.ToRunNow().AndEvery(5).Seconds());
-            }
+            //for (var i = 0; i < _valve.CurrentPressure; i++)
+            //{
+            //    JobManager.AddJob(
+            //        new GetBlackListJob(),
+            //        schedule => schedule.ToRunNow().AndEvery(5).Seconds());
+            //}
 
-            _hasStarted = true;
+            //_hasStarted = true;
         }
 
         public virtual void Stop()

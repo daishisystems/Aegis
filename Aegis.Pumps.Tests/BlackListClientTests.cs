@@ -675,63 +675,36 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Aegis.Core;
 
 namespace Aegis.Pumps.Tests
 {
-    /// <summary>
-    ///     <see cref="BlackListClientTests" /> ensures that logic pertaining to
-    ///     <see cref="BlackListPump" /> instances is executed correctly.
-    /// </summary>
     [TestClass]
     public class BlackListClientTests
     {
-        /// <summary>
-        ///     <see cref="DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
-        ///     that a default <see cref="BlackListPump.RecurringTaskName" /> is assigned,
-        ///     if one is not provided.
-        /// </summary>
         [TestMethod]
-        public void DefaultRecurringTaskNameIsAssignedIfOneIsNotProvided()
+        public void SimpleTest()
         {
-            Assert.AreEqual("GetBlackListJob", BlackListPump.Instance.RecurringTaskName);
-        }
+            var self = new BlackListClient();
 
-        /// <summary>
-        ///     <see cref="DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
-        ///     ensures that a default <see cref="BlackListPump.RecurringTaskInterval" />
-        ///     is assigned, if one is not provided.
-        /// </summary>
-        [TestMethod]
-        public void DefaultRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
-        {
-            Assert.AreEqual(600, BlackListPump.Instance.RecurringTaskInterval);
-        }
+            Assert.IsNull(self.TimeStamp);
 
-        /// <summary>
-        ///     <see cref="CustomRecurringTaskNameIsAssignedIfOneIsNotProvided" /> ensures
-        ///     that a custom <see cref="BlackListPump.RecurringTaskName" /> is assigned,
-        ///     when provided.
-        /// </summary>
-        [TestMethod]
-        public void CustomRecurringTaskNameIsAssignedIfOneIsNotProvided()
-        {
-            BlackListPump.Instance.RecurringTaskName = "Custom";
+            BlackListItem blackItem;
+            Assert.IsFalse(self.TryGetBlacklistedItem("192.168.0.1", out blackItem));
+            Assert.IsNull(blackItem);
 
-            Assert.AreEqual("Custom", BlackListPump.Instance.RecurringTaskName);
-        }
+            var data = new BlackListItem[] { new BlackListItem() { RawIPAddress = "10.1.2.3.4" } };
+            var dataTimeStamp = DateTimeOffset.Now;
+            self.SetNewData(data, dataTimeStamp);
 
-        /// <summary>
-        ///     <see cref="CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided" />
-        ///     ensures that a custom <see cref="BlackListPump.RecurringTaskInterval" />
-        ///     is assigned, when provided.
-        /// </summary>
-        [TestMethod]
-        public void CustomRecurringTaskIntervalIsAssignedIfOneIsNotProvided()
-        {
-            BlackListPump.Instance.RecurringTaskInterval = 5;
+            Assert.AreEqual(dataTimeStamp, self.TimeStamp);
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.3.4", out blackItem));
 
-            Assert.AreEqual(5, BlackListPump.Instance.RecurringTaskInterval);
+            self.CleanUp();
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3.4", out blackItem));
+            Assert.IsNull(self.TimeStamp);
         }
     }
 }
