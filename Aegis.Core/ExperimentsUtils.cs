@@ -676,44 +676,70 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Collections;
+using System.Net;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Core
 {
-    /// <summary>
-    ///     <see cref="NewRelicInsightsExceptionMessageParserTests" /> ensures that
-    ///     logic pertaining to <see cref="NewRelicInsightsExceptionMessageParser" />
-    ///     executes correctly.
-    /// </summary>
-    [TestClass]
-    public class NewRelicInsightsExceptionMessageParserTests
+    public class ExperimentsUtils
     {
-        /// <summary>
-        ///     <see cref="CustomExceptionMessageIsReturnedWhenSpecified" /> ensures that a
-        ///     custom exception-message is returned, when specified.
-        /// </summary>
-        [TestMethod]
-        public void CustomExceptionMessageIsReturnedWhenSpecified()
-        {
-            var exceptionMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                "TEST", new Exception());
+        private const int IpMaskBitArrayLength = 256;
 
-            Assert.AreEqual("TEST", exceptionMessage);
+        public static int GetIpExpBucket(IPAddress ipAddress)
+        {
+            var lastPartStr = ipAddress.ToString().Split('.').LastOrDefault();
+
+            int result;
+            if (!int.TryParse(lastPartStr, out result))
+            {
+                return 0;
+            }
+
+            return result;
         }
 
-        /// <summary>
-        ///     <see
-        ///         cref="StandardExceptionMessageIsReturnedWhenNoCustomExceptionMessageIsSpecified" />
-        ///     ensures that a standard exception-message is returned, when no custom
-        ///     exception-message is specified.
-        /// </summary>
-        [TestMethod]
-        public void StandardExceptionMessageIsReturnedWhenNoCustomExceptionMessageIsSpecified()
+        public static string EncodeIpMask(BitArray container)
         {
-            var exceptionMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                null, new Exception("TEST"));
+            if (container == null)
+            {
+                return null;
+            }
 
-            Assert.AreEqual("TEST", exceptionMessage);
+            if (container.Length != IpMaskBitArrayLength)
+            {
+                throw new Exception($"BitArray container has wrong length {container.Length}");
+            }
+
+            // copy to bytes array
+            byte[] bytes = new byte[container.Length / 8];
+            container.CopyTo(bytes, 0);
+
+            // convert to base64
+            return Convert.ToBase64String(bytes);
+        }
+
+        public static BitArray DecodeIpMask(string mask)
+        {
+            if (string.IsNullOrWhiteSpace(mask))
+            {
+                return new BitArray(IpMaskBitArrayLength);
+            }
+
+            // decoder from base64
+            var rawData = Convert.FromBase64String(mask);
+
+            // initialize from the bytes array
+            var result = new BitArray(rawData);
+            if (result.Length != IpMaskBitArrayLength)
+            {
+                throw new Exception($"BitArray container has wrong length {result.Length}");
+            }
+
+            return result;
         }
     }
 }

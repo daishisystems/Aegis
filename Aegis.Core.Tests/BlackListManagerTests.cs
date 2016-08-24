@@ -685,46 +685,46 @@ namespace Aegis.Core.Tests
     [TestClass]
     public class BlackListManagerTests
     {
-        [TestMethod]
-        public void BlackListsAreSegmentedByCountry()
-        {
-            var ipAddress1 = "195.27.14.131";
-            var ipAddress2 = "195.27.14.132";
+        //[TestMethod]
+        //public void BlackListsAreSegmentedByCountry()
+        //{
+        //    var ipAddress1 = "195.27.14.131";
+        //    var ipAddress2 = "195.27.14.132";
 
-            List<BlackListItem> blackListItems =
-                new List<BlackListItem>
-                {
-                    new BlackListItem
-                    {
-                        IPAddress = IPAddress.Parse(ipAddress1)
-                    },
-                    new BlackListItem
-                    {
-                        IPAddress = IPAddress.Parse(ipAddress2)
-                    }
-                };
+        //    List<BlackListItem> blackListItems =
+        //        new List<BlackListItem>
+        //        {
+        //            new BlackListItem
+        //            {
+        //                IPAddress = IPAddress.Parse(ipAddress1)
+        //            },
+        //            new BlackListItem
+        //            {
+        //                IPAddress = IPAddress.Parse(ipAddress2)
+        //            }
+        //        };
 
-            List<IPAddressGeoLocation> newGeoLocationItems;
+        //    List<IPAddressGeoLocation> newGeoLocationItems;
 
-            var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(
-                blackListItems,
-                string.Empty,
-                new WhiteList(new List<WhiteListItem>()), 
-                new Dictionary<string, IPAddressGeoLocation>
-                    {
-                        {
-                            ipAddress1, new IPAddressGeoLocation(IPAddress.Any, null, "Ireland")
-                        },
-                        {
-                            ipAddress2, new IPAddressGeoLocation(IPAddress.Any, null, null)
-                        }
-                    },
-                out newGeoLocationItems);
+        //    var blackListsByCountry = BlackListManager.SegmentBlackListByCountry(
+        //        blackListItems,
+        //        string.Empty,
+        //        new WhiteList(new List<WhiteListItem>()), 
+        //        new Dictionary<string, IPAddressGeoLocation>
+        //            {
+        //                {
+        //                    ipAddress1, new IPAddressGeoLocation(IPAddress.Any, null, "Ireland")
+        //                },
+        //                {
+        //                    ipAddress2, new IPAddressGeoLocation(IPAddress.Any, null, null)
+        //                }
+        //            },
+        //        out newGeoLocationItems);
 
-            CollectionAssert.Contains(blackListsByCountry.Keys, "ireland");
+        //    CollectionAssert.Contains(blackListsByCountry.Keys, "ireland");
 
-            Assert.AreEqual(1, blackListsByCountry["ireland"].Count);
-            Assert.AreEqual(1, blackListsByCountry[string.Empty].Count);
-        }
+        //    Assert.AreEqual(1, blackListsByCountry["ireland"].Count);
+        //    Assert.AreEqual(1, blackListsByCountry[string.Empty].Count);
+        //}
     }
 }

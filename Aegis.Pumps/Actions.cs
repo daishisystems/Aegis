@@ -733,11 +733,14 @@ namespace Aegis.Pumps
         {
             // parse IP address
             IPAddress ipAddress;
+            string ipAddressError;
 
             var ipAddressIsValid =
-                AegisHelper.TryParseIPAddressFromHeader("NS_CLIENT_IP",
+                AegisHelper.TryParseIpAddressFromHeader(
+                    "NS_CLIENT_IP",
                     requestHeaders,
-                    out ipAddress);
+                    out ipAddress,
+                    out ipAddressError);
 
             if (!ipAddressIsValid)
             {
@@ -745,7 +748,7 @@ namespace Aegis.Pumps
                     new NewRelicInsightsEvents.AegisErrorEvent()
                     {
                         ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = "Could not parse IP Address.",
+                        ErrorMessage = "Could not parse IP Address: " + ipAddressError,
                         InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
                     };
 
@@ -754,11 +757,13 @@ namespace Aegis.Pumps
             }
 
             // add IP address to data-pump
+            var currentTime = DateTime.UtcNow;
+
             client.AegisEventCache.Add(new AegisEvent
             {
                 IPAddress = ipAddress.ToString(),
                 Path = requestUri.AbsolutePath,
-                Time = DateTime.UtcNow.ToString("O"),
+                Time = currentTime.ToString("O"),
                 DateIn = paramDateIn?.ToString("O"),
                 DateOut = paramDateOut?.ToString("O"),
                 Destination = paramDestination,
@@ -773,6 +778,13 @@ namespace Aegis.Pumps
                 return false;
             }
 
+            // is enabled
+            if (!client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
+            {
+                // do not block
+                return false;
+            }
+
             // protect the endpoint
             BlackListItem blackItem;
             if (!client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
@@ -780,6 +792,8 @@ namespace Aegis.Pumps
                 // do not block
                 return false;
             }
+
+            // TODO where we check the whitelist? server side?
 
             // check whether country is blocked or simulated
             var isBlocked = client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
@@ -790,9 +804,13 @@ namespace Aegis.Pumps
                 return false;
             }
 
+            // get experiment id
+            var expId = client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+
             // log the malicious event
             var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
+                ExperimentId = expId,
                 IsBlocked = isBlocked == true,
                 IsSimulated = isSimulated == true,
                 IpAddress = ipAddress.ToString(),
@@ -800,6 +818,8 @@ namespace Aegis.Pumps
                 AbsolutePath = requestUri.AbsolutePath,
                 FullPath = requestUri.PathAndQuery
             };
+
+            // TODO send this event to our service too
 
             client.NewRelicInsightsClient.
                 AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);

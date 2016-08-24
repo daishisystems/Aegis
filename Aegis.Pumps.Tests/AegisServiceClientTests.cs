@@ -676,15 +676,14 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core;
 using Jil;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     [TestClass]
     public class AegisServiceClientTests
     {
@@ -696,8 +695,8 @@ namespace Aegis.Pumps.Tests
             // create data
             var data = new List<BlackListItem>()
                            {
-                               new BlackListItem() { RawIPAddress = "192.168.0.1" },
-                               new BlackListItem() { RawIPAddress = "192.168.0.2" },
+                               new BlackListItem() { IpAddress = "192.168.0.1" },
+                               new BlackListItem() { IpAddress = "192.168.0.2" },
                            };
             var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 

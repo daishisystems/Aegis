@@ -676,32 +676,37 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps
+namespace Aegis.Core.Tests
 {
-    /// <summary>
-    ///     <see cref="NewRelicInsightsExceptionMessageParser" /> parses
-    ///     <see cref="Exception" /> metadata in order to determine an appropriate
-    ///     <see cref="Exception" /> message.
-    /// </summary>
-    public static class NewRelicInsightsExceptionMessageParser
+    [TestClass]
+    public class ExperimentsUtilsTests
     {
-        /// <summary>
-        ///     <see cref="GetExceptionMessage" /> returns
-        ///     <see cref="customExceptionMessage" />, if it is not null, otherwise, the
-        ///     <see cref="Exception.Message" /> property of <see cref="exception" />.
-        /// </summary>
-        /// <param name="customExceptionMessage">The custom exception message.</param>
-        /// <param name="exception">The <see cref="Exception" /> from which to read the
-        ///     <see cref="Exception.Message" /> property, if
-        ///     <see cref="customExceptionMessage" /> is null.</param>
-        /// <returns>
-        ///     <see cref="customExceptionMessage" />, if it is not null, otherwise, the
-        ///     <see cref="Exception.Message" /> property of <see cref="exception" />.
-        /// </returns>
-        public static string GetExceptionMessage(string customExceptionMessage, Exception exception)
+        [TestMethod]
+        public void EncodeAndDecodeIpMask()
         {
-            return customExceptionMessage ?? exception.Message;
+            var data = new BitArray(256) { [1] = true, [8] = true };
+
+            var dataStr = ExperimentsUtils.EncodeIpMask(data);
+            var dataNew = ExperimentsUtils.DecodeIpMask(dataStr);
+
+            CollectionAssert.AreEqual(data, dataNew);
+        }
+
+        [TestMethod]
+        public void GetIpExpBucket()
+        {
+            Assert.AreEqual(22, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22")));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.1")));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.255")));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.0")));
         }
     }
 }

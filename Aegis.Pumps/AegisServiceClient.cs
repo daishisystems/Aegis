@@ -702,15 +702,14 @@ namespace Aegis.Pumps
             out DateTimeOffset? timeStamp)
         {
             data = null;
-            timeStamp = null;
 
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.Blacklist));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.Blacklist));
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
             string dataString;
 
-            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            if (!this.DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
                 return false;
             }
@@ -734,19 +733,18 @@ namespace Aegis.Pumps
             out DateTimeOffset? timeStamp)
         {
             data = null;
-            timeStamp = null;
 
-            var uriService = CreateUri(settings, 
+            var uriService = this.CreateUri(settings, 
                                         ServiceNames.SettingsOnline, 
                                         new KeyValuePair<string,string>("key", settings.AegisServiceSettingsOnlineKey));
 
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, uriService);
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
             string dataString;
 
-            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            if (!this.DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
                 return false;
             }
@@ -754,7 +752,7 @@ namespace Aegis.Pumps
             // deserialise data
             try
             {
-                data = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+                data = SettingsOnlineData.Deserialize(dataString);
                 return true;
             }
             catch (Exception exception)
@@ -765,10 +763,10 @@ namespace Aegis.Pumps
 
         public void SendAegisEvents(Settings settings, List<AegisEvent> items)
         {
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.AegisEvents));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisEvents));
             var httpClientFactory = new HttpClientFactory();
 
-            DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
+            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
         }
 
         private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)

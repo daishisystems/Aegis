@@ -675,26 +675,119 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.IO;
+using System.Linq;
+using System.Net;
 using Jil;
+using Aegis.Core;
 
 namespace Aegis.Pumps
 {
     public class SettingsOnlineData
     {
+        private Dictionary<int, List<ExperimentData>> experimentsLookUp;
+
         [JilDirective(Name = "blacklist")]
         public BlackListData Blacklist { get; set; }
 
-        [JilDirective(Name = "isAegisOnBookingEnabled")]
+        [JilDirective(Name = "experiments")]
+        public ExperimentData[] Experiments { get; set; }
+
+        [JilDirective(Name = "enabledOnAvailability")]
+        public bool IsAegisOnAvailabilityEnabled { get; set; }
+
+        [JilDirective(Name = "enabledOnBooking")]
         public bool IsAegisOnBookingEnabled { get; set; }
+
+        public static SettingsOnlineData Deserialize(string dataString)
+        {
+            if (string.IsNullOrWhiteSpace(dataString))
+            {
+                return new SettingsOnlineData();
+            }
+
+            var self = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+
+            // initialize experiments
+            if (self.Experiments != null)
+            {
+                self.experimentsLookUp = new Dictionary<int, List<ExperimentData>>();
+
+                foreach (var exp in self.Experiments)
+                {
+                    var ipMaskContainer = ExperimentsUtils.DecodeIpMask(exp.IpMask);
+
+                    for (var index = 1; index < ipMaskContainer.Length; index++)
+                    {
+                        // if not enabled
+                        if (!ipMaskContainer[index])
+                        {
+                            continue;
+                        }
+
+                        // add to the list
+                        if (!self.experimentsLookUp.ContainsKey(index))
+                        {
+                            self.experimentsLookUp.Add(index, new List<ExperimentData>());
+                        }
+
+                        self.experimentsLookUp[index].Add(exp);
+                    }
+                }
+            }
+
+            return self;
+        }
+
+        public string Serialize()
+        {
+            return JSON.Serialize(this, Options.ISO8601ExcludeNulls);
+        }
+
+        public ExperimentData GetExperiment(IPAddress ipAddress, DateTime currenTime)
+        {
+            if (this.experimentsLookUp == null)
+            {
+                return null;
+            }
+
+            var ipExpBucket = ExperimentsUtils.GetIpExpBucket(ipAddress);
+
+            List<ExperimentData> expsList;
+            if (!this.experimentsLookUp.TryGetValue(ipExpBucket, out expsList))
+            {
+                return null;
+            }
+
+            return expsList.FirstOrDefault(x => x.DateStart >= currenTime && x.DateEnd <= currenTime);
+        }
 
         public class BlackListData
         {
-            [JilDirective(Name = "countriesBlock")]
+            [JilDirective(Name = "countryBlock")]
             public HashSet<string> CountriesBlock { get; set; }
 
-            [JilDirective(Name = "countriesSimulate")]
+            [JilDirective(Name = "countrySimulate")]
             public HashSet<string> CountriesSimulate { get; set; }
+        }
+
+        public class ExperimentData
+        {
+            [JilDirective(Name = "id")]
+            public int ExperimentId { get; set; }
+
+            [JilDirective(Name = "start")]
+            public DateTime DateStart { get; set; }
+
+            [JilDirective(Name = "end")]
+            public DateTime DateEnd { get; set; }
+
+            [JilDirective(Name = "ipMask")]
+            public string IpMask { get; set; }
         }
     }
 }

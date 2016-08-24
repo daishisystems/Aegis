@@ -724,13 +724,13 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             try
             {
                 var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    new AegisErrorEvent()
                     {
                         ComponentName = componentName,
-                        ErrorMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                                    customExceptionMessage, exception),
+                        ErrorMessage = 
+                                    customExceptionMessage ?? exception.ToString(),
                         InnerErrorMessage =
-                                    exception.InnerException?.Message ?? string.Empty
+                                    exception.InnerException?.ToString() ?? string.Empty
                     };
 
                 NewRelicInsightsClient.UploadEvents(

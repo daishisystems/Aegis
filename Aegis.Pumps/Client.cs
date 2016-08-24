@@ -695,7 +695,7 @@ namespace Aegis.Pumps
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
-        public readonly AegisServiceClient AegisServiceManager;
+        public readonly AegisServiceClient AegisServiceClient;
         public readonly Actions Actions;
         private readonly SchedulerRegistry scheduler;
 
@@ -716,7 +716,7 @@ namespace Aegis.Pumps
             this.SettingsOnline = new SettingsOnlineClient();
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
-            this.AegisServiceManager = new AegisServiceClient();
+            this.AegisServiceClient = new AegisServiceClient();
             this.Actions = new Actions();
             this.scheduler = new SchedulerRegistry();
         }

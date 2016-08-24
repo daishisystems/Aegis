@@ -730,10 +730,11 @@ namespace Aegis.Core.Tests
             request.Headers.Add("NS_CLIENT_IP", "127.0.0.1");
 
             IPAddress ipAddress;
+            string error;
 
-            Assert.IsTrue(AegisHelper.TryParseIPAddressFromHeader(
+            Assert.IsTrue(AegisHelper.TryParseIpAddressFromHeader(
                 "NS_CLIENT_IP",
-                request.Headers, out ipAddress));
+                request.Headers, out ipAddress, out error));
         }
     }
 }

@@ -695,7 +695,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsFalse(self.TryGetBlacklistedItem("192.168.0.1", out blackItem));
             Assert.IsNull(blackItem);
 
-            var data = new BlackListItem[] { new BlackListItem() { RawIPAddress = "10.1.2.3.4" } };
+            var data = new BlackListItem[] { new BlackListItem() { IpAddress = "10.1.2.3.4" } };
             var dataTimeStamp = DateTimeOffset.Now;
             self.SetNewData(data, dataTimeStamp);
 

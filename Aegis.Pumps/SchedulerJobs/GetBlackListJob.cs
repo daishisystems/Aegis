@@ -707,7 +707,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 List<BlackListItem> blackListData;
                 DateTimeOffset? newTimeStamp;
 
-                var isUpdated = this.ClientInstance.AegisServiceManager.GetBlackListData(
+                var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
                     this.ClientInstance.Settings,
                     this.ClientInstance.BlackList.TimeStamp,
                     out blackListData,

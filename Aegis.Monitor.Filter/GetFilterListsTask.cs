@@ -767,24 +767,24 @@ namespace Aegis.Monitor.Filter
 
                     // check blacklist data with GeoIP and whitelist
                     var geoLocationProviderUri = ConfigurationManager.AppSettings["IPAddressGeoLocationProviderURI"];
-                    List<IPAddressGeoLocation> newGeoLocationItems;
+                    //List<IPAddressGeoLocation> newGeoLocationItems;
 
-                    var blacklistDataByCountry = BlackListManager.SegmentBlackListByCountry(
-                        blacklistData,
-                        geoLocationProviderUri,
-                        whitelist,
-                        this.geoLocationCache,
-                        out newGeoLocationItems);
+                    //var blacklistDataByCountry = BlackListManager.SegmentBlackListByCountry(
+                    //    blacklistData,
+                    //    geoLocationProviderUri,
+                    //    whitelist,
+                    //    this.geoLocationCache,
+                    //    out newGeoLocationItems);
 
                     // set new blacklist
-                    BlackList.Instance.SetNewData(blacklistDataByCountry);
+                    //BlackList.Instance.SetNewData(blacklistDataByCountry);
 
                     // upload new geolocation data to Azure
-                    if (newGeoLocationItems.Count > 0)
-                    {
-                        // TODO temporary disabled
-                        //AzureSqlManager.UploadGeoLocationData(sqlAzureConnectionString, newGeoLocationItems);
-                    }
+                    //if (newGeoLocationItems.Count > 0)
+                    //{
+                    //    // TODO temporary disabled
+                    //    //AzureSqlManager.UploadGeoLocationData(sqlAzureConnectionString, newGeoLocationItems);
+                    //}
                 }
                 catch (Exception exception)
                 {

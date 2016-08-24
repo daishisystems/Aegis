@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Net;
 using System.Runtime.Serialization;
+using Jil;
 
 namespace Aegis.Core
 {
@@ -688,62 +689,24 @@ namespace Aegis.Core
     public class BlackListItem
     {
         /// <summary>
-        ///     <see cref="IPAddress" /> is an <see cref="IPAddress" /> that has been
-        ///     flagged as having malicious intent.
-        /// </summary>
-        /// <remarks>
-        ///     ToDo: If new, populate with <see cref="RawIPAddress" /> and add unit
-        ///     test. IPAddress will not survive serialisation intact, without
-        ///     parameterless constructor.
-        /// </remarks>
-        [IgnoreDataMember]
-        public IPAddress IPAddress { get; set; }
-
-        /// <summary>
         ///     <see cref="Country" /> is the country of origin, from which
         ///     <see cref="IPAddress" /> is registered.
         /// </summary>
+        [JilDirective(Name = "c")]
         public string Country { get; set; }
 
         /// <summary>
-        ///     <see cref="HyperActivity" /> represents the number of HTTP requests during
-        ///     which this <see cref="BlackListItem" /> was active during a 1-minute
-        ///     interval.
-        /// </summary>
-        public int HyperActivity { get; set; }
-
-        /// <summary>
-        ///     <see cref="TotalNumHits" /> is the total number of HTTP requests that
-        ///     originated from <see cref="IPAddress" />, since the last data-load event.
-        /// </summary>
-        public int TotalNumHits { get; set; }
-
-        /// <summary>
-        ///     <see cref="AvgNumHits" /> is the average number of HTTP requests that
-        ///     occurred since the last data-load event, divided by the
-        ///     <see cref="HyperActivity" />. This results in the average number of HTTP
-        ///     requests per 1-minute interval, across the time range during which the last
-        ///     data-load event occurred.
-        /// </summary>
-        public int AvgNumHits { get; set; }
-
-        /// <summary>
-        ///     <see cref="LatestServerTime" /> is the latest time associated with all HTTP
-        ///     request metadata in each 1-minute interval.
-        /// </summary>
-        public DateTime LatestServerTime { get; set; }
-
-        /// <summary>
-        ///     <see cref="RawIPAddress" /> returns <see cref="IPAddress" />' raw,
+        ///     <see cref="IpAddress" /> returns <see cref="IPAddress" />' raw,
         ///     string-based format.
         /// </summary>
         /// <remarks>
-        ///     <see cref="RawIPAddress" /> is primarily used for display and serialisation
+        ///     <see cref="IpAddress" /> is primarily used for display and serialization
         ///     purposes, when viewing <see cref="BlackListItem" /> instances in, for
         ///     example, web browsers, where <see cref="IPAddress" /> properties are
         ///     expressed as
         ///     <see cref="int" />.
         /// </remarks>
-        public string RawIPAddress { get; set; }
+        [JilDirective(Name = "i")]
+        public string IpAddress { get; set; }
     }
 }
