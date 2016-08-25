@@ -688,6 +688,8 @@ namespace Aegis.Core
     /// </summary>
     public class BlackListItem
     {
+        private string ipAddressString;
+
         /// <summary>
         ///     <see cref="Country" /> is the country of origin, from which
         ///     <see cref="IPAddress" /> is registered.
@@ -707,6 +709,21 @@ namespace Aegis.Core
         ///     <see cref="int" />.
         /// </remarks>
         [JilDirective(Name = "i")]
-        public string IpAddress { get; set; }
+        public string IpAddressRaw
+        {
+            get
+            {
+                return this.ipAddressString;
+            }
+
+            set
+            {
+                this.IpAddress = IPAddress.Parse(value);
+                this.ipAddressString = value;
+            }
+        }
+
+        [JilDirective(Ignore = true)]
+        public IPAddress IpAddress { get; private set; }
     }
 }

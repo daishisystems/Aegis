@@ -695,8 +695,8 @@ namespace Aegis.Pumps.Tests
             // create data
             var data = new List<BlackListItem>()
                            {
-                               new BlackListItem() { IpAddress = "192.168.0.1" },
-                               new BlackListItem() { IpAddress = "192.168.0.2" },
+                               new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                               new BlackListItem() { IpAddressRaw = "192.168.0.2" },
                            };
             var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 

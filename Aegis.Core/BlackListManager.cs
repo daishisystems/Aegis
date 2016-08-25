@@ -760,7 +760,7 @@ namespace Aegis.Core
                     blackListItems.Add(new BlackListItem
                     {
                         //IPAddress = IPAddress.Parse(rawIPAddress),
-                        IpAddress = rawIPAddress,
+                        IpAddressRaw = rawIPAddress,
                         //HyperActivity = reader.GetInt32(1),
                         //TotalNumHits = reader.GetInt32(2),
                         //AvgNumHits = reader.GetInt32(3),

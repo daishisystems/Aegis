@@ -700,7 +700,7 @@ namespace Aegis.Pumps
 
             foreach (var blackListItem in data)
             {
-                blacklistNew.TryAdd(blackListItem.IpAddress, blackListItem);
+                blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
             }
 
             // swap
