@@ -752,7 +752,10 @@ namespace Aegis.Pumps
             // deserialise data
             try
             {
-                data = SettingsOnlineData.Deserialize(dataString);
+                if (!string.IsNullOrWhiteSpace(dataString))
+                {
+                    data = SettingsOnlineData.Deserialize(dataString);
+                }
                 return true;
             }
             catch (Exception exception)
@@ -787,7 +790,7 @@ namespace Aegis.Pumps
 
             if (param1 != null)
             {
-                uriString = $"{settings.AegisServiceUri}/{uriServiceName}/?{param1.Value.Key}={param1.Value.Value}";
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}?{param1.Value.Key}={param1.Value.Value}";
             }
             else
             {
@@ -834,7 +837,7 @@ namespace Aegis.Pumps
                         "Downloading data resulting in: HTTP " + response.StatusCode);
                 }
 
-                // if data is not modified since last request
+                // if data is not modified since last request or no data available
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
                     return false;

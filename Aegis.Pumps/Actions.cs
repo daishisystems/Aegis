@@ -778,7 +778,7 @@ namespace Aegis.Pumps
                 return false;
             }
 
-            // is enabled
+            // is current action enabled
             if (!client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
             {
                 // do not block
@@ -793,8 +793,6 @@ namespace Aegis.Pumps
                 return false;
             }
 
-            // TODO where we check the whitelist? server side?
-
             // check whether country is blocked or simulated
             var isBlocked = client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
             var isSimulated = client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
@@ -808,7 +806,7 @@ namespace Aegis.Pumps
             var expId = client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
 
             // log the malicious event
-            var ipAddressBlacklistedNewRelicInsightsEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
                 ExperimentId = expId,
                 IsBlocked = isBlocked == true,
@@ -819,10 +817,14 @@ namespace Aegis.Pumps
                 FullPath = requestUri.PathAndQuery
             };
 
-            // TODO send this event to our service too
+            client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
-            client.NewRelicInsightsClient.
-                AddNewRelicInsightEvent(ipAddressBlacklistedNewRelicInsightsEvent);
+            // send blacklisted ip to the service
+            if (client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
+            {
+                // TODO send this event to our service too
+                //client.AegisEventCache.Add(ipBlackListEvent);
+            }
 
             // return info whether to block or not
             return isBlocked == true;

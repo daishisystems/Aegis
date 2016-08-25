@@ -703,6 +703,9 @@ namespace Aegis.Pumps
         [JilDirective(Name = "enabledOnBooking")]
         public bool IsAegisOnBookingEnabled { get; set; }
 
+        [JilDirective(Name = "enabledSendBlackIpToService")]
+        public bool IsSendBlackListIpToServiceEnabled { get; set; }
+
         public static SettingsOnlineData Deserialize(string dataString)
         {
             if (string.IsNullOrWhiteSpace(dataString))
