@@ -693,7 +693,7 @@ namespace Aegis.Pumps
         {
             public const string Blacklist = "blacklist";
             public const string SettingsOnline = "settings";
-            public const string AegisEvents = "events";
+            public const string AegisAvailabilityEvents = "events/availability";
             public const string AegisGeneralEvents = "events/general";
         }
 
@@ -766,9 +766,9 @@ namespace Aegis.Pumps
             }
         }
 
-        public void SendAegisEvents(Settings settings, List<AegisEvent> items)
+        public void SendAegisAvailabilityEvents(Settings settings, List<AegisAvailabilityEvent> items)
         {
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisEvents));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisAvailabilityEvents));
             var httpClientFactory = new HttpClientFactory();
 
             var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);

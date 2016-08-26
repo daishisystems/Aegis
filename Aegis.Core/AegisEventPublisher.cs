@@ -748,16 +748,16 @@ namespace Aegis.Core
         ///     <see cref="publish" />.
         /// </param>
         /// <returns>The number of <see cref="AegisEvent" /> instances published.</returns>
-        public static int Publish(ConcurrentQueue<AegisEvent> events,
+        public static int Publish(ConcurrentQueue<AegisAvailabilityEvent> events,
             int batchSize,
-            Action<List<AegisEvent>> publish)
+            Action<List<AegisAvailabilityEvent>> publish)
         {
             bool notEmpty;
-            var batch = new List<AegisEvent>();
+            var batch = new List<AegisAvailabilityEvent>();
 
             do
             {
-                AegisEvent @event;
+                AegisAvailabilityEvent @event;
                 notEmpty = events.TryDequeue(out @event);
 
                 if (notEmpty)

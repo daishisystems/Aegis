@@ -684,37 +684,45 @@ namespace Aegis.Core.Data
     ///     user-specific metadata that the Aegis platform can aggregate and process in
     ///     order to identify patterns in traffic.
     /// </summary>
-    public class AegisEvent : AegisBaseEvent
+    public class AegisAvailabilityEvent : AegisBaseEvent
     {
         [JilDirective("eventType")]
         public override string EventType
         {
-            get { return "AegisEvent"; }
+            get { return "AegisAvailabilityEvent"; }
             set { }
         }
 
         /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        [JilDirective(Name = "i")]
         public string IpAddress { get; set; }
 
         /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        [JilDirective(Name = "p")]
         public string Path { get; set; }
 
         /// <summary>Accepted languages in HTTP request</summary>
+        [JilDirective(Name = "httpAcceptLang")]
         public string HttpAcceptLanguage { get; set; }
 
         /// <summary>User-agent in HTTP request</summary>
+        [JilDirective(Name = "httpUserAgent")]
         public string HttpUserAgent { get; set; }
 
         /// <summary>Flight date in</summary>
+        [JilDirective(Name = "dateIn")]
         public string DateIn { get; set; }
 
         /// <summary>Flight date out</summary>
+        [JilDirective(Name = "dateOut")]
         public string DateOut { get; set; }
 
         /// <summary>Flight origin</summary>
+        [JilDirective(Name = "orn")]
         public string Origin { get; set; }
 
         /// <summary>Flight destination</summary>
+        [JilDirective(Name = "dst")]
         public string Destination { get; set; }
 
         public override string ToString()

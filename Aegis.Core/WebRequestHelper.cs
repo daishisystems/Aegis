@@ -686,7 +686,7 @@ namespace Aegis.Core
 {
     public class WebRequestHelper
     {
-        public static void SendToProxy(List<AegisEvent> items)
+        public static void SendToProxy(List<AegisAvailabilityEvent> items)
         {
             if (items.Count == 0)
             {

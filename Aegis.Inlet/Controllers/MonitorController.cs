@@ -760,7 +760,7 @@ namespace Aegis.Inlet.Controllers
             try
             {
                 events =
-                    JsonConvert.DeserializeObject<IEnumerable<AegisEvent>>(value)
+                    JsonConvert.DeserializeObject<IEnumerable<AegisAvailabilityEvent>>(value)
                         .Select(x => new AegisEventHub(x));
             }
             catch (Exception e)

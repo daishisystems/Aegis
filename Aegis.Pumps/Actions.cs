@@ -760,7 +760,7 @@ namespace Aegis.Pumps
             // add IP address to data-pump
             var currentTime = DateTime.UtcNow;
 
-            client.AegisEventCache.Add(new AegisEvent
+            client.AegisEventCache.AddAvailability(new AegisAvailabilityEvent
             {
                 IpAddress = ipAddress.ToString(),
                 Path = requestUri.AbsolutePath,

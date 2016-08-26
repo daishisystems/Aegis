@@ -689,11 +689,11 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void AegisEventPublisherProcessesMaximumNumberOfEvents()
         {
-            var events = new ConcurrentQueue<AegisEvent>();
+            var events = new ConcurrentQueue<AegisAvailabilityEvent>();
 
             for (var i = 0; i < 11; i++)
             {
-                events.Enqueue(new AegisEvent());
+                events.Enqueue(new AegisAvailabilityEvent());
             }
 
             var numEventsPublished = AegisEventPublisher.Publish(
@@ -705,11 +705,11 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void AegisEventPublisherProcessesMinimumNumberOfEvents()
         {
-            var events = new ConcurrentQueue<AegisEvent>();
+            var events = new ConcurrentQueue<AegisAvailabilityEvent>();
 
             for (var i = 0; i < 8; i++)
             {
-                events.Enqueue(new AegisEvent());
+                events.Enqueue(new AegisAvailabilityEvent());
             }
 
             var numEventsPublished = AegisEventPublisher.Publish(

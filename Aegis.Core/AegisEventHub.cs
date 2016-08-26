@@ -690,7 +690,7 @@ namespace Aegis.Core
 
         /// <summary>Convert AegisEvent to AegisEventHub data structure</summary>
         /// <param name="evnt"></param>
-        public AegisEventHub(AegisEvent evnt)
+        public AegisEventHub(AegisAvailabilityEvent evnt)
         {
             // explicit assignment for full data control
             IPAddress = evnt.IpAddress;

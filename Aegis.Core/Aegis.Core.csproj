@@ -68,7 +68,7 @@
     <Compile Include="AegisHelper.cs" />
     <Compile Include="Data\AegisBaseEvent.cs" />
     <Compile Include="Data\AegisBlackListEvent.cs" />
-    <Compile Include="Data\AegisEvent.cs" />
+    <Compile Include="Data\AegisAvailabilityEvent.cs" />
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="AzureSqlManager.cs" />
     <Compile Include="Data\BlackListItem.cs" />
