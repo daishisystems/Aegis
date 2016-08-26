@@ -676,11 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.IO;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Aegis.Core
 {
@@ -758,58 +754,6 @@ namespace Aegis.Core
             }
 
             return true;
-        }
-
-        /// <summary>
-        ///     <see cref="GetIPAddressGeoLocationAsync" /> returns geolocation metadata
-        ///     from <see cref="geoLocationProviderUri" />, that pertains to
-        ///     <see cref="ipAddress" />.
-        /// </summary>
-        /// <param name="ipAddress">
-        ///     The <see cref="IPAddress" /> to which the necessary
-        ///     geolocation metadata belongs.
-        /// </param>
-        /// <param name="geoLocationProviderUri">
-        ///     The HTTP resource that provides IP-based
-        ///     geolocation metadata.
-        /// </param>
-        /// <returns>
-        ///     A <see cref="Task" /> consisting of
-        ///     <see cref="IPAddressGeoLocation" /> that pertains to
-        ///     <see cref="ipAddress" />.
-        /// </returns>
-        /// <remarks>
-        ///     <para>
-        ///         ToDo: Consider using the RIPE DB API. Requires an account. Consider
-        ///         usage limits.
-        ///     </para>
-        ///     <para>ToDo: Add a synchronous equivalent method.</para>
-        /// </remarks>
-        public static async Task<IPAddressGeoLocation> GetIPAddressGeoLocationAsync(
-            this IPAddress ipAddress,
-            string geoLocationProviderUri)
-        {
-            var content = new MemoryStream();
-
-            var webReq =
-                (HttpWebRequest)
-                    WebRequest.Create(geoLocationProviderUri + "/" + ipAddress);
-
-            using (var response = await webReq.GetResponseAsync())
-            {
-                using (var responseStream = response.GetResponseStream())
-                {
-                    if (responseStream != null)
-                    {
-                        await responseStream.CopyToAsync(content);
-                    }
-                }
-            }
-
-            var data = JsonConvert.DeserializeObject<IPAddressGeoLocationRaw>(
-                    Encoding.UTF8.GetString(content.ToArray()));
-
-            return new IPAddressGeoLocation(ipAddress, data);
         }
     }
 }
