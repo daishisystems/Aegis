@@ -697,7 +697,7 @@ namespace Aegis.Pumps
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient;
         public readonly Actions Actions;
-        private readonly SchedulerRegistry scheduler;
+        private SchedulerRegistry scheduler;
 
         private Client(NewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
@@ -812,6 +812,15 @@ namespace Aegis.Pumps
 
             // start scheduled tasks
             Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
+        }
+
+        public void SettingsChangeNotification()
+        {
+            // reload scheduler
+            this.scheduler?.ShutDown();
+
+            this.scheduler = new SchedulerRegistry();
+            this.scheduler.Initialise(Instance, true);
         }
     }
 }

@@ -685,7 +685,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     {
         /// <summary>
         ///     <see cref="EventType" /> is the New Relic Insights to which this
-        ///     <see cref="AegisErrorEvent" /> will be uploaded.
+        ///     event will be uploaded.
         /// </summary>
         [JilDirective(Name = "eventType")]
         public abstract string EventType { get; set; }

@@ -707,6 +707,9 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // set new data
                 this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
+
+                // notify about settings change
+                this.ClientInstance.SettingsChangeNotification();
             }
             catch (TaskCanceledException exception)
             {

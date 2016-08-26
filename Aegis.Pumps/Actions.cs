@@ -711,8 +711,8 @@ namespace Aegis.Pumps
                     new NewRelicInsightsEvents.AegisErrorEvent()
                     {
                         ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = exception.Message,
-                        InnerErrorMessage = exception.InnerException?.Message ?? string.Empty
+                        ErrorMessage = exception.ToString(),
+                        InnerErrorMessage = exception.InnerException?.ToString() ?? string.Empty
                     };
 
                 client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);

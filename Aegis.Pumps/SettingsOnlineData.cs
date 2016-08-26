@@ -706,6 +706,15 @@ namespace Aegis.Pumps
         [JilDirective(Name = "enabledSendBlackIpToService")]
         public bool IsSendBlackListIpToServiceEnabled { get; set; }
 
+        [JilDirective(Name = "jobGetBlackListInterval")]
+        public int? GetBlackListJobInternvalInSeconds { get; set; }
+
+        [JilDirective(Name = "jobGetSettingsOnlineInterval")]
+        public int? GetSettingsOnlineJobInternvalInSeconds { get; set; }
+
+        [JilDirective(Name = "jobSendAegisEventsInterval")]
+        public int? SendAegisEventsJobInternvalInSeconds { get; set; }
+
         public static SettingsOnlineData Deserialize(string dataString)
         {
             if (string.IsNullOrWhiteSpace(dataString))
