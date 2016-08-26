@@ -680,6 +680,7 @@ using System.Configuration;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {

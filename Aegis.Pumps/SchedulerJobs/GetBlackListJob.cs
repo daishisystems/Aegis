@@ -676,14 +676,12 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
-    using System.Collections.Generic;
-
-    using Aegis.Core;
-
     /// <summary>
     ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
     ///     Aegis for the most up-to-date black-list, and retains a copy of this

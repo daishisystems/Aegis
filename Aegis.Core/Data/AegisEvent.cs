@@ -675,55 +675,46 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Net;
-using System.Runtime.Serialization;
-using Jil;
-
-namespace Aegis.Core
+namespace Aegis.Core.Data
 {
     /// <summary>
-    ///     <see cref="BlackListItem" />, in its simplest form, consists of an
-    ///     <see cref="IPAddress" /> that has been flagged as having malicious intent.
+    ///     AegisEvent represents a simple structure that is designed to encapsulate
+    ///     user-specific metadata that the Aegis platform can aggregate and process in
+    ///     order to identify patterns in traffic.
     /// </summary>
-    public class BlackListItem
+    public class AegisEvent
     {
-        private string ipAddressString;
+        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        public string IPAddress { get; set; }
 
-        /// <summary>
-        ///     <see cref="Country" /> is the country of origin, from which
-        ///     <see cref="IPAddress" /> is registered.
-        /// </summary>
-        [JilDirective(Name = "c")]
-        public string Country { get; set; }
+        /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        public string Path { get; set; }
 
-        /// <summary>
-        ///     <see cref="IpAddress" /> returns <see cref="IPAddress" />' raw,
-        ///     string-based format.
-        /// </summary>
-        /// <remarks>
-        ///     <see cref="IpAddress" /> is primarily used for display and serialization
-        ///     purposes, when viewing <see cref="BlackListItem" /> instances in, for
-        ///     example, web browsers, where <see cref="IPAddress" /> properties are
-        ///     expressed as
-        ///     <see cref="int" />.
-        /// </remarks>
-        [JilDirective(Name = "i")]
-        public string IpAddressRaw
+        /// <summary>Time is a string-based translation of the event time.</summary>
+        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
+        public string Time { get; set; }
+
+        /// <summary>Accepted languages in HTTP request</summary>
+        public string HttpAcceptLanguage { get; set; }
+
+        /// <summary>User-agent in HTTP request</summary>
+        public string HttpUserAgent { get; set; }
+
+        /// <summary>Flight date in</summary>
+        public string DateIn { get; set; }
+
+        /// <summary>Flight date out</summary>
+        public string DateOut { get; set; }
+
+        /// <summary>Flight origin</summary>
+        public string Origin { get; set; }
+
+        /// <summary>Flight destination</summary>
+        public string Destination { get; set; }
+
+        public override string ToString()
         {
-            get
-            {
-                return this.ipAddressString;
-            }
-
-            set
-            {
-                this.IpAddress = IPAddress.Parse(value);
-                this.ipAddressString = value;
-            }
+            return $"IP address:   {IPAddress}";
         }
-
-        [JilDirective(Ignore = true)]
-        public IPAddress IpAddress { get; private set; }
     }
 }

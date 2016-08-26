@@ -680,6 +680,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {

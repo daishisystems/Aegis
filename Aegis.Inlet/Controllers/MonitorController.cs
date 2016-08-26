@@ -684,6 +684,7 @@ using System.Net.Http;
 using System.Text;
 using System.Web.Http;
 using Aegis.Core;
+using Aegis.Core.Data;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 

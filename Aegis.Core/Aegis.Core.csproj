@@ -66,10 +66,10 @@
   <ItemGroup>
     <Compile Include="AegisEventHub.cs" />
     <Compile Include="AegisHelper.cs" />
-    <Compile Include="AegisEvent.cs" />
+    <Compile Include="Data\AegisEvent.cs" />
     <Compile Include="AegisEventPublisher.cs" />
     <Compile Include="AzureSqlManager.cs" />
-    <Compile Include="BlackListItem.cs" />
+    <Compile Include="Data\BlackListItem.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />
     <Compile Include="CitrixNetworkRouteMapper.cs" />
@@ -101,6 +101,9 @@
   <ItemGroup>
     <None Include="Aegis.licenseheader" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

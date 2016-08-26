@@ -679,6 +679,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Web.Http;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Monitor.Filter.Controllers
 {

@@ -683,6 +683,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Aegis.Core;
 using Jil;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {

@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Tests
 {

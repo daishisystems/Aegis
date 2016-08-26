@@ -679,6 +679,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {

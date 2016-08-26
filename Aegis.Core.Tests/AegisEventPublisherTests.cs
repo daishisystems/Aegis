@@ -679,6 +679,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Aegis.Core.Data;
 
 namespace Aegis.Core.Tests
 {

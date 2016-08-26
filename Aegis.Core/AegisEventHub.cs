@@ -676,10 +676,10 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Linq;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {
-
     /// <summary>
     ///     AegisEventHub represents a simple structure that is designed to
     ///     encapsulate metadata. It extends AegisEvent data with more fields. It is
