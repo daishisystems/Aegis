@@ -707,6 +707,7 @@ namespace Aegis.Pumps
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
         private readonly MemoryCache<AegisEvent> events = new MemoryCache<AegisEvent>(1000000);
+        private readonly MemoryCache<AegisBaseEvent> eventsGeneral = new MemoryCache<AegisBaseEvent>(100000);
 
         /// <summary>
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
@@ -724,6 +725,11 @@ namespace Aegis.Pumps
             this.events.Add(@event);
         }
 
+        public void AddGeneral(AegisBaseEvent evnt)
+        {
+            this.eventsGeneral.Add(evnt);
+        }
+
         /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
         /// <param name="batchSize">
         ///     <see cref="batchSize" /> determines the number of
@@ -733,6 +739,11 @@ namespace Aegis.Pumps
         public void Relay(int batchSize, Func<List<AegisEvent>, bool> processorFunc)
         {
             this.events.Process(batchSize, processorFunc);
+        }
+
+        public void RelayGeneralEvents(int batchSize, Func<List<AegisBaseEvent>, bool> processorFunc)
+        {
+            this.eventsGeneral.Process(batchSize, processorFunc);
         }
     }
 }

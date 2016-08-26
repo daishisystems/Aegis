@@ -762,7 +762,7 @@ namespace Aegis.Pumps
 
             client.AegisEventCache.Add(new AegisEvent
             {
-                IPAddress = ipAddress.ToString(),
+                IpAddress = ipAddress.ToString(),
                 Path = requestUri.AbsolutePath,
                 Time = currentTime.ToString("O"),
                 DateIn = paramDateIn?.ToString("O"),
@@ -823,8 +823,19 @@ namespace Aegis.Pumps
             // send blacklisted ip to the service
             if (client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
             {
-                // TODO send this event to our service too
-                //client.AegisEventCache.Add(ipBlackListEvent);
+                var ipBlackListAegisEvent = new AegisBlackListEvent()
+                {
+                    ExperimentId = expId,
+                    IsBlocked = isBlocked == true,
+                    IsSimulated = isSimulated == true,
+                    IpAddress = ipAddress.ToString(),
+                    Country = blackItem.Country,
+                    AbsolutePath = requestUri.AbsolutePath,
+                    FullPath = requestUri.PathAndQuery,
+                    Time = currentTime.ToString("O"),
+                };
+
+                client.AegisEventCache.AddGeneral(ipBlackListAegisEvent);
             }
 
             // return info whether to block or not

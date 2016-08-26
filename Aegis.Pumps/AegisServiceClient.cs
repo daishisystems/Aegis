@@ -693,7 +693,8 @@ namespace Aegis.Pumps
         {
             public const string Blacklist = "blacklist";
             public const string SettingsOnline = "settings";
-            public const string AegisEvents = "aegisEvents";
+            public const string AegisEvents = "events";
+            public const string AegisGeneralEvents = "events/general";
         }
 
         public bool GetBlackListData(
@@ -770,7 +771,17 @@ namespace Aegis.Pumps
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisEvents));
             var httpClientFactory = new HttpClientFactory();
 
-            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
+            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
+            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
+        }
+
+        public void SendAegisGeneralEvents(Settings settings, List<AegisBaseEvent> items)
+        {
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisGeneralEvents));
+            var httpClientFactory = new HttpClientFactory();
+
+            var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
+            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
         }
 
         private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
@@ -854,7 +865,7 @@ namespace Aegis.Pumps
         private void DoSendAegisEvents(
             Core.HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
-            List<AegisEvent> items)
+            string itemsJson)
         {
             // TODO support httpClientFactory
 
@@ -872,7 +883,6 @@ namespace Aegis.Pumps
                 request.Proxy = httpRequestMetadata.WebProxy;
             }
 
-            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
             var postData = "=" + itemsJson;
             var byteArray = Encoding.UTF8.GetBytes(postData);
 

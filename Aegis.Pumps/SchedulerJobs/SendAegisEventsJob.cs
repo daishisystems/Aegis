@@ -697,6 +697,11 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance.AegisEventCache.Relay(
                     this.ClientInstance.Settings.AegisCacheBatchSize, 
                     this.OnPublish);
+
+                // execute sending general data
+                this.ClientInstance.AegisEventCache.RelayGeneralEvents(
+                    this.ClientInstance.Settings.AegisCacheBatchSize,
+                    this.OnPublishGeneral);
             }
             catch (TaskCanceledException exception)
             {
@@ -745,6 +750,29 @@ namespace Aegis.Pumps.SchedulerJobs
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    exception);
+
+                return false;
+            }
+        }
+
+        private bool OnPublishGeneral(List<AegisBaseEvent> items)
+        {
+            try
+            {
+                if (items.Count == 0)
+                {
+                    return true;
+                }
+
+                this.ClientInstance.AegisServiceClient.SendAegisGeneralEvents(this.ClientInstance.Settings, items);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisGeneralEvents,
                     exception);
 
                 return false;

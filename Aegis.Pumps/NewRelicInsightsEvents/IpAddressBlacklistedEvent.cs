@@ -697,7 +697,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public bool IsSimulated { get; set; }
 
         /// <summary>
-        ///     <see cref="IPAddress" /> is the black-listed IP address that has attempted
+        ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
         ///     access.
         /// </summary>
         [JilDirective(Name = "ipAddress")]

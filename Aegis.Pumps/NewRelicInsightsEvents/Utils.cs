@@ -689,6 +689,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string GetBlackList = "GetBlackList";
             public const string GetSettingsOnline = "GetSettingsOnline";
             public const string SendAegisEvents = "SendAegisEvents";
+            public const string SendAegisGeneralEvents = "SendAegisGeneralEvents";
         }
 
         public class EventTypes

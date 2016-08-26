@@ -675,51 +675,59 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Jil;
 
 namespace Aegis.Core.Data
 {
-    /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to encapsulate
-    ///     user-specific metadata that the Aegis platform can aggregate and process in
-    ///     order to identify patterns in traffic.
-    /// </summary>
-    public class AegisEvent : AegisBaseEvent
+    public class AegisBlackListEvent : AegisBaseEvent
     {
         [JilDirective("eventType")]
         public override string EventType
         {
-            get { return "AegisEvent"; }
+            get { return "AegisBlackListEvent"; }
             set { }
         }
 
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        [JilDirective(Name = "expId")]
+        public int? ExperimentId { get; set; }
+
+        [JilDirective(Name = "isBlocked")]
+        public bool IsBlocked { get; set; }
+
+        [JilDirective(Name = "isSimulated")]
+        public bool IsSimulated { get; set; }
+
+        /// <summary>
+        ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "ipAddress")]
         public string IpAddress { get; set; }
 
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        public string Path { get; set; }
+        /// <summary>
+        ///     Country of the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "country")]
+        public string Country { get; set; }
 
-        /// <summary>Accepted languages in HTTP request</summary>
-        public string HttpAcceptLanguage { get; set; }
+        /// <summary>
+        ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "absolutePath")]
+        public string AbsolutePath { get; set; }
 
-        /// <summary>User-agent in HTTP request</summary>
-        public string HttpUserAgent { get; set; }
-
-        /// <summary>Flight date in</summary>
-        public string DateIn { get; set; }
-
-        /// <summary>Flight date out</summary>
-        public string DateOut { get; set; }
-
-        /// <summary>Flight origin</summary>
-        public string Origin { get; set; }
-
-        /// <summary>Flight destination</summary>
-        public string Destination { get; set; }
-
-        public override string ToString()
-        {
-            return $"IP address: {this.IpAddress}";
-        }
+        /// <summary>
+        ///     <see cref="FullPath" /> is the full path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "fullPath")]
+        public string FullPath { get; set; }
     }
 }

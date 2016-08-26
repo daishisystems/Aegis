@@ -679,47 +679,14 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to encapsulate
-    ///     user-specific metadata that the Aegis platform can aggregate and process in
-    ///     order to identify patterns in traffic.
-    /// </summary>
-    public class AegisEvent : AegisBaseEvent
+    public abstract class AegisBaseEvent
     {
-        [JilDirective("eventType")]
-        public override string EventType
-        {
-            get { return "AegisEvent"; }
-            set { }
-        }
+        [JilDirective(Name = "eventType")]
+        public abstract string EventType { get; set; }
 
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        public string IpAddress { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        public string Path { get; set; }
-
-        /// <summary>Accepted languages in HTTP request</summary>
-        public string HttpAcceptLanguage { get; set; }
-
-        /// <summary>User-agent in HTTP request</summary>
-        public string HttpUserAgent { get; set; }
-
-        /// <summary>Flight date in</summary>
-        public string DateIn { get; set; }
-
-        /// <summary>Flight date out</summary>
-        public string DateOut { get; set; }
-
-        /// <summary>Flight origin</summary>
-        public string Origin { get; set; }
-
-        /// <summary>Flight destination</summary>
-        public string Destination { get; set; }
-
-        public override string ToString()
-        {
-            return $"IP address: {this.IpAddress}";
-        }
+        /// <summary>Time is a string-based translation of the event time.</summary>
+        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
+        [JilDirective(Name = "time")]
+        public string Time { get; set; }
     }
 }

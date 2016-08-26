@@ -693,7 +693,7 @@ namespace Aegis.Core
         public AegisEventHub(AegisEvent evnt)
         {
             // explicit assignment for full data control
-            IPAddress = evnt.IPAddress;
+            IPAddress = evnt.IpAddress;
             Path = evnt.Path;
             Time = evnt.Time;
             HttpAcceptLanguage = evnt.HttpAcceptLanguage;
