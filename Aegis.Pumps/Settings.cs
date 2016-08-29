@@ -690,7 +690,7 @@ namespace Aegis.Pumps
         public readonly string AegisServiceUri;
         public readonly int AegisCacheBatchSize = 1000;
         public readonly int GetBlackListJobInternvalInSeconds = 600;
-        public readonly int GetSettingsOnlineJobInternvalInSeconds = 1800;
+        public readonly int GetSettingsOnlineJobInternvalInSeconds = 900;
         public readonly int SendAegisEventsJobInternvalInSeconds = 10;
 
         public Settings(

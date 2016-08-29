@@ -676,44 +676,54 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net;
+using System.Runtime.Serialization;
+using Jil;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Core.Data
 {
     /// <summary>
-    ///     <see cref="NewRelicInsightsExceptionMessageParserTests" /> ensures that
-    ///     logic pertaining to <see cref="NewRelicInsightsExceptionMessageParser" />
-    ///     executes correctly.
+    ///     <see cref="BlackListItem" />, in its simplest form, consists of an
+    ///     <see cref="IPAddress" /> that has been flagged as having malicious intent.
     /// </summary>
-    [TestClass]
-    public class NewRelicInsightsExceptionMessageParserTests
+    public class BlackListItem
     {
-        /// <summary>
-        ///     <see cref="CustomExceptionMessageIsReturnedWhenSpecified" /> ensures that a
-        ///     custom exception-message is returned, when specified.
-        /// </summary>
-        [TestMethod]
-        public void CustomExceptionMessageIsReturnedWhenSpecified()
-        {
-            var exceptionMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                "TEST", new Exception());
-
-            Assert.AreEqual("TEST", exceptionMessage);
-        }
+        private string ipAddressString;
 
         /// <summary>
-        ///     <see
-        ///         cref="StandardExceptionMessageIsReturnedWhenNoCustomExceptionMessageIsSpecified" />
-        ///     ensures that a standard exception-message is returned, when no custom
-        ///     exception-message is specified.
+        ///     <see cref="Country" /> is the country of origin, from which
+        ///     <see cref="IPAddress" /> is registered.
         /// </summary>
-        [TestMethod]
-        public void StandardExceptionMessageIsReturnedWhenNoCustomExceptionMessageIsSpecified()
-        {
-            var exceptionMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                null, new Exception("TEST"));
+        [JilDirective(Name = "c")]
+        public string Country { get; set; }
 
-            Assert.AreEqual("TEST", exceptionMessage);
+        /// <summary>
+        ///     <see cref="IpAddress" /> returns <see cref="IPAddress" />' raw,
+        ///     string-based format.
+        /// </summary>
+        /// <remarks>
+        ///     <see cref="IpAddress" /> is primarily used for display and serialization
+        ///     purposes, when viewing <see cref="BlackListItem" /> instances in, for
+        ///     example, web browsers, where <see cref="IPAddress" /> properties are
+        ///     expressed as
+        ///     <see cref="int" />.
+        /// </remarks>
+        [JilDirective(Name = "i")]
+        public string IpAddressRaw
+        {
+            get
+            {
+                return this.ipAddressString;
+            }
+
+            set
+            {
+                this.IpAddress = IPAddress.Parse(value);
+                this.ipAddressString = value;
+            }
         }
+
+        [JilDirective(Ignore = true)]
+        public IPAddress IpAddress { get; private set; }
     }
 }

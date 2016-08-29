@@ -679,6 +679,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
@@ -693,9 +694,14 @@ namespace Aegis.Pumps.SchedulerJobs
             try
             {
                 // execute sending data
-                this.ClientInstance.AegisEventCache.Relay(
+                this.ClientInstance.AegisEventCache.RelayAvailability(
                     this.ClientInstance.Settings.AegisCacheBatchSize, 
-                    this.OnPublish);
+                    this.OnPublishAvailability);
+
+                // execute sending general data
+                this.ClientInstance.AegisEventCache.RelayGeneralEvents(
+                    this.ClientInstance.Settings.AegisCacheBatchSize,
+                    this.OnPublishGeneral);
             }
             catch (TaskCanceledException exception)
             {
@@ -703,7 +709,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
                         exception);
                 }
                 else
@@ -713,7 +719,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
                         exception,
                         "Request timeout.");
                 }
@@ -722,12 +728,12 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
                     exception);
             }
         }
 
-        private bool OnPublish(List<AegisEvent> items)
+        private bool OnPublishAvailability(List<AegisAvailabilityEvent> items)
         {
             try
             {
@@ -736,14 +742,37 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
-                this.ClientInstance.AegisServiceManager.SendAegisEvents(this.ClientInstance.Settings, items);
+                this.ClientInstance.AegisServiceClient.SendAegisAvailabilityEvents(this.ClientInstance.Settings, items);
                 return true;
             }
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisEvents,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
+                    exception);
+
+                return false;
+            }
+        }
+
+        private bool OnPublishGeneral(List<AegisBaseEvent> items)
+        {
+            try
+            {
+                if (items.Count == 0)
+                {
+                    return true;
+                }
+
+                this.ClientInstance.AegisServiceClient.SendAegisGeneralEvents(this.ClientInstance.Settings, items);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisGeneralEvents,
                     exception);
 
                 return false;

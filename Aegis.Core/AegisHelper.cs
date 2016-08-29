@@ -715,7 +715,7 @@ namespace Aegis.Core
         }
 
         /// <summary>
-        ///     <see cref="TryParseIPAddressFromHeader" /> parses a value pertaining to an
+        ///     <see cref="TryParseIpAddressFromHeader" /> parses a value pertaining to an
         ///     <see cref="IPAddress" /> pertaining to <see cref="headerName" />.
         /// </summary>
         /// <param name="headerName">
@@ -729,32 +729,42 @@ namespace Aegis.Core
         ///     <see cref="ipAddress" /> is the resulting output, if the operation
         ///     succeeds.
         /// </param>
+        /// <param name="error"></param>
         /// <returns>
         ///     A <see cref="bool" /> value indicating whether or not an
         ///     <see cref="IPAddress" /> was successfully parsed from
         ///     <see cref="headers" />.
         /// </returns>
-        public static bool TryParseIPAddressFromHeader(string headerName,
-            HttpRequestHeaders headers, out IPAddress ipAddress)
+        public static bool TryParseIpAddressFromHeader(
+            string headerName,
+            HttpRequestHeaders headers,
+            out IPAddress ipAddress,
+            out string error)
         {
             IEnumerable<string> headerValues;
+            error = null;
+            ipAddress = null;
 
-            if (headers.TryGetValues(headerName,
-                out headerValues))
+            if (!headers.TryGetValues(headerName, out headerValues))
             {
-                var rawIPAddress = headerValues.FirstOrDefault();
-
-                if (!string.IsNullOrEmpty(rawIPAddress))
-                {
-                    return IPAddress.TryParse(rawIPAddress, out ipAddress);
-                }
-
-                ipAddress = null;
+                error = "Header not found";
                 return false;
             }
 
-            ipAddress = null;
-            return false;
+            var rawIpAddress = headerValues.FirstOrDefault();
+            if (string.IsNullOrEmpty(rawIpAddress))
+            {
+                error = "Header is empty";
+                return false;
+            }
+
+            if (!IPAddress.TryParse(rawIpAddress, out ipAddress))
+            {
+                error = $"Parse error for {rawIpAddress}.";
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

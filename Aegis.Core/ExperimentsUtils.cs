@@ -675,30 +675,71 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Web.Optimization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Collections;
+using System.Net;
 
-namespace Aegis.Monitor.Filter
+namespace Aegis.Core
 {
-    public class BundleConfig
+    public class ExperimentsUtils
     {
-        // For more information on bundling, visit http://go.microsoft.com/fwlink/?LinkId=301862
-        public static void RegisterBundles(BundleCollection bundles)
+        private const int IpMaskBitArrayLength = 256;
+
+        public static int GetIpExpBucket(IPAddress ipAddress)
         {
-            bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
-                "~/Scripts/jquery-{version}.js"));
+            var lastPartStr = ipAddress.ToString().Split('.').LastOrDefault();
 
-            // Use the development version of Modernizr to develop with and learn from. Then, when you're
-            // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
-            bundles.Add(new ScriptBundle("~/bundles/modernizr").Include(
-                "~/Scripts/modernizr-*"));
+            int result;
+            if (!int.TryParse(lastPartStr, out result))
+            {
+                return 0;
+            }
 
-            bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
-                "~/Scripts/bootstrap.js",
-                "~/Scripts/respond.js"));
+            return result;
+        }
 
-            bundles.Add(new StyleBundle("~/Content/css").Include(
-                "~/Content/bootstrap.css",
-                "~/Content/site.css"));
+        public static string EncodeIpMask(BitArray container)
+        {
+            if (container == null)
+            {
+                return null;
+            }
+
+            if (container.Length != IpMaskBitArrayLength)
+            {
+                throw new Exception($"BitArray container has wrong length {container.Length}");
+            }
+
+            // copy to bytes array
+            byte[] bytes = new byte[container.Length / 8];
+            container.CopyTo(bytes, 0);
+
+            // convert to base64
+            return Convert.ToBase64String(bytes);
+        }
+
+        public static BitArray DecodeIpMask(string mask)
+        {
+            if (string.IsNullOrWhiteSpace(mask))
+            {
+                return new BitArray(IpMaskBitArrayLength);
+            }
+
+            // decoder from base64
+            var rawData = Convert.FromBase64String(mask);
+
+            // initialize from the bytes array
+            var result = new BitArray(rawData);
+            if (result.Length != IpMaskBitArrayLength)
+            {
+                throw new Exception($"BitArray container has wrong length {result.Length}");
+            }
+
+            return result;
         }
     }
 }

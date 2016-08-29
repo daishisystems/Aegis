@@ -679,6 +679,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {
@@ -700,7 +701,7 @@ namespace Aegis.Pumps
 
             foreach (var blackListItem in data)
             {
-                blacklistNew.TryAdd(blackListItem.RawIPAddress, blackListItem);
+                blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
             }
 
             // swap

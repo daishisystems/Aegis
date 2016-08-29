@@ -683,6 +683,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Aegis.Core;
 using Jil;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {
@@ -692,7 +693,8 @@ namespace Aegis.Pumps
         {
             public const string Blacklist = "blacklist";
             public const string SettingsOnline = "settings";
-            public const string AegisEvents = "aegisEvents";
+            public const string AegisAvailabilityEvents = "events/availability";
+            public const string AegisGeneralEvents = "events/general";
         }
 
         public bool GetBlackListData(
@@ -702,15 +704,14 @@ namespace Aegis.Pumps
             out DateTimeOffset? timeStamp)
         {
             data = null;
-            timeStamp = null;
 
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.Blacklist));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.Blacklist));
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
             string dataString;
 
-            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            if (!this.DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
                 return false;
             }
@@ -734,19 +735,18 @@ namespace Aegis.Pumps
             out DateTimeOffset? timeStamp)
         {
             data = null;
-            timeStamp = null;
 
-            var uriService = CreateUri(settings, 
+            var uriService = this.CreateUri(settings, 
                                         ServiceNames.SettingsOnline, 
                                         new KeyValuePair<string,string>("key", settings.AegisServiceSettingsOnlineKey));
 
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, uriService);
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
             string dataString;
 
-            if (!DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            if (!this.DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
             {
                 return false;
             }
@@ -754,7 +754,10 @@ namespace Aegis.Pumps
             // deserialise data
             try
             {
-                data = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+                if (!string.IsNullOrWhiteSpace(dataString))
+                {
+                    data = SettingsOnlineData.Deserialize(dataString);
+                }
                 return true;
             }
             catch (Exception exception)
@@ -763,12 +766,22 @@ namespace Aegis.Pumps
             }
         }
 
-        public void SendAegisEvents(Settings settings, List<AegisEvent> items)
+        public void SendAegisAvailabilityEvents(Settings settings, List<AegisAvailabilityEvent> items)
         {
-            var httpRequestMetadata = CreateHttpRequestMetadata(settings, CreateUri(settings, ServiceNames.AegisEvents));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisAvailabilityEvents));
             var httpClientFactory = new HttpClientFactory();
 
-            DoSendAegisEvents(httpRequestMetadata, httpClientFactory, items);
+            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
+            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
+        }
+
+        public void SendAegisGeneralEvents(Settings settings, List<AegisBaseEvent> items)
+        {
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisGeneralEvents));
+            var httpClientFactory = new HttpClientFactory();
+
+            var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
+            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
         }
 
         private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
@@ -789,7 +802,7 @@ namespace Aegis.Pumps
 
             if (param1 != null)
             {
-                uriString = $"{settings.AegisServiceUri}/{uriServiceName}/?{param1.Value.Key}={param1.Value.Value}";
+                uriString = $"{settings.AegisServiceUri}/{uriServiceName}?{param1.Value.Key}={param1.Value.Value}";
             }
             else
             {
@@ -836,7 +849,7 @@ namespace Aegis.Pumps
                         "Downloading data resulting in: HTTP " + response.StatusCode);
                 }
 
-                // if data is not modified since last request
+                // if data is not modified since last request or no data available
                 if (response.StatusCode == HttpStatusCode.NotModified)
                 {
                     return false;
@@ -852,7 +865,7 @@ namespace Aegis.Pumps
         private void DoSendAegisEvents(
             Core.HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
-            List<AegisEvent> items)
+            string itemsJson)
         {
             // TODO support httpClientFactory
 
@@ -870,7 +883,6 @@ namespace Aegis.Pumps
                 request.Proxy = httpRequestMetadata.WebProxy;
             }
 
-            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
             var postData = "=" + itemsJson;
             var byteArray = Encoding.UTF8.GetBytes(postData);
 

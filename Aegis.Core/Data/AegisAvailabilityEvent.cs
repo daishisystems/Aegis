@@ -675,46 +675,59 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Web;
-using System.Web.Http;
-using System.Web.Mvc;
-using System.Web.Optimization;
-using System.Web.Routing;
-using Aegis.Core;
-using FluentScheduler;
+using Jil;
 
-namespace Aegis.Inlet
+namespace Aegis.Core.Data
 {
-    public class WebApiApplication : HttpApplication
+    /// <summary>
+    ///     AegisEvent represents a simple structure that is designed to encapsulate
+    ///     user-specific metadata that the Aegis platform can aggregate and process in
+    ///     order to identify patterns in traffic.
+    /// </summary>
+    public class AegisAvailabilityEvent : AegisBaseEvent
     {
-        protected void Application_Start()
+        [JilDirective("eventType")]
+        public override string EventType
         {
-            AreaRegistration.RegisterAllAreas();
-            GlobalConfiguration.Configure(WebApiConfig.Register);
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            get { return "AegisAvailabilityEvent"; }
+            set { }
+        }
 
-            #region New Relic
+        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        [JilDirective(Name = "i")]
+        public string IpAddress { get; set; }
 
-            var newRelicInsightsIsEnabled =
-                AegisHelper.IsEnabledInConfigFile(
-                    "AegisNewRelicInsightsIsEnabled");
+        /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        [JilDirective(Name = "p")]
+        public string Path { get; set; }
 
-            if (!newRelicInsightsIsEnabled) return;
+        /// <summary>Accepted languages in HTTP request</summary>
+        [JilDirective(Name = "httpAcceptLang")]
+        public string HttpAcceptLanguage { get; set; }
 
-            try
-            {
-                // Start the recurring monitor task
-                JobManager.Initialize(new NewRelicInsightsRegistry());
-            }
-            catch (Exception)
-            {
-                // Fail silently and ignore errors until a fall-back solution exists.
-            }
+        /// <summary>User-agent in HTTP request</summary>
+        [JilDirective(Name = "httpUserAgent")]
+        public string HttpUserAgent { get; set; }
 
-            #endregion
+        /// <summary>Flight date in</summary>
+        [JilDirective(Name = "dateIn")]
+        public string DateIn { get; set; }
+
+        /// <summary>Flight date out</summary>
+        [JilDirective(Name = "dateOut")]
+        public string DateOut { get; set; }
+
+        /// <summary>Flight origin</summary>
+        [JilDirective(Name = "orn")]
+        public string Origin { get; set; }
+
+        /// <summary>Flight destination</summary>
+        [JilDirective(Name = "dst")]
+        public string Destination { get; set; }
+
+        public override string ToString()
+        {
+            return $"IP address: {this.IpAddress}";
         }
     }
 }

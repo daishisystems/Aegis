@@ -680,6 +680,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {
@@ -759,12 +760,12 @@ namespace Aegis.Core
 
                     blackListItems.Add(new BlackListItem
                     {
-                        IPAddress = IPAddress.Parse(rawIPAddress),
-                        RawIPAddress = rawIPAddress,
-                        HyperActivity = reader.GetInt32(1),
-                        TotalNumHits = reader.GetInt32(2),
-                        AvgNumHits = reader.GetInt32(3),
-                        LatestServerTime = reader.GetDateTime(4)
+                        //IPAddress = IPAddress.Parse(rawIPAddress),
+                        IpAddressRaw = rawIPAddress,
+                        //HyperActivity = reader.GetInt32(1),
+                        //TotalNumHits = reader.GetInt32(2),
+                        //AvgNumHits = reader.GetInt32(3),
+                        //LatestServerTime = reader.GetDateTime(4)
                     });
                 }
 
@@ -821,53 +822,53 @@ namespace Aegis.Core
         ///     are ignored. Otherwise, the <see cref="BlackListItem.IPAddress" /> property
         ///     is blacklisted, and segmented by <see cref="BlackListItem.Country" />.
         /// </remarks>
-        public static Dictionary<string, List<BlackListItem>> SegmentBlackListByCountry(
-            List<BlackListItem> blacklistItems,
-            string geoLocationProviderUri,
-            WhiteList whiteList,
-            Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations,
-            out List<IPAddressGeoLocation> newGeoLocationItems)
-        {
-            newGeoLocationItems = new List<IPAddressGeoLocation>();
-            var blackListsByCountry = new Dictionary<string, List<BlackListItem>>();
+        //public static Dictionary<string, List<BlackListItem>> SegmentBlackListByCountry(
+        //    List<BlackListItem> blacklistItems,
+        //    string geoLocationProviderUri,
+        //    WhiteList whiteList,
+        //    Dictionary<string, IPAddressGeoLocation> ipAddressGeoLocations,
+        //    out List<IPAddressGeoLocation> newGeoLocationItems)
+        //{
+        //    newGeoLocationItems = new List<IPAddressGeoLocation>();
+        //    var blackListsByCountry = new Dictionary<string, List<BlackListItem>>();
 
-            foreach (var item in blacklistItems)
-            {
-                // discard private or whitelisted items
-                if (item.IPAddress.IsPrivate() || whiteList.IsWhiteListed(item.IPAddress))
-                {
-                    continue;
-                }
+        //    foreach (var item in blacklistItems)
+        //    {
+        //        // discard private or whitelisted items
+        //        if (item.IPAddress.IsPrivate() || whiteList.IsWhiteListed(item.IPAddress))
+        //        {
+        //            continue;
+        //        }
 
-                // check GeoLocation cache
-                IPAddressGeoLocation ipAddressGeoLocation;
-                var ipAddressStr = item.IPAddress.ToString();
+        //        // check GeoLocation cache
+        //        IPAddressGeoLocation ipAddressGeoLocation;
+        //        var ipAddressStr = item.IPAddress.ToString();
 
-                if (!ipAddressGeoLocations.TryGetValue(ipAddressStr, out ipAddressGeoLocation))
-                {
-                    // check GeoIP and add to cache
-                    ipAddressGeoLocation = item.IPAddress.GetIPAddressGeoLocationAsync(geoLocationProviderUri).Result;
+        //        if (!ipAddressGeoLocations.TryGetValue(ipAddressStr, out ipAddressGeoLocation))
+        //        {
+        //            // check GeoIP and add to cache
+        //            ipAddressGeoLocation = item.IPAddress.GetIPAddressGeoLocationAsync(geoLocationProviderUri).Result;
 
-                    ipAddressGeoLocations.Add(ipAddressStr, ipAddressGeoLocation);
-                    newGeoLocationItems.Add(ipAddressGeoLocation);
-                }
+        //            ipAddressGeoLocations.Add(ipAddressStr, ipAddressGeoLocation);
+        //            newGeoLocationItems.Add(ipAddressGeoLocation);
+        //        }
 
-                // update item country
-                item.Country = ipAddressGeoLocation.CountryName;
+        //        // update item country
+        //        item.Country = ipAddressGeoLocation.CountryName;
 
-                // add item to the right list 
-                List<BlackListItem> blackListItems;
+        //        // add item to the right list 
+        //        List<BlackListItem> blackListItems;
 
-                if (!blackListsByCountry.TryGetValue(item.Country, out blackListItems))
-                {
-                    blackListItems = new List<BlackListItem>();
-                    blackListsByCountry.Add(item.Country, blackListItems);
-                }
+        //        if (!blackListsByCountry.TryGetValue(item.Country, out blackListItems))
+        //        {
+        //            blackListItems = new List<BlackListItem>();
+        //            blackListsByCountry.Add(item.Country, blackListItems);
+        //        }
 
-                blackListItems.Add(item);
-            }
+        //        blackListItems.Add(item);
+        //    }
 
-            return blackListsByCountry;
-        }
+        //    return blackListsByCountry;
+        //}
     }
 }

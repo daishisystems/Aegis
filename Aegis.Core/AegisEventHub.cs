@@ -676,10 +676,10 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Linq;
+using Aegis.Core.Data;
 
 namespace Aegis.Core
 {
-
     /// <summary>
     ///     AegisEventHub represents a simple structure that is designed to
     ///     encapsulate metadata. It extends AegisEvent data with more fields. It is
@@ -690,10 +690,10 @@ namespace Aegis.Core
 
         /// <summary>Convert AegisEvent to AegisEventHub data structure</summary>
         /// <param name="evnt"></param>
-        public AegisEventHub(AegisEvent evnt)
+        public AegisEventHub(AegisAvailabilityEvent evnt)
         {
             // explicit assignment for full data control
-            IPAddress = evnt.IPAddress;
+            IPAddress = evnt.IpAddress;
             Path = evnt.Path;
             Time = evnt.Time;
             HttpAcceptLanguage = evnt.HttpAcceptLanguage;

@@ -675,41 +675,59 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Jil;
 
-// General Information about an assembly is controlled through the following
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
+namespace Aegis.Core.Data
+{
+    public class AegisBlackListEvent : AegisBaseEvent
+    {
+        [JilDirective("eventType")]
+        public override string EventType
+        {
+            get { return "AegisBlackListEvent"; }
+            set { }
+        }
 
-[assembly: AssemblyTitle("Aegis.Monitor.Filter")]
-[assembly: AssemblyDescription("Outlet point for Aegis-connected application-blacklist")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Paul Mooney")]
-[assembly: AssemblyProduct("Aegis.Monitor.Filter")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+        [JilDirective(Name = "expId")]
+        public int? ExperimentId { get; set; }
 
-// Setting ComVisible to false makes the types in this assembly not visible
-// to COM components.  If you need to access a type in this assembly from
-// COM, set the ComVisible attribute to true on that type.
+        [JilDirective(Name = "isBlocked")]
+        public bool IsBlocked { get; set; }
 
-[assembly: ComVisible(false)]
+        [JilDirective(Name = "isSimulated")]
+        public bool IsSimulated { get; set; }
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
+        /// <summary>
+        ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "ipAddress")]
+        public string IpAddress { get; set; }
 
-[assembly: Guid("3fbe785f-9d6d-4385-9843-dec0d01d0b95")]
+        /// <summary>
+        ///     Country of the black-listed IP address that has attempted
+        ///     access.
+        /// </summary>
+        [JilDirective(Name = "country")]
+        public string Country { get; set; }
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Revision and Build Numbers
-// by using the '*' as shown below:
+        /// <summary>
+        ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "absolutePath")]
+        public string AbsolutePath { get; set; }
 
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+        /// <summary>
+        ///     <see cref="FullPath" /> is the full path of the URI to which the
+        ///     black-listed IP address has attempted access.
+        /// </summary>
+        [JilDirective(Name = "fullPath")]
+        public string FullPath { get; set; }
+    }
+}

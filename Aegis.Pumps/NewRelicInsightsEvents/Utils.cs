@@ -688,7 +688,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string AvailabilityRequest = "Availability-request";
             public const string GetBlackList = "GetBlackList";
             public const string GetSettingsOnline = "GetSettingsOnline";
-            public const string SendAegisEvents = "SendAegisEvents";
+            public const string SendAegisAvailabilityEvents = "SendAegisAvailabilityEvents";
+            public const string SendAegisGeneralEvents = "SendAegisGeneralEvents";
         }
 
         public class EventTypes
@@ -724,13 +725,13 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             try
             {
                 var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    new AegisErrorEvent()
                     {
                         ComponentName = componentName,
-                        ErrorMessage = NewRelicInsightsExceptionMessageParser.GetExceptionMessage(
-                                    customExceptionMessage, exception),
+                        ErrorMessage = 
+                                    customExceptionMessage ?? exception.ToString(),
                         InnerErrorMessage =
-                                    exception.InnerException?.Message ?? string.Empty
+                                    exception.InnerException?.ToString() ?? string.Empty
                     };
 
                 NewRelicInsightsClient.UploadEvents(

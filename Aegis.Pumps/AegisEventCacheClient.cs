@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {
@@ -705,7 +706,8 @@ namespace Aegis.Pumps
     public class AegisEventCacheClient
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private readonly MemoryCache<AegisEvent> events = new MemoryCache<AegisEvent>(1000000);
+        private readonly MemoryCache<AegisAvailabilityEvent> eventsAvailability = new MemoryCache<AegisAvailabilityEvent>(1000000);
+        private readonly MemoryCache<AegisBaseEvent> eventsGeneral = new MemoryCache<AegisBaseEvent>(100000);
 
         /// <summary>
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
@@ -718,9 +720,14 @@ namespace Aegis.Pumps
         /// <remarks>
         ///     <para><see cref="@event" /> is added to the end of the cache.</para>
         /// </remarks>
-        public void Add(AegisEvent @event)
+        public void AddAvailability(AegisAvailabilityEvent @event)
         {
-            this.events.Add(@event);
+            this.eventsAvailability.Add(@event);
+        }
+
+        public void AddGeneral(AegisBaseEvent evnt)
+        {
+            this.eventsGeneral.Add(evnt);
         }
 
         /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
@@ -729,9 +736,14 @@ namespace Aegis.Pumps
         ///     <see cref="AegisEvent" /> instances to publish per batch.
         /// </param>
         /// <param name="processorFunc">Function to process items</param>
-        public void Relay(int batchSize, Func<List<AegisEvent>, bool> processorFunc)
+        public void RelayAvailability(int batchSize, Func<List<AegisAvailabilityEvent>, bool> processorFunc)
         {
-            this.events.Process(batchSize, processorFunc);
+            this.eventsAvailability.Process(batchSize, processorFunc);
+        }
+
+        public void RelayGeneralEvents(int batchSize, Func<List<AegisBaseEvent>, bool> processorFunc)
+        {
+            this.eventsGeneral.Process(batchSize, processorFunc);
         }
     }
 }

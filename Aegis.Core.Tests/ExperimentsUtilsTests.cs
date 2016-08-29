@@ -675,65 +675,38 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Collections.Concurrent;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 using System.Net;
-using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
 {
     [TestClass]
-    public class AegisEventPublisherTests
+    public class ExperimentsUtilsTests
     {
         [TestMethod]
-        public void AegisEventPublisherProcessesMaximumNumberOfEvents()
+        public void EncodeAndDecodeIpMask()
         {
-            var events = new ConcurrentQueue<AegisEvent>();
+            var data = new BitArray(256) { [1] = true, [8] = true };
 
-            for (var i = 0; i < 11; i++)
-            {
-                events.Enqueue(new AegisEvent());
-            }
+            var dataStr = ExperimentsUtils.EncodeIpMask(data);
+            var dataNew = ExperimentsUtils.DecodeIpMask(dataStr);
 
-            var numEventsPublished = AegisEventPublisher.Publish(
-                events, 10, batch => { });
-
-            Assert.AreEqual(10, numEventsPublished);
+            CollectionAssert.AreEqual(data, dataNew);
         }
 
         [TestMethod]
-        public void AegisEventPublisherProcessesMinimumNumberOfEvents()
+        public void GetIpExpBucket()
         {
-            var events = new ConcurrentQueue<AegisEvent>();
-
-            for (var i = 0; i < 8; i++)
-            {
-                events.Enqueue(new AegisEvent());
-            }
-
-            var numEventsPublished = AegisEventPublisher.Publish(
-                events, 10, batch => { });
-
-            Assert.AreEqual(8, numEventsPublished);
-        }
-
-        [TestMethod]
-        public void AegisCanBeToggledFromConfigFile()
-        {
-            Assert.IsTrue(AegisHelper.IsEnabledInConfigFile("AegisIsEnabled"));
-        }
-
-        [TestMethod]
-        public void ValidIPAddressCanBeParsedFromHTTPRequest()
-        {
-            var request = new HttpRequestMessage();
-            request.Headers.Add("NS_CLIENT_IP", "127.0.0.1");
-
-            IPAddress ipAddress;
-
-            Assert.IsTrue(AegisHelper.TryParseIPAddressFromHeader(
-                "NS_CLIENT_IP",
-                request.Headers, out ipAddress));
+            Assert.AreEqual(22, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22")));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.1")));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.255")));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.0")));
         }
     }
 }

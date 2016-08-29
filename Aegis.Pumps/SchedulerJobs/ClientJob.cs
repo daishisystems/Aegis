@@ -680,7 +680,7 @@ using FluentScheduler;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
-    internal abstract class ClientJob : IJob, IRegisteredObject
+    public abstract class ClientJob : IJob, IRegisteredObject
     {
         protected readonly object LockObject = new object();
         protected readonly Client ClientInstance;

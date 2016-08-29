@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core;
+using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Tests
 {
@@ -695,15 +696,15 @@ namespace Aegis.Pumps.Tests
             Assert.IsFalse(self.TryGetBlacklistedItem("192.168.0.1", out blackItem));
             Assert.IsNull(blackItem);
 
-            var data = new BlackListItem[] { new BlackListItem() { RawIPAddress = "10.1.2.3.4" } };
+            var data = new BlackListItem[] { new BlackListItem() { IpAddressRaw = "10.1.2.3" } };
             var dataTimeStamp = DateTimeOffset.Now;
             self.SetNewData(data, dataTimeStamp);
 
             Assert.AreEqual(dataTimeStamp, self.TimeStamp);
-            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.3.4", out blackItem));
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
 
             self.CleanUp();
-            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3.4", out blackItem));
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
             Assert.IsNull(self.TimeStamp);
         }
     }

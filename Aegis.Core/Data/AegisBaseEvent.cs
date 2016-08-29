@@ -675,27 +675,18 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Web.Mvc;
-using System.Web.Routing;
+using Jil;
 
-namespace Aegis.Inlet
+namespace Aegis.Core.Data
 {
-    public class RouteConfig
+    public abstract class AegisBaseEvent
     {
-        public static void RegisterRoutes(RouteCollection routes)
-        {
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+        [JilDirective(Name = "eventType")]
+        public abstract string EventType { get; set; }
 
-            routes.MapRoute(
-                "Default",
-                "{controller}/{action}/{id}",
-                new
-                {
-                    controller = "Home",
-                    action = "Index",
-                    id = UrlParameter.Optional
-                }
-                );
-        }
+        /// <summary>Time is a string-based translation of the event time.</summary>
+        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
+        [JilDirective(Name = "time")]
+        public string Time { get; set; }
     }
 }

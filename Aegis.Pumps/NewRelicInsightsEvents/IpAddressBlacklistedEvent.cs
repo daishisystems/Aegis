@@ -687,6 +687,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     /// </summary>
     public class IpAddressBlacklistedEvent : ClientEvent
     {
+        [JilDirective(Name = "expId")]
+        public int? ExperimentId { get; set; }
+
         [JilDirective(Name = "isBlocked")]
         public bool IsBlocked { get; set; }
 
@@ -694,7 +697,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public bool IsSimulated { get; set; }
 
         /// <summary>
-        ///     <see cref="IPAddress" /> is the black-listed IP address that has attempted
+        ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
         ///     access.
         /// </summary>
         [JilDirective(Name = "ipAddress")]

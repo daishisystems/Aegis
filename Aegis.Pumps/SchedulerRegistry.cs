@@ -675,12 +675,13 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
 using FluentScheduler;
 
 namespace Aegis.Pumps
 {
-    internal class SchedulerRegistry : Registry
+    public class SchedulerRegistry : Registry
     {
         private readonly List<Schedule> scheduledItems;
 
@@ -691,20 +692,29 @@ namespace Aegis.Pumps
 
         public void Initialise(Client client, bool isSchedulingEnabled = true)
         {
+            // online settings value can't be higher than following limit
+            const int LimitInSecs = 3600; // an hour
+
             // add jobs
             this.Add(new SchedulerJobs.GetBlackListJob(client))
                 .ToRunNow()
-                .AndEvery(client.Settings.GetBlackListJobInternvalInSeconds)
+                .AndEvery(GetWithLimit(client.SettingsOnline.Data?.GetBlackListJobInternvalInSeconds, 
+                          client.Settings.GetBlackListJobInternvalInSeconds,
+                          LimitInSecs))
                 .Seconds();
 
             this.Add(new SchedulerJobs.GetSettingsOnlineJob(client))
                 .ToRunNow()
-                .AndEvery(client.Settings.GetSettingsOnlineJobInternvalInSeconds)
+                .AndEvery(GetWithLimit(client.SettingsOnline.Data?.GetSettingsOnlineJobInternvalInSeconds,
+                          client.Settings.GetSettingsOnlineJobInternvalInSeconds,
+                          LimitInSecs))
                 .Seconds();
 
             this.Add(new SchedulerJobs.SendAegisEventsJob(client))
                 .ToRunNow()
-                .AndEvery(client.Settings.SendAegisEventsJobInternvalInSeconds)
+                .AndEvery(GetWithLimit(client.SettingsOnline.Data?.SendAegisEventsJobInternvalInSeconds,
+                          client.Settings.SendAegisEventsJobInternvalInSeconds,
+                          LimitInSecs))
                 .Seconds();
 
             // start schedulers
@@ -724,12 +734,17 @@ namespace Aegis.Pumps
             this.scheduledItems.Clear();
         }
 
-        private Schedule Add(SchedulerJobs.ClientJob self)
+        protected Schedule Add(SchedulerJobs.ClientJob self)
         {
             var sched = this.Schedule(self).WithName(self.JobName);
 
             this.scheduledItems.Add(sched);
             return sched;
+        }
+
+        protected static int GetWithLimit(int? value1, int value2, int limit)
+        {
+            return value1 != null ? Math.Min(value1.Value, limit) : value2;
         }
     }
 }

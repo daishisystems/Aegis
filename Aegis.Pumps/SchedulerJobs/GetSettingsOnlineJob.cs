@@ -694,7 +694,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 SettingsOnlineData settingsOnlineData;
                 DateTimeOffset? newTimeStamp;
 
-                var isUpdated = this.ClientInstance.AegisServiceManager.GetSettingsOnlineData(
+                var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline.TimeStamp,
                     out settingsOnlineData,
@@ -707,6 +707,9 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // set new data
                 this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
+
+                // notify about settings change
+                this.ClientInstance.SettingsChangeNotification();
             }
             catch (TaskCanceledException exception)
             {
