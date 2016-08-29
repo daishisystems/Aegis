@@ -681,6 +681,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
 using Jil;
+using Aegis.Pumps.Tests.Mocks;
 
 namespace Aegis.Pumps.Tests
 {

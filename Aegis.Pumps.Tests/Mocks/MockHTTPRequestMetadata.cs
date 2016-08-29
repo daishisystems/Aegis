@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using Aegis.Pumps;
 
-namespace Phobos.Tests
+namespace Aegis.Pumps.Tests.Mocks
 {
     /// <summary>Mock <see cref="HttpRequestMetadata" />, for testing.</summary>
     internal class MockHttpRequestMetadata : HttpRequestMetadata
