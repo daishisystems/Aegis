@@ -717,7 +717,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     isolate the specific underlying issue.
         /// </param>
         public static void UploadException(
-            NewRelicInsightsClient newRelicInsightsClient,
+            INewRelicInsightsClient newRelicInsightsClient,
             string componentName,
             Exception exception,
             string customExceptionMessage = null)
@@ -734,10 +734,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                                     exception.InnerException?.ToString() ?? string.Empty
                     };
 
-                NewRelicInsightsClient.UploadEvents(
+                newRelicInsightsClient.UploadEvents(
                     new[] { newRelicInsightsAegisEvent },
-                    new Daishi.NewRelic.Insights.HttpClientFactory(),
-                    newRelicInsightsClient.NewRelicInsightsMetadata);
+                    new Daishi.NewRelic.Insights.HttpClientFactory());
             }
             catch (Exception)
             {

@@ -690,7 +690,7 @@ namespace Aegis.Pumps
 
         public static bool IsInitialised => Instance != null;
 
-        public readonly NewRelicInsightsClient NewRelicInsightsClient;
+        public readonly INewRelicInsightsClient NewRelicInsightsClient;
         public readonly Settings Settings;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
@@ -699,7 +699,7 @@ namespace Aegis.Pumps
         public readonly Actions Actions;
         private SchedulerRegistry scheduler;
 
-        private Client(NewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        private Client(INewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
             if (newRelicInsightsClient == null)
             {
@@ -797,8 +797,8 @@ namespace Aegis.Pumps
         }
 
         public static void DoInitialise(
-            string clientName, 
-            NewRelicInsightsClient newRelicInsightsClient,
+            string clientName,
+            INewRelicInsightsClient newRelicInsightsClient,
             Settings settings, 
             bool isSchedulingEnabled)
         {
