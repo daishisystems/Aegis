@@ -690,7 +690,7 @@ namespace Aegis.Pumps
 
         public static bool IsInitialised => Instance != null;
 
-        public readonly NewRelicInsightsClient NewRelicInsightsClient;
+        public readonly INewRelicInsightsClient NewRelicInsightsClient;
         public readonly Settings Settings;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
@@ -699,7 +699,7 @@ namespace Aegis.Pumps
         public readonly Actions Actions;
         private SchedulerRegistry scheduler;
 
-        private Client(NewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        private Client(INewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
             if (newRelicInsightsClient == null)
             {
@@ -725,7 +725,7 @@ namespace Aegis.Pumps
         /// Initialise client. Does not throw any standard exception.
         /// </summary>
         /// <returns></returns>
-        public static bool Initialise(string clientName, NewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        public static bool Initialise(string clientName, INewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
             // initialise and do proper cleanup in case of problems
             try
@@ -771,7 +771,7 @@ namespace Aegis.Pumps
             self.BlackList?.CleanUp();
         }
 
-        public static bool OnAvailabilityController(HttpRequestHeaders requestHeaders, 
+        public static bool OnAvailabilityController(HttpHeaders requestHeaders, 
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -797,8 +797,8 @@ namespace Aegis.Pumps
         }
 
         public static void DoInitialise(
-            string clientName, 
-            NewRelicInsightsClient newRelicInsightsClient,
+            string clientName,
+            INewRelicInsightsClient newRelicInsightsClient,
             Settings settings, 
             bool isSchedulingEnabled)
         {

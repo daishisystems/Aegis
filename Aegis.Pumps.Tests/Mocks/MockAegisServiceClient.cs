@@ -678,7 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using Aegis.Core;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Pumps.Tests.Mocks
 {
     public class MockAegisServiceClient : AegisServiceClient
     {
