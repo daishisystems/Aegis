@@ -725,7 +725,7 @@ namespace Aegis.Pumps
         /// Initialise client. Does not throw any standard exception.
         /// </summary>
         /// <returns></returns>
-        public static bool Initialise(string clientName, NewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        public static bool Initialise(string clientName, INewRelicInsightsClient newRelicInsightsClient, Settings settings)
         {
             // initialise and do proper cleanup in case of problems
             try
@@ -771,7 +771,7 @@ namespace Aegis.Pumps
             self.BlackList?.CleanUp();
         }
 
-        public static bool OnAvailabilityController(HttpRequestHeaders requestHeaders, 
+        public static bool OnAvailabilityController(HttpHeaders requestHeaders, 
             Uri requestUri,
             string paramOrigin,
             string paramDestination,

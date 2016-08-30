@@ -687,7 +687,7 @@ namespace Aegis.Pumps
     {
         public bool OnAvailabilityController(
             Client client,
-            HttpRequestHeaders requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -725,7 +725,7 @@ namespace Aegis.Pumps
 
         private bool DoAvailabilityController(
             Client client,
-            HttpRequestHeaders requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,

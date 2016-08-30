@@ -737,7 +737,7 @@ namespace Aegis.Core
         /// </returns>
         public static bool TryParseIpAddressFromHeader(
             string headerName,
-            HttpRequestHeaders headers,
+            HttpHeaders headers,
             out IPAddress ipAddress,
             out string error)
         {

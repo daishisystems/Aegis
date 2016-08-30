@@ -676,11 +676,21 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Daishi.NewRelic.Insights;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
+using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
 {
+    class MyHttpHeaders : HttpHeaders
+    {
+        public MyHttpHeaders()
+        {           
+        }
+    }
+
     [TestClass]
     public class ClientTests
     {
@@ -688,23 +698,276 @@ namespace Aegis.Pumps.Tests
         public void InitialisationAndShutDown()
         {
             var settings = new Settings(null, null, "http://test");
-            var newRelicClient = NewRelicInsightsClient.Instance;
+            var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.Initialise("UnitTests", newRelicClient, settings);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance);
             Assert.IsNotNull(Client.Instance.NewRelicInsightsClient);
             Assert.IsNotNull(Client.Instance.Settings);
             Assert.IsNotNull(Client.Instance.BlackList);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             Client.ShutDown();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void ShutDownWithoutInitialization()
+        {
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_NoInitialized()
+        {
+            var requestHeaders = new MyHttpHeaders();
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders,
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow,
+                null);
+
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_HttpHeaderIsMissing()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.Initialise("UnitTests", newRelicClient, settings);
+
+            // OnAvailabilityController
+            var requestHeaders = new MyHttpHeaders();
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders, 
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow, 
+                null);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_HttpHeaderIsIncorrect()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.Initialise("UnitTests", newRelicClient, settings);
+
+            // OnAvailabilityController
+            var requestHeaders = new MyHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders,
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow,
+                null);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_HttpHeaderIsRight_NotBlocked()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.Initialise("UnitTests", newRelicClient, settings);
+
+            var settingsData = new SettingsOnlineData();
+            settingsData.IsAegisOnAvailabilityEnabled = true;
+            settingsData.IsSendBlackListIpToServiceEnabled = true;
+            settingsData.Blacklist = new SettingsOnlineData.BlackListData();
+            settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
+            Client.Instance.SettingsOnline.SetNewData(settingsData, null);
+
+            var blackListData = new List<BlackListItem>()
+                                    {
+                                        new BlackListItem()
+                                            {
+                                                Country = "testland2",
+                                                IpAddressRaw = "192.168.1.1"
+                                            }
+                                    };
+            Client.Instance.BlackList.SetNewData(blackListData, null);
+
+            // OnAvailabilityController
+            var requestHeaders = new MyHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders,
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow,
+                null);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_HttpHeaderIsRight_Blocked()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.Initialise("UnitTests", newRelicClient, settings);
+
+            var settingsData = new SettingsOnlineData();
+            settingsData.IsAegisOnAvailabilityEnabled = true;
+            settingsData.IsSendBlackListIpToServiceEnabled = true;
+            settingsData.Blacklist = new SettingsOnlineData.BlackListData();
+            settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
+            Client.Instance.SettingsOnline.SetNewData(settingsData, null);
+
+            var blackListData = new List<BlackListItem>()
+                                    {
+                                        new BlackListItem()
+                                            {
+                                                Country = "testland",
+                                                IpAddressRaw = "192.168.1.1"
+                                            }
+                                    };
+            Client.Instance.BlackList.SetNewData(blackListData, null);
+
+
+            // OnAvailabilityController
+            var requestHeaders = new MyHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders,
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow,
+                null);
+
+            Assert.IsTrue(result);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void OnAvailabilityController_HttpHeaderIsRight_Simulated()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.Initialise("UnitTests", newRelicClient, settings);
+
+            var settingsData = new SettingsOnlineData();
+            settingsData.IsAegisOnAvailabilityEnabled = true;
+            settingsData.IsSendBlackListIpToServiceEnabled = true;
+            settingsData.Blacklist = new SettingsOnlineData.BlackListData();
+            settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
+            settingsData.Blacklist.CountriesSimulate = new HashSet<string>() { "testlandSimulate" };
+            Client.Instance.SettingsOnline.SetNewData(settingsData, null);
+
+            var blackListData = new List<BlackListItem>()
+                                    {
+                                        new BlackListItem()
+                                            {
+                                                Country = "testlandSimulate",
+                                                IpAddressRaw = "192.168.1.1"
+                                            }
+                                    };
+            Client.Instance.BlackList.SetNewData(blackListData, null);
+
+
+            // OnAvailabilityController
+            var requestHeaders = new MyHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            var result = Client.OnAvailabilityController(
+                requestHeaders,
+                requestUri,
+                "origin",
+                null,
+                DateTime.UtcNow,
+                null);
+
+            Assert.IsFalse(result);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
     }
 }

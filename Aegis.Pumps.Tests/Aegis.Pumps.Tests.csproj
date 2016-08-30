@@ -75,6 +75,7 @@
     <Compile Include="HTTPRequestMetadataCacheTests.cs" />
     <Compile Include="Mocks\MockAegisServiceClient.cs" />
     <Compile Include="Mocks\MockHTTPRequestMetadata.cs" />
+    <Compile Include="Mocks\MockNewRelicInsightsClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsOnlineDataTests.cs" />
   </ItemGroup>
