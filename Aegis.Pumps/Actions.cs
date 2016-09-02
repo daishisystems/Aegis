@@ -683,6 +683,11 @@ using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Cryptography;
+    using System.Text;
+
     public class Actions
     {
         public bool OnAvailabilityController(
@@ -732,37 +737,51 @@ namespace Aegis.Pumps
             DateTime? paramDateIn,
             DateTime? paramDateOut)
         {
-            // parse IP address
-            IPAddress ipAddress;
-            string ipAddressError;
+            // get IP addresses
+            var ipAddresses = this.ParseIpAddressesFromHeaders(client, "NS_CLIENT_IP", requestHeaders).ToList();
 
-            var ipAddressIsValid =
-                AegisHelper.TryParseIpAddressFromHeader(
-                    "NS_CLIENT_IP",
-                    requestHeaders,
-                    out ipAddress,
-                    out ipAddressError);
+            // get group id
+            var groupId = this.ComputeGroupId(ipAddresses);
 
-            if (!ipAddressIsValid)
-            {
-                var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
-                    {
-                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = "Could not parse IP Address: " + ipAddressError,
-                        InnerErrorMessage = "The NS_CLIENT_IP HTTP header is not valid."
-                    };
-
-                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
-                return false;
-            }
-
-            // add IP address to data-pump
+            // get current time
             var currentTime = DateTime.UtcNow;
 
+            // process each IP
+            var isBlocked = false;
+
+            foreach (var ipAddress in ipAddresses)
+            {
+                isBlocked |= this.DoAvailabilityControllerPerIpAddress(
+                                            client,
+                                            ipAddress,
+                                            currentTime,
+                                            groupId,
+                                            requestUri,
+                                            paramOrigin,
+                                            paramDestination,
+                                            paramDateIn,
+                                            paramDateOut);
+            }
+
+            return isBlocked;
+        }
+
+        private bool DoAvailabilityControllerPerIpAddress(
+            Client client,
+            IPAddress ipAddress,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // add IP address to data-pump
             client.AegisEventCache.AddAvailability(new AegisAvailabilityEvent
             {
                 IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
                 Path = requestUri.AbsolutePath,
                 Time = currentTime.ToString("O"),
                 DateIn = paramDateIn?.ToString("O"),
@@ -813,6 +832,7 @@ namespace Aegis.Pumps
                 IsBlocked = isBlocked == true,
                 IsSimulated = isSimulated == true,
                 IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
                 Country = blackItem.Country,
                 AbsolutePath = requestUri.AbsolutePath,
                 FullPath = requestUri.PathAndQuery
@@ -829,6 +849,7 @@ namespace Aegis.Pumps
                     IsBlocked = isBlocked == true,
                     IsSimulated = isSimulated == true,
                     IpAddress = ipAddress.ToString(),
+                    GroupId = groupId,
                     Country = blackItem.Country,
                     AbsolutePath = requestUri.AbsolutePath,
                     FullPath = requestUri.PathAndQuery,
@@ -840,6 +861,57 @@ namespace Aegis.Pumps
 
             // return info whether to block or not
             return isBlocked == true;
+        }
+
+        private IEnumerable<IPAddress> ParseIpAddressesFromHeaders(Client client, string headerName, HttpHeaders headers)
+        {
+            // parse headers
+            var networkRouteMapper = new CitrixNetworkRouteMapper(headerName, headers);
+
+            var networkRoute = new NetworkRoute();
+            networkRoute.Map(networkRouteMapper);
+
+            // if strange header found
+            if (networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult !=
+                HttpHeaderParseResult.SingleHeaderSingleIPAddress)
+            {
+                var httpRequestHeaderValues = "No HTTP request headers to display.";
+
+                if (networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues?.Any() == true)
+                {
+                    httpRequestHeaderValues = string.Join(";", networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues);
+                }
+
+                // send error
+                var newRelicInsightsAegisEvent =
+                    new NewRelicInsightsEvents.AegisErrorEvent()
+                    {
+                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        ErrorMessage = networkRouteMapper
+                                            .NetworkRouteMetadata
+                                            .HttpHeaderParseResult
+                                            .ToString(),
+                        InnerErrorMessage = httpRequestHeaderValues
+                    };
+
+                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+            }
+
+            // return parsed IPs
+            return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
+        }
+
+        private string ComputeGroupId(List<IPAddress> ipAddresses)
+        {
+            var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
+
+            using (var md5Hash = MD5.Create())
+            {
+                var md5Raw = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(data));
+                var md5Str = string.Join(string.Empty, md5Raw.Select(b => b.ToString("x2")));
+
+                return $"g:{ipAddresses.Count}:{md5Str}";
+            }
         }
     }
 }

@@ -835,14 +835,14 @@ namespace Aegis.Pumps.Tests
                                         new BlackListItem()
                                             {
                                                 Country = "testland2",
-                                                IpAddressRaw = "192.168.1.1"
+                                                IpAddressRaw = "204.168.1.1"
                                             }
                                     };
             Client.Instance.BlackList.SetNewData(blackListData, null);
 
             // OnAvailabilityController
             var requestHeaders = new MyHttpHeaders();
-            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -886,7 +886,7 @@ namespace Aegis.Pumps.Tests
                                         new BlackListItem()
                                             {
                                                 Country = "testland",
-                                                IpAddressRaw = "192.168.1.1"
+                                                IpAddressRaw = "204.168.1.1"
                                             }
                                     };
             Client.Instance.BlackList.SetNewData(blackListData, null);
@@ -894,7 +894,7 @@ namespace Aegis.Pumps.Tests
 
             // OnAvailabilityController
             var requestHeaders = new MyHttpHeaders();
-            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -939,7 +939,7 @@ namespace Aegis.Pumps.Tests
                                         new BlackListItem()
                                             {
                                                 Country = "testlandSimulate",
-                                                IpAddressRaw = "192.168.1.1"
+                                                IpAddressRaw = "204.168.1.1"
                                             }
                                     };
             Client.Instance.BlackList.SetNewData(blackListData, null);
@@ -947,7 +947,7 @@ namespace Aegis.Pumps.Tests
 
             // OnAvailabilityController
             var requestHeaders = new MyHttpHeaders();
-            requestHeaders.Add("NS_CLIENT_IP", "192.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 

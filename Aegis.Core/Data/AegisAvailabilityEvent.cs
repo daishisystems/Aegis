@@ -686,7 +686,7 @@ namespace Aegis.Core.Data
     /// </summary>
     public class AegisAvailabilityEvent : AegisBaseEvent
     {
-        [JilDirective("eventType")]
+        [JilDirective("e")]
         public override string EventType
         {
             get { return "AegisAvailabilityEvent"; }
@@ -696,6 +696,10 @@ namespace Aegis.Core.Data
         /// <summary>IPAddress is a standard 4-segment IP address.</summary>
         [JilDirective(Name = "i")]
         public string IpAddress { get; set; }
+
+        /// <summary>GroupId</summary>
+        [JilDirective(Name = "g")]
+        public string GroupId { get; set; }
 
         /// <summary>Path is the URI path from which the event metadata originated.</summary>
         [JilDirective(Name = "p")]

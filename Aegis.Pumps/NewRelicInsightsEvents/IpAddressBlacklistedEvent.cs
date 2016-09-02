@@ -703,6 +703,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "ipAddress")]
         public string IpAddress { get; set; }
 
+        [JilDirective(Name = "groupId")]
+        public string GroupId { get; set; }
+
         /// <summary>
         ///     Country of the black-listed IP address that has attempted
         ///     access.

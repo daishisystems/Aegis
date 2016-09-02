@@ -686,7 +686,7 @@ namespace Aegis.Core.Data
 {
     public class AegisBlackListEvent : AegisBaseEvent
     {
-        [JilDirective("eventType")]
+        [JilDirective("e")]
         public override string EventType
         {
             get { return "AegisBlackListEvent"; }
@@ -706,8 +706,12 @@ namespace Aegis.Core.Data
         ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
         ///     access.
         /// </summary>
-        [JilDirective(Name = "ipAddress")]
+        [JilDirective(Name = "i")]
         public string IpAddress { get; set; }
+
+        /// <summary>GroupId</summary>
+        [JilDirective(Name = "g")]
+        public string GroupId { get; set; }
 
         /// <summary>
         ///     Country of the black-listed IP address that has attempted
