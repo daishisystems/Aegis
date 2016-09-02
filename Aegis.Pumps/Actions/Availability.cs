@@ -675,149 +675,191 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Linq;
 using System;
+using System.Net;
 using System.Net.Http.Headers;
-using Daishi.NewRelic.Insights;
+using Aegis.Core.Data;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Actions
 {
-    public class Client
+    public class Availability : Action
     {
-        public static Client Instance { get; private set; }
-        public static string ClientName { get; private set; }
-
-        public static bool IsInitialised => Instance != null;
-
-        public readonly INewRelicInsightsClient NewRelicInsightsClient;
-        public readonly Settings Settings;
-        public readonly SettingsOnlineClient SettingsOnline;
-        public readonly BlackListClient BlackList;
-        public readonly AegisEventCacheClient AegisEventCache;
-        public readonly AegisServiceClient AegisServiceClient;
-        public readonly Actions.Availability ActionAvailability;
-        private SchedulerRegistry scheduler;
-
-        private Client(INewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        public Availability(Client client): base(client)
         {
-            if (newRelicInsightsClient == null)
-            {
-                throw new ArgumentNullException(nameof(newRelicInsightsClient));
-            }
-
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-
-            this.NewRelicInsightsClient = newRelicInsightsClient;
-            this.Settings = settings;
-            this.SettingsOnline = new SettingsOnlineClient();
-            this.BlackList = new BlackListClient();
-            this.AegisEventCache = new AegisEventCacheClient();
-            this.AegisServiceClient = new AegisServiceClient();
-            this.ActionAvailability = new Actions.Availability(this);
-            this.scheduler = new SchedulerRegistry();
         }
 
-        /// <summary>
-        /// Initialise client. Does not throw any standard exception.
-        /// </summary>
-        /// <returns></returns>
-        public static bool Initialise(string clientName, INewRelicInsightsClient newRelicInsightsClient, Settings settings)
-        {
-            // initialise and do proper cleanup in case of problems
-            try
-            {
-                DoInitialise(clientName, newRelicInsightsClient, settings, true);
-
-                // success - class initialised
-                return true;
-            }
-            catch (Exception exception)
-            {
-                try
-                {
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        newRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                        exception);
-                }
-                catch (Exception)
-                {
-                    // ToDo: Provide a fall-back solution if New Relic Insights is offline.
-                }
-            }
-
-            // initialisation failed
-            return false;
-        }
-
-        public static void ShutDown()
-        {
-            // do nothing if not initialised
-            if (!IsInitialised)
-            {
-                return;
-            }
-
-            // set to non-initialised state
-            var self = Instance;
-            Instance = null;
-
-            // stop schedulers and clean all data (final data release leave to the GC)
-            self.scheduler?.ShutDown();
-            self.BlackList?.CleanUp();
-        }
-
-        public static bool OnAvailabilityController(HttpHeaders requestHeaders, 
+        public bool Run(
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
             DateTime? paramDateIn,
             DateTime? paramDateOut)
         {
-            // ignore on non initialized
-            if (!IsInitialised)
-            {
-                // do not block
-                return false;
-            }
-
             // run logic
-            return Instance.ActionAvailability.Run(
-                    requestHeaders, 
+            try
+            {
+                return this.DoAvailabilityController(
+                    requestHeaders,
                     requestUri,
                     paramOrigin,
                     paramDestination,
                     paramDateIn,
                     paramDateOut);
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    exception);
+            }
+
+            // do not block
+            return false;
         }
 
-        public static void DoInitialise(
-            string clientName,
-            INewRelicInsightsClient newRelicInsightsClient,
-            Settings settings, 
-            bool isSchedulingEnabled)
+        private bool DoAvailabilityController(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
         {
-            // set current client application name
-            ClientName = clientName;
+            // get IP addresses
+            string errorMessage;
+            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
 
-            var self = new Client(newRelicInsightsClient, settings);
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    null,
+                    errorMessage);
+            }
 
-            // assign object to the instance
-            Instance = self;
+            // get group id
+            var groupId = this.ComputeGroupId(ipAddresses);
 
-            // start scheduled tasks
-            Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
+            // get current time
+            var currentTime = DateTime.UtcNow;
+
+            // process each IP
+            var isBlocked = false;
+
+            foreach (var ipAddress in ipAddresses)
+            {
+                isBlocked |= this.DoAvailabilityControllerPerIpAddress(
+                                            ipAddress,
+                                            currentTime,
+                                            groupId,
+                                            requestUri,
+                                            paramOrigin,
+                                            paramDestination,
+                                            paramDateIn,
+                                            paramDateOut);
+            }
+
+            return isBlocked;
         }
 
-        public void SettingsChangeNotification()
+        private bool DoAvailabilityControllerPerIpAddress(
+            IPAddress ipAddress,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
         {
-            // reload scheduler
-            this.scheduler?.ShutDown();
+            // add IP address to data-pump
+            this.client.AegisEventCache.AddAvailability(new AegisAvailabilityEvent
+            {
+                IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
+                Path = requestUri.AbsolutePath,
+                Time = currentTime.ToString("O"),
+                DateIn = paramDateIn?.ToString("O"),
+                DateOut = paramDateOut?.ToString("O"),
+                Destination = paramDestination,
+                Origin = paramOrigin
+            });
 
-            this.scheduler = new SchedulerRegistry();
-            this.scheduler.Initialise(Instance, true);
+            // are online settings available
+            if (!this.client.SettingsOnline.IsAvailable ||
+                this.client.SettingsOnline.Data.Blacklist == null)
+            {
+                // do not block
+                return false;
+            }
+
+            // is current action enabled
+            if (!this.client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
+            {
+                // do not block
+                return false;
+            }
+
+            // protect the endpoint
+            BlackListItem blackItem;
+            if (!this.client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // check whether country is blocked or simulated
+            var isBlocked = this.client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = this.client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            if (isBlocked != true && isSimulated != true)
+            {
+                // do not block - not blocked nor simulated
+                return false;
+            }
+
+            // get experiment id
+            var expId = this.client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+
+            // log the malicious event
+            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                ExperimentId = expId,
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
+                Country = blackItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            this.client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
+
+            // send blacklisted ip to the service
+            if (this.client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
+            {
+                var ipBlackListAegisEvent = new AegisBlackListEvent()
+                {
+                    ExperimentId = expId,
+                    IsBlocked = isBlocked == true,
+                    IsSimulated = isSimulated == true,
+                    IpAddress = ipAddress.ToString(),
+                    GroupId = groupId,
+                    Country = blackItem.Country,
+                    AbsolutePath = requestUri.AbsolutePath,
+                    FullPath = requestUri.PathAndQuery,
+                    Time = currentTime.ToString("O"),
+                };
+
+                this.client.AegisEventCache.AddGeneral(ipBlackListAegisEvent);
+            }
+
+            // return info whether to block or not
+            return isBlocked == true;
         }
     }
 }

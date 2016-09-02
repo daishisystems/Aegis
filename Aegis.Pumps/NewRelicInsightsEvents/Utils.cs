@@ -728,15 +728,37 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                     new AegisErrorEvent()
                     {
                         ComponentName = componentName,
-                        ErrorMessage = 
-                                    customExceptionMessage ?? exception.ToString(),
-                        InnerErrorMessage =
-                                    exception.InnerException?.ToString() ?? string.Empty
+                        ErrorMessage = customExceptionMessage ?? exception?.ToString(),
+                        InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
                     };
 
                 newRelicInsightsClient.UploadEvents(
                     new[] { newRelicInsightsAegisEvent },
                     new Daishi.NewRelic.Insights.HttpClientFactory());
+            }
+            catch (Exception)
+            {
+                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+            }
+        }
+
+        public static void AddException(
+            INewRelicInsightsClient newRelicInsightsClient,
+            string componentName,
+            Exception exception,
+            string customExceptionMessage = null)
+        {
+            try
+            {
+                var newRelicInsightsAegisEvent =
+                    new AegisErrorEvent()
+                    {
+                        ComponentName = componentName,
+                        ErrorMessage = customExceptionMessage ?? exception?.ToString(),
+                        InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
+                    };
+
+                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
             }
             catch (Exception)
             {

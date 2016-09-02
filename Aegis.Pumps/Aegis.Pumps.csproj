@@ -58,7 +58,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions.cs" />
+    <Compile Include="Actions\Action.cs" />
+    <Compile Include="Actions\Availability.cs" />
     <Compile Include="AegisEventCacheClient.cs" />
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />

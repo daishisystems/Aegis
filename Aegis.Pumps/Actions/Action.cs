@@ -675,196 +675,32 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Net;
 using System.Net.Http.Headers;
 using Aegis.Core;
-using Aegis.Core.Data;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Actions
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Text;
-
-    public class Actions
+    public abstract class Action
     {
-        public bool OnAvailabilityController(
-            Client client,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut)
+        protected readonly Client client;
+
+        protected Action(Client client)
         {
-            // run logic
-            try
-            {
-                return this.DoAvailabilityController(
-                    client,
-                    requestHeaders,
-                    requestUri,
-                    paramOrigin,
-                    paramDestination,
-                    paramDateIn,
-                    paramDateOut);
-            }
-            catch (Exception exception)
-            {
-                var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
-                    {
-                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = exception.ToString(),
-                        InnerErrorMessage = exception.InnerException?.ToString() ?? string.Empty
-                    };
-
-                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
-            }
-
-            // do not block
-            return false;
+            this.client = client;
         }
 
-        private bool DoAvailabilityController(
-            Client client,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut)
+        protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
+            string headerName, 
+            HttpHeaders headers, 
+            out string errorMessage)
         {
-            // get IP addresses
-            var ipAddresses = this.ParseIpAddressesFromHeaders(client, "NS_CLIENT_IP", requestHeaders).ToList();
+            errorMessage = null;
 
-            // get group id
-            var groupId = this.ComputeGroupId(ipAddresses);
-
-            // get current time
-            var currentTime = DateTime.UtcNow;
-
-            // process each IP
-            var isBlocked = false;
-
-            foreach (var ipAddress in ipAddresses)
-            {
-                isBlocked |= this.DoAvailabilityControllerPerIpAddress(
-                                            client,
-                                            ipAddress,
-                                            currentTime,
-                                            groupId,
-                                            requestUri,
-                                            paramOrigin,
-                                            paramDestination,
-                                            paramDateIn,
-                                            paramDateOut);
-            }
-
-            return isBlocked;
-        }
-
-        private bool DoAvailabilityControllerPerIpAddress(
-            Client client,
-            IPAddress ipAddress,
-            DateTime currentTime,
-            string groupId,
-            Uri requestUri,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut)
-        {
-            // add IP address to data-pump
-            client.AegisEventCache.AddAvailability(new AegisAvailabilityEvent
-            {
-                IpAddress = ipAddress.ToString(),
-                GroupId = groupId,
-                Path = requestUri.AbsolutePath,
-                Time = currentTime.ToString("O"),
-                DateIn = paramDateIn?.ToString("O"),
-                DateOut = paramDateOut?.ToString("O"),
-                Destination = paramDestination,
-                Origin = paramOrigin
-            });
-
-            // are online settings available
-            if (!client.SettingsOnline.IsAvailable ||
-                client.SettingsOnline.Data.Blacklist == null)
-            {
-                // do not block
-                return false;
-            }
-
-            // is current action enabled
-            if (!client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
-            {
-                // do not block
-                return false;
-            }
-
-            // protect the endpoint
-            BlackListItem blackItem;
-            if (!client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
-            {
-                // do not block
-                return false;
-            }
-
-            // check whether country is blocked or simulated
-            var isBlocked = client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
-            var isSimulated = client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
-            if (isBlocked != true && isSimulated != true)
-            {
-                // do not block - not blocked nor simulated
-                return false;
-            }
-
-            // get experiment id
-            var expId = client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
-
-            // log the malicious event
-            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
-            {
-                ExperimentId = expId,
-                IsBlocked = isBlocked == true,
-                IsSimulated = isSimulated == true,
-                IpAddress = ipAddress.ToString(),
-                GroupId = groupId,
-                Country = blackItem.Country,
-                AbsolutePath = requestUri.AbsolutePath,
-                FullPath = requestUri.PathAndQuery
-            };
-
-            client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
-
-            // send blacklisted ip to the service
-            if (client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
-            {
-                var ipBlackListAegisEvent = new AegisBlackListEvent()
-                {
-                    ExperimentId = expId,
-                    IsBlocked = isBlocked == true,
-                    IsSimulated = isSimulated == true,
-                    IpAddress = ipAddress.ToString(),
-                    GroupId = groupId,
-                    Country = blackItem.Country,
-                    AbsolutePath = requestUri.AbsolutePath,
-                    FullPath = requestUri.PathAndQuery,
-                    Time = currentTime.ToString("O"),
-                };
-
-                client.AegisEventCache.AddGeneral(ipBlackListAegisEvent);
-            }
-
-            // return info whether to block or not
-            return isBlocked == true;
-        }
-
-        private IEnumerable<IPAddress> ParseIpAddressesFromHeaders(Client client, string headerName, HttpHeaders headers)
-        {
             // parse headers
             var networkRouteMapper = new CitrixNetworkRouteMapper(headerName, headers);
 
@@ -882,26 +718,16 @@ namespace Aegis.Pumps
                     httpRequestHeaderValues = string.Join(";", networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues);
                 }
 
-                // send error
-                var newRelicInsightsAegisEvent =
-                    new NewRelicInsightsEvents.AegisErrorEvent()
-                    {
-                        ComponentName = NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
-                        ErrorMessage = networkRouteMapper
-                                            .NetworkRouteMetadata
-                                            .HttpHeaderParseResult
-                                            .ToString(),
-                        InnerErrorMessage = httpRequestHeaderValues
-                    };
-
-                client.NewRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                errorMessage = string.Format("HttpHeaderParseResult : {0}\n{1}",
+                    networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult,
+                    httpRequestHeaderValues);
             }
 
             // return parsed IPs
             return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
         }
 
-        private string ComputeGroupId(List<IPAddress> ipAddresses)
+        protected string ComputeGroupId(List<IPAddress> ipAddresses)
         {
             var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
 
