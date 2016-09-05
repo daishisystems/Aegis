@@ -727,6 +727,17 @@ namespace Aegis.Pumps.Actions
             return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
         }
 
+        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers)
+        {
+            IEnumerable<string> values;
+            if (!headers.TryGetValues(headerName, out values))
+            {
+                return null;
+            }
+
+            return string.Join(";", values);
+        }
+
         protected string ComputeGroupId(List<IPAddress> ipAddresses)
         {
             var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));

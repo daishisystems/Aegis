@@ -692,6 +692,9 @@ namespace Aegis.Core.Data
             set { }
         }
 
+        [JilDirective(Name = "expId")]
+        public int? ExperimentId { get; set; }
+
         /// <summary>IPAddress is a standard 4-segment IP address.</summary>
         [JilDirective(Name = "i")]
         public string IpAddress { get; set; }

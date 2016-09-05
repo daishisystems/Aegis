@@ -741,11 +741,11 @@ namespace Aegis.Pumps.Actions
                     errorMessage);
             }
 
-            // get group id
+            // get common data
             var groupId = this.ComputeGroupId(ipAddresses);
-
-            // get current time
             var currentTime = DateTime.UtcNow;
+            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
+            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
 
             // process each IP
             var isBlocked = false;
@@ -757,6 +757,8 @@ namespace Aegis.Pumps.Actions
                                             currentTime,
                                             groupId,
                                             requestUri,
+                                            httpUserAgent,
+                                            httpAcceptLanguage,
                                             paramOrigin,
                                             paramDestination,
                                             paramDateIn,
@@ -771,18 +773,28 @@ namespace Aegis.Pumps.Actions
             DateTime currentTime,
             string groupId,
             Uri requestUri,
+            string httpUserAgent,
+            string httpAcceptLanguage,
             string paramOrigin,
             string paramDestination,
             DateTime? paramDateIn,
             DateTime? paramDateOut)
         {
+            // get experiment id
+            int? expId = null;
+            if (!this.Client.SettingsOnline.IsAvailable)
+            {
+                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+            }
+
             // add IP address to data-pump
-            // TODO http user agent, accept langs
-            // TODO dodac expId
             var isCacheFull = this.Client.AegisEventCache.Add(new AegisAvailabilityEvent
             {
+                ExperimentId = expId,
                 IpAddress = ipAddress.ToString(),
                 GroupId = groupId,
+                HttpUserAgent = httpUserAgent,
+                HttpAcceptLanguage = httpAcceptLanguage,
                 Path = requestUri.AbsolutePath,
                 Time = currentTime.ToString("O"),
                 DateIn = paramDateIn?.ToString("O"),
@@ -831,9 +843,6 @@ namespace Aegis.Pumps.Actions
                 // do not block - not blocked nor simulated
                 return false;
             }
-
-            // get experiment id
-            var expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
 
             // log the malicious event
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
