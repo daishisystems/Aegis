@@ -687,11 +687,11 @@ namespace Aegis.Pumps.Actions
 {
     public abstract class Action
     {
-        protected readonly Client client;
+        protected readonly Client Client;
 
         protected Action(Client client)
         {
-            this.client = client;
+            this.Client = client;
         }
 
         protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(

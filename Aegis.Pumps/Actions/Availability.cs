@@ -711,7 +711,7 @@ namespace Aegis.Pumps.Actions
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.AddException(
-                    this.client.NewRelicInsightsClient,
+                    this.Client.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
                     exception);
             }
@@ -735,7 +735,7 @@ namespace Aegis.Pumps.Actions
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 NewRelicInsightsEvents.Utils.AddException(
-                    this.client.NewRelicInsightsClient,
+                    this.Client.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
                     null,
                     errorMessage);
@@ -777,7 +777,9 @@ namespace Aegis.Pumps.Actions
             DateTime? paramDateOut)
         {
             // add IP address to data-pump
-            this.client.AegisEventCache.AddAvailability(new AegisAvailabilityEvent
+            // TODO http user agent, accept langs
+            // TODO dodac expId
+            var isCacheFull = this.Client.AegisEventCache.Add(new AegisAvailabilityEvent
             {
                 IpAddress = ipAddress.ToString(),
                 GroupId = groupId,
@@ -789,16 +791,25 @@ namespace Aegis.Pumps.Actions
                 Origin = paramOrigin
             });
 
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    null,
+                    "AegisEventCache is full!");
+            }
+
             // are online settings available
-            if (!this.client.SettingsOnline.IsAvailable ||
-                this.client.SettingsOnline.Data.Blacklist == null)
+            if (!this.Client.SettingsOnline.IsAvailable ||
+                this.Client.SettingsOnline.Data.Blacklist == null)
             {
                 // do not block
                 return false;
             }
 
             // is current action enabled
-            if (!this.client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
+            if (!this.Client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
             {
                 // do not block
                 return false;
@@ -806,15 +817,15 @@ namespace Aegis.Pumps.Actions
 
             // protect the endpoint
             BlackListItem blackItem;
-            if (!this.client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
+            if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
             {
                 // do not block
                 return false;
             }
 
             // check whether country is blocked or simulated
-            var isBlocked = this.client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
-            var isSimulated = this.client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            var isBlocked = this.Client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = this.Client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
             if (isBlocked != true && isSimulated != true)
             {
                 // do not block - not blocked nor simulated
@@ -822,7 +833,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // get experiment id
-            var expId = this.client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+            var expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
 
             // log the malicious event
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
@@ -837,10 +848,10 @@ namespace Aegis.Pumps.Actions
                 FullPath = requestUri.PathAndQuery
             };
 
-            this.client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
+            this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
-            if (this.client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
+            if (this.Client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
             {
                 var ipBlackListAegisEvent = new AegisBlackListEvent()
                 {
@@ -855,7 +866,15 @@ namespace Aegis.Pumps.Actions
                     Time = currentTime.ToString("O"),
                 };
 
-                this.client.AegisEventCache.AddGeneral(ipBlackListAegisEvent);
+                isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
+                if (isCacheFull)
+                {
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.Client.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        null,
+                        "AegisEventCache is full!");
+                }
             }
 
             // return info whether to block or not

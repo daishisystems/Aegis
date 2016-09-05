@@ -746,6 +746,8 @@ namespace Aegis.Pumps.Tests
                 null);
 
             Assert.IsFalse(result);
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
         }
 
         [TestMethod]

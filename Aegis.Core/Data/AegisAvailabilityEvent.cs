@@ -686,10 +686,9 @@ namespace Aegis.Core.Data
     /// </summary>
     public class AegisAvailabilityEvent : AegisBaseEvent
     {
-        [JilDirective("e")]
         public override string EventType
         {
-            get { return "AegisAvailabilityEvent"; }
+            get { return "availability"; }
             set { }
         }
 

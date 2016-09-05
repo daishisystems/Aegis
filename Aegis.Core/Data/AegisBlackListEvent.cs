@@ -686,10 +686,9 @@ namespace Aegis.Core.Data
 {
     public class AegisBlackListEvent : AegisBaseEvent
     {
-        [JilDirective("e")]
         public override string EventType
         {
-            get { return "AegisBlackListEvent"; }
+            get { return "blacklist"; }
             set { }
         }
 

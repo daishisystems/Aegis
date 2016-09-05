@@ -735,18 +735,11 @@ namespace Aegis.Pumps
             }
             catch (Exception exception)
             {
-                try
-                {
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        newRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                        exception);
-                }
-                catch (Exception)
-                {
-                    // ToDo: Provide a fall-back solution if New Relic Insights is offline.
-                }
-            }
+                NewRelicInsightsEvents.Utils.UploadException(
+                    newRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                    exception);
+             }
 
             // initialisation failed
             return false;

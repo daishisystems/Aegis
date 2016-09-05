@@ -681,12 +681,12 @@ namespace Aegis.Core.Data
 {
     public abstract class AegisBaseEvent
     {
-        [JilDirective(Name = "eventType")]
+        [JilDirective(Name = "e")]
         public abstract string EventType { get; set; }
 
         /// <summary>Time is a string-based translation of the event time.</summary>
         /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        [JilDirective(Name = "time")]
+        [JilDirective(Name = "t")]
         public string Time { get; set; }
     }
 }
