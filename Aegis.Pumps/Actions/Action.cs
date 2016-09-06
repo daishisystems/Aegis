@@ -747,7 +747,7 @@ namespace Aegis.Pumps.Actions
                 var md5Raw = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(data));
                 var md5Str = string.Join(string.Empty, md5Raw.Select(b => b.ToString("x2")));
 
-                return $"g:{ipAddresses.Count}:{md5Str}";
+                return $"g:{ipAddresses.Count}:{md5Str.Length}:{md5Str}";
             }
         }
     }

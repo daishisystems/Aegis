@@ -679,6 +679,11 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
+    /// <summary>
+    ///     AegisBaseEvent represents a simple structure that is designed to encapsulate
+    ///     user-specific metadata that the Aegis platform can aggregate and process in
+    ///     order to identify patterns in traffic.
+    /// </summary>
     public abstract class AegisBaseEvent
     {
         [JilDirective(Name = "e")]

@@ -679,38 +679,17 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public abstract class AegisBaseIpEvent : AegisBaseEvent
+    public class AegisDccEvent : AegisBaseIpEvent
     {
-        [JilDirective(Name = "expId")]
-        public int? ExperimentId { get; set; }
-
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        [JilDirective(Name = "i")]
-        public string IpAddress { get; set; }
-
-        /// <summary>GroupId</summary>
-        [JilDirective(Name = "g")]
-        public string GroupId { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        [JilDirective(Name = "p")]
-        public string Path { get; set; }
-
-        /// <summary>Accepted languages in HTTP request</summary>
-        [JilDirective(Name = "httpAcceptLang")]
-        public string HttpAcceptLanguage { get; set; }
-
-        /// <summary>User-agent in HTTP request</summary>
-        [JilDirective(Name = "httpUserAgent")]
-        public string HttpUserAgent { get; set; }
-
-        /// <summary>Session token in HTTP request</summary>
-        [JilDirective(Name = "httpSessionToken")]
-        public string HttpSessionToken { get; set; }
-
-        public override string ToString()
+        public override string EventType
         {
-            return $"IP address: {this.IpAddress}";
+            get { return "dcc"; }
+            set { }
         }
+
+        // TODO implement
+        /// <summary>Flight origin</summary>
+        //[JilDirective(Name = "orn")]
+        //public string Origin { get; set; }
     }
 }

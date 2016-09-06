@@ -675,42 +675,121 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System.Linq;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Actions
 {
-    public abstract class AegisBaseIpEvent : AegisBaseEvent
+    public class ActionIpEventNotify<T> : Action 
+        where T : AegisBaseIpEvent, new()
     {
-        [JilDirective(Name = "expId")]
-        public int? ExperimentId { get; set; }
+        private readonly string newRelicExceptionComponentName;
 
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        [JilDirective(Name = "i")]
-        public string IpAddress { get; set; }
-
-        /// <summary>GroupId</summary>
-        [JilDirective(Name = "g")]
-        public string GroupId { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        [JilDirective(Name = "p")]
-        public string Path { get; set; }
-
-        /// <summary>Accepted languages in HTTP request</summary>
-        [JilDirective(Name = "httpAcceptLang")]
-        public string HttpAcceptLanguage { get; set; }
-
-        /// <summary>User-agent in HTTP request</summary>
-        [JilDirective(Name = "httpUserAgent")]
-        public string HttpUserAgent { get; set; }
-
-        /// <summary>Session token in HTTP request</summary>
-        [JilDirective(Name = "httpSessionToken")]
-        public string HttpSessionToken { get; set; }
-
-        public override string ToString()
+        public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
         {
-            return $"IP address: {this.IpAddress}";
+            this.newRelicExceptionComponentName = newRelicExceptionComponentName;
+        }
+
+        public void Run(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            Func<T> eventBuilder)
+        {
+            try
+            {
+                this.DoRun(
+                    requestHeaders,
+                    requestUri,
+                    eventBuilder);
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    exception);
+            }
+        }
+
+        private void DoRun(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            Func<T> eventBuilder)
+        {
+            // get IP addresses
+            string errorMessage;
+            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    null,
+                    errorMessage);
+            }
+
+            // get common data
+            var groupId = this.ComputeGroupId(ipAddresses);
+            var currentTime = DateTime.UtcNow;
+            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
+            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
+            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders);
+
+            // process each IP
+            foreach (var ipAddress in ipAddresses)
+            {
+                this.DoRunPerIpAddress(
+                                        ipAddress,
+                                        currentTime,
+                                        groupId,
+                                        requestUri,
+                                        httpUserAgent,
+                                        httpAcceptLanguage,
+                                        httpSessionToken,
+                                        eventBuilder);
+            }
+        }
+
+        private void DoRunPerIpAddress(
+            IPAddress ipAddress,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string httpUserAgent,
+            string httpAcceptLanguage,
+            string httpSessionToken,
+            Func<T> eventBuilder)
+        {
+            // get experiment id
+            int? expId = null;
+            if (!this.Client.SettingsOnline.IsAvailable)
+            {
+                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+            }
+
+            // add IP address to data-pump
+            var evnt = eventBuilder();
+            evnt.ExperimentId = expId;
+            evnt.IpAddress = ipAddress.ToString();
+            evnt.GroupId = groupId;
+            evnt.HttpUserAgent = httpUserAgent;
+            evnt.HttpAcceptLanguage = httpAcceptLanguage;
+            evnt.HttpSessionToken = httpSessionToken;
+            evnt.Path = requestUri.AbsolutePath;
+            evnt.Time = currentTime.ToString("O");
+
+            var isCacheFull = this.Client.AegisEventCache.Add(evnt);
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    null,
+                    "AegisEventCache is full!");
+            }
         }
     }
 }

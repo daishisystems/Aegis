@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Net.Http.Headers;
 using Daishi.NewRelic.Insights;
+using Aegis.Pumps.Actions;
 
 namespace Aegis.Pumps
 {
@@ -694,7 +694,7 @@ namespace Aegis.Pumps
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient;
-        public readonly Actions.Availability ActionAvailability;
+        public readonly Actions.ActionsHub ActionsHub;
         private SchedulerRegistry scheduler;
 
         private Client(INewRelicInsightsClient newRelicInsightsClient, Settings settings)
@@ -715,7 +715,9 @@ namespace Aegis.Pumps
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();
-            this.ActionAvailability = new Actions.Availability(this);
+            this.ActionsHub = new Actions.ActionsHub(this);
+            //this.ActionResource = new Actions.ActionIpEventNotify<AegisResourceEvent>(this, NewRelicInsightsEvents.Utils.ComponentNames.ResourceRequest);
+            //this.ActionCalendar = new Actions.ActionIpEventNotify<AegisCalendarEvent>(this, NewRelicInsightsEvents.Utils.ComponentNames.CalendarRequest);
             this.scheduler = new SchedulerRegistry();
         }
 
@@ -762,28 +764,16 @@ namespace Aegis.Pumps
             self.BlackList?.CleanUp();
         }
 
-        public static bool OnAvailabilityController(HttpHeaders requestHeaders, 
-            Uri requestUri,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut)
+        public static ActionsHub GetActionsHub()
         {
             // ignore on non initialized
             if (!IsInitialised)
             {
-                // do not block
-                return false;
+                return null;
             }
 
-            // run logic
-            return Instance.ActionAvailability.Run(
-                    requestHeaders, 
-                    requestUri,
-                    paramOrigin,
-                    paramDestination,
-                    paramDateIn,
-                    paramDateOut);
+            // initialized
+            return Instance.ActionsHub;
         }
 
         public static void DoInitialise(
