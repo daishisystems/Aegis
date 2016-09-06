@@ -679,41 +679,13 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    /// <summary>
-    ///     AegisEvent represents a simple structure that is designed to encapsulate
-    ///     user-specific metadata that the Aegis platform can aggregate and process in
-    ///     order to identify patterns in traffic.
-    /// </summary>
-    public class AegisAvailabilityEvent : AegisBaseEvent
+    public class AegisAvailabilityEvent : AegisBaseIpEvent
     {
         public override string EventType
         {
             get { return "availability"; }
             set { }
         }
-
-        [JilDirective(Name = "expId")]
-        public int? ExperimentId { get; set; }
-
-        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
-        [JilDirective(Name = "i")]
-        public string IpAddress { get; set; }
-
-        /// <summary>GroupId</summary>
-        [JilDirective(Name = "g")]
-        public string GroupId { get; set; }
-
-        /// <summary>Path is the URI path from which the event metadata originated.</summary>
-        [JilDirective(Name = "p")]
-        public string Path { get; set; }
-
-        /// <summary>Accepted languages in HTTP request</summary>
-        [JilDirective(Name = "httpAcceptLang")]
-        public string HttpAcceptLanguage { get; set; }
-
-        /// <summary>User-agent in HTTP request</summary>
-        [JilDirective(Name = "httpUserAgent")]
-        public string HttpUserAgent { get; set; }
 
         /// <summary>Flight date in</summary>
         [JilDirective(Name = "dateIn")]
@@ -730,10 +702,5 @@ namespace Aegis.Core.Data
         /// <summary>Flight destination</summary>
         [JilDirective(Name = "dst")]
         public string Destination { get; set; }
-
-        public override string ToString()
-        {
-            return $"IP address: {this.IpAddress}";
-        }
     }
 }

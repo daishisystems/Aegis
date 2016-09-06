@@ -700,7 +700,7 @@ namespace Aegis.Pumps.Actions
             // run logic
             try
             {
-                return this.DoAvailabilityController(
+                return this.DoRun(
                     requestHeaders,
                     requestUri,
                     paramOrigin,
@@ -712,7 +712,7 @@ namespace Aegis.Pumps.Actions
             {
                 NewRelicInsightsEvents.Utils.AddException(
                     this.Client.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
                     exception);
             }
 
@@ -720,7 +720,7 @@ namespace Aegis.Pumps.Actions
             return false;
         }
 
-        private bool DoAvailabilityController(
+        private bool DoRun(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
@@ -736,7 +736,7 @@ namespace Aegis.Pumps.Actions
             {
                 NewRelicInsightsEvents.Utils.AddException(
                     this.Client.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
                     null,
                     errorMessage);
             }
@@ -752,7 +752,7 @@ namespace Aegis.Pumps.Actions
 
             foreach (var ipAddress in ipAddresses)
             {
-                isBlocked |= this.DoAvailabilityControllerPerIpAddress(
+                isBlocked |= this.DoRunPerIpAddress(
                                             ipAddress,
                                             currentTime,
                                             groupId,
@@ -768,7 +768,7 @@ namespace Aegis.Pumps.Actions
             return isBlocked;
         }
 
-        private bool DoAvailabilityControllerPerIpAddress(
+        private bool DoRunPerIpAddress(
             IPAddress ipAddress,
             DateTime currentTime,
             string groupId,
@@ -807,7 +807,7 @@ namespace Aegis.Pumps.Actions
             {
                 NewRelicInsightsEvents.Utils.AddException(
                     this.Client.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
                     null,
                     "AegisEventCache is full!");
             }
@@ -870,8 +870,7 @@ namespace Aegis.Pumps.Actions
                     IpAddress = ipAddress.ToString(),
                     GroupId = groupId,
                     Country = blackItem.Country,
-                    AbsolutePath = requestUri.AbsolutePath,
-                    FullPath = requestUri.PathAndQuery,
+                    Path = requestUri.AbsolutePath,
                     Time = currentTime.ToString("O"),
                 };
 
@@ -880,7 +879,7 @@ namespace Aegis.Pumps.Actions
                 {
                     NewRelicInsightsEvents.Utils.AddException(
                         this.Client.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.AvailabilityRequest,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
                         null,
                         "AegisEventCache is full!");
                 }

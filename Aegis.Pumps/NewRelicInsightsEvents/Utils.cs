@@ -685,11 +685,29 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public class ComponentNames
         {
             public const string ClientInitialisation = "Client initialisation";
-            public const string AvailabilityRequest = "Availability-request";
-            public const string GetBlackList = "GetBlackList";
-            public const string GetSettingsOnline = "GetSettingsOnline";
-            public const string SendAegisAvailabilityEvents = "SendAegisAvailabilityEvents";
-            public const string SendAegisGeneralEvents = "SendAegisGeneralEvents";
+
+            // Actions
+            public const string ActionAvailability = "Action-Availability";
+            public const string ActionConfigurations = "Action-Configurations";
+            public const string ActionResource = "Action-Resource";
+            public const string ActionCalendar = "Action-Calendar";
+            public const string ActionPrice = "Action-Price";
+            public const string ActionFlight = "Action-Flight";
+            public const string ActionFast = "Action-Fast";
+            public const string ActionExtras = "Action-Extras";
+            public const string ActionQuickAdd = "Action-QuickAdd";
+            public const string ActionBag = "Action-Bag";
+            public const string ActionRefresh = "Action-Refresh";
+            public const string ActionSeat = "Action-Seat";
+            public const string ActionFees = "Action-Fees";
+            public const string ActionPaymentMethods = "Action-PaymentMethods";
+            public const string ActionDcc = "Action-Dcc";
+            public const string ActionPayment = "Action-Payment";
+
+            // Jobs
+            public const string JobGetBlackList = "Job-GetBlackList";
+            public const string JobGetSettingsOnline = "Job-GetSettingsOnline";
+            public const string JobSendAegisEvents = "Job-SendAegisEvents";
         }
 
         public class EventTypes

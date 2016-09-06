@@ -737,7 +737,7 @@ namespace Aegis.Pumps.Tests
             var requestHeaders = new MyHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders,
                 requestUri,
                 "origin",
@@ -745,7 +745,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow,
                 null);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result != true);
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
         }
@@ -763,7 +763,7 @@ namespace Aegis.Pumps.Tests
             var requestHeaders = new MyHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders, 
                 requestUri,
                 "origin",
@@ -771,7 +771,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow, 
                 null);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown
@@ -797,7 +797,7 @@ namespace Aegis.Pumps.Tests
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders,
                 requestUri,
                 "origin",
@@ -805,7 +805,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow,
                 null);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result == false);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown
@@ -848,7 +848,7 @@ namespace Aegis.Pumps.Tests
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders,
                 requestUri,
                 "origin",
@@ -856,7 +856,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow,
                 null);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown
@@ -900,7 +900,7 @@ namespace Aegis.Pumps.Tests
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders,
                 requestUri,
                 "origin",
@@ -908,7 +908,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow,
                 null);
 
-            Assert.IsTrue(result);
+            Assert.IsTrue(result == true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown
@@ -953,7 +953,7 @@ namespace Aegis.Pumps.Tests
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-            var result = Client.OnAvailabilityController(
+            var result = Client.GetActionsHub()?.GetAvailabilityController(
                 requestHeaders,
                 requestUri,
                 "origin",
@@ -961,7 +961,7 @@ namespace Aegis.Pumps.Tests
                 DateTime.UtcNow,
                 null);
 
-            Assert.IsFalse(result);
+            Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown

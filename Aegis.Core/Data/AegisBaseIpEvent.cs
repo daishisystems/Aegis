@@ -675,80 +675,38 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Aegis.Core;
-using Aegis.Core.Data;
+using Jil;
 
-namespace Aegis.Pumps.SchedulerJobs
+namespace Aegis.Core.Data
 {
-    internal class SendAegisEventsJob : ClientJob
+    public abstract class AegisBaseIpEvent : AegisBaseEvent
     {
-        public SendAegisEventsJob(Client client) : base(client, "AegisSendAegisEvents")
+        [JilDirective(Name = "expId")]
+        public int? ExperimentId { get; set; }
+
+        /// <summary>IPAddress is a standard 4-segment IP address.</summary>
+        [JilDirective(Name = "i")]
+        public string IpAddress { get; set; }
+
+        /// <summary>GroupId</summary>
+        [JilDirective(Name = "g")]
+        public string GroupId { get; set; }
+
+        /// <summary>Path is the URI path from which the event metadata originated.</summary>
+        [JilDirective(Name = "p")]
+        public string Path { get; set; }
+
+        /// <summary>Accepted languages in HTTP request</summary>
+        [JilDirective(Name = "httpAcceptLang")]
+        public string HttpAcceptLanguage { get; set; }
+
+        /// <summary>User-agent in HTTP request</summary>
+        [JilDirective(Name = "httpUserAgent")]
+        public string HttpUserAgent { get; set; }
+
+        public override string ToString()
         {
-        }
-
-        protected override void DoExecute()
-        {
-            try
-            {
-                // execute sending data
-                this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisCacheBatchSize, 
-                    this.OnPublishEvents);
-            }
-            catch (TaskCanceledException exception)
-            {
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception);
-            }
-        }
-
-        private bool OnPublishEvents(List<AegisBaseEvent> items)
-        {
-            try
-            {
-                if (items.Count == 0)
-                {
-                    return true;
-                }
-
-                this.ClientInstance.AegisServiceClient.SendAegisEvents(this.ClientInstance.Settings, items);
-                return true;
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception);
-
-                return false;
-            }
+            return $"IP address: {this.IpAddress}";
         }
     }
 }

@@ -675,16 +675,11 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisBlackListEvent : AegisBaseEvent
+    public class AegisBlackListEvent : AegisBaseIpEvent
     {
         public override string EventType
         {
@@ -692,45 +687,17 @@ namespace Aegis.Core.Data
             set { }
         }
 
-        [JilDirective(Name = "expId")]
-        public int? ExperimentId { get; set; }
-
-        [JilDirective(Name = "isBlocked")]
+        [JilDirective(Name = "isB")]
         public bool IsBlocked { get; set; }
 
-        [JilDirective(Name = "isSimulated")]
+        [JilDirective(Name = "isS")]
         public bool IsSimulated { get; set; }
-
-        /// <summary>
-        ///     <see cref="IpAddress" /> is the black-listed IP address that has attempted
-        ///     access.
-        /// </summary>
-        [JilDirective(Name = "i")]
-        public string IpAddress { get; set; }
-
-        /// <summary>GroupId</summary>
-        [JilDirective(Name = "g")]
-        public string GroupId { get; set; }
 
         /// <summary>
         ///     Country of the black-listed IP address that has attempted
         ///     access.
         /// </summary>
-        [JilDirective(Name = "country")]
+        [JilDirective(Name = "c")]
         public string Country { get; set; }
-
-        /// <summary>
-        ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
-        ///     black-listed IP address has attempted access.
-        /// </summary>
-        [JilDirective(Name = "absolutePath")]
-        public string AbsolutePath { get; set; }
-
-        /// <summary>
-        ///     <see cref="FullPath" /> is the full path of the URI to which the
-        ///     black-listed IP address has attempted access.
-        /// </summary>
-        [JilDirective(Name = "fullPath")]
-        public string FullPath { get; set; }
     }
 }
