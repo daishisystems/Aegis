@@ -742,8 +742,12 @@ namespace Aegis.Pumps.Tests
             mock.GetSettingsOnlineData(settings, null, out resultData, out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
-            CollectionAssert.AreEqual(data.Blacklist.CountriesBlock.ToList(), resultData.Blacklist.CountriesBlock.ToList());
-            CollectionAssert.AreEqual(data.Blacklist.CountriesSimulate.ToList(), resultData.Blacklist.CountriesSimulate.ToList());
+            CollectionAssert.AreEqual(
+                data.Blacklist.CountriesBlock.ToList(),
+                resultData.Blacklist.CountriesBlock.ToList());
+            CollectionAssert.AreEqual(
+                data.Blacklist.CountriesSimulate.ToList(),
+                resultData.Blacklist.CountriesSimulate.ToList());
         }
     }
 }
