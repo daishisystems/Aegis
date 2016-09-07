@@ -683,11 +683,11 @@ namespace Aegis.Core.Data
     {
         public override string EventType
         {
-            get { return "payment"; }
+            get { return EventTypes.Payment; }
             set { }
         }
 
-        // TODO
+        // TODO implement
         /// <summary>Flight origin</summary>
         [JilDirective(Name = "orn")]
         public string Origin { get; set; }

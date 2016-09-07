@@ -683,7 +683,7 @@ namespace Aegis.Core.Data
     {
         public override string EventType
         {
-            get { return "extras"; }
+            get { return EventTypes.Extras; }
             set { }
         }
     }

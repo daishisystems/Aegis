@@ -706,8 +706,16 @@ namespace Aegis.Pumps
     public class AegisEventCacheClient
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        //private readonly MemoryCache<AegisAvailabilityEvent> eventsAvailability = new MemoryCache<AegisAvailabilityEvent>(1000000);
         private readonly MemoryCache<AegisBaseEvent> events = new MemoryCache<AegisBaseEvent>(1000000);
+
+        /// <summary>
+        /// Get estimated number of elements in the cache
+        /// </summary>
+        /// <returns>Estimated number of elements</returns>
+        public int Count()
+        {
+            return this.events.Count();
+        }
 
         /// <summary>
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying

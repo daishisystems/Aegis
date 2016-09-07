@@ -683,7 +683,7 @@ namespace Aegis.Core.Data
     {
         public override string EventType
         {
-            get { return "bag"; }
+            get { return EventTypes.Bag; }
             set { }
         }
     }

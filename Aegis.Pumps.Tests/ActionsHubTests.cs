@@ -676,124 +676,228 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Jil;
-using Aegis.Core;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
+using Aegis.Pumps.Tests.Mocks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Tests
 {
-    public class SettingsOnlineData
+    [TestClass]
+    public class ActionsHubTests
     {
-        public class BlackListData
+        [TestMethod]
+        public void RunAllWithNoHeader()
         {
-            [JilDirective(Name = "countryBlock")]
-            public HashSet<string> CountriesBlock { get; set; }
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
 
-            [JilDirective(Name = "countrySimulate")]
-            public HashSet<string> CountriesSimulate { get; set; }
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                0,
+                1);
+
+            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
         }
 
-        public class ExperimentData
+        [TestMethod]
+        public void RunAllWithOneCorrectHeaderIp()
         {
-            [JilDirective(Name = "id")]
-            public int ExperimentId { get; set; }
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
 
-            [JilDirective(Name = "start")]
-            public DateTime DateStart { get; set; }
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
 
-            [JilDirective(Name = "end")]
-            public DateTime DateEnd { get; set; }
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
 
-            [JilDirective(Name = "ipMask")]
-            public string IpMask { get; set; }
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders, 
+                requestUri,
+                newRelicClient,
+                1,
+                0);
+
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
 
-        private Dictionary<int, List<ExperimentData>> experimentsLookUp;
-
-        [JilDirective(Name = "blacklist")]
-        public BlackListData Blacklist { get; set; }
-
-        [JilDirective(Name = "experiments")]
-        public ExperimentData[] Experiments { get; set; }
-
-        [JilDirective(Name = "aegisEventsDisabled")]
-        public string[] AegisEventsDisabled { get; set; }
-
-        [JilDirective(Name = "jobGetBlackListInterval")]
-        public int? GetBlackListJobInternvalInSeconds { get; set; }
-
-        [JilDirective(Name = "jobGetSettingsOnlineInterval")]
-        public int? GetSettingsOnlineJobInternvalInSeconds { get; set; }
-
-        [JilDirective(Name = "jobSendAegisEventsInterval")]
-        public int? SendAegisEventsJobInternvalInSeconds { get; set; }
-
-        public static SettingsOnlineData Deserialize(string dataString)
+        [TestMethod]
+        public void RunAllWithOneInproperHeaderIp()
         {
-            if (string.IsNullOrWhiteSpace(dataString))
-            {
-                return new SettingsOnlineData();
-            }
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
 
-            var self = JSON.Deserialize<SettingsOnlineData>(dataString, Options.ISO8601);
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
 
-            // initialize experiments
-            if (self.Experiments != null)
-            {
-                self.experimentsLookUp = new Dictionary<int, List<ExperimentData>>();
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
 
-                foreach (var exp in self.Experiments)
-                {
-                    var ipMaskContainer = ExperimentsUtils.DecodeIpMask(exp.IpMask);
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
-                    for (var index = 1; index < ipMaskContainer.Length; index++)
-                    {
-                        // if not enabled
-                        if (!ipMaskContainer[index])
-                        {
-                            continue;
-                        }
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
 
-                        // add to the list
-                        if (!self.experimentsLookUp.ContainsKey(index))
-                        {
-                            self.experimentsLookUp.Add(index, new List<ExperimentData>());
-                        }
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
 
-                        self.experimentsLookUp[index].Add(exp);
-                    }
-                }
-            }
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                0,
+                1);
 
-            return self;
+            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
         }
 
-        public string Serialize()
+        [TestMethod]
+        public void RunAllWithMultipleHeaderIp()
         {
-            return JSON.Serialize(this, Options.ISO8601ExcludeNulls);
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
+            requestHeaders.Add("NS_CLIENT_IP", "206.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                4,
+                1);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
         }
 
-        public ExperimentData GetExperiment(IPAddress ipAddress, DateTime currenTime)
+        private void RunActions(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            MockNewRelicInsightsClient newRelicClient,
+            int eventsCount,
+            int errorsCount)
         {
-            if (this.experimentsLookUp == null)
+            Action[] testMethods = 
             {
-                return null;
-            }
+                () => Client.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
+                () => Client.GetActionsHub().GetBag(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, DateTime.UtcNow),
+                () => Client.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
+                () => Client.GetActionsHub().GetExtras(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetFast(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetFees(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, "resource-name"),
+                () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
+                () => Client.GetActionsHub().PostPayment(requestHeaders, requestUri, 
+                                                null, null, null, null, DateTime.UtcNow, 
+                                                null, null, null, null, null,
+                                                null, null, null)
+            };
 
-            var ipExpBucket = ExperimentsUtils.GetIpExpBucket(ipAddress);
 
-            List<ExperimentData> expsList;
-            if (!this.experimentsLookUp.TryGetValue(ipExpBucket, out expsList))
+            // run each test method
+            var eventsSum = 0;
+            var errorsSum = 0;
+            foreach (var testMethod in testMethods)
             {
-                return null;
-            }
+                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
 
-            return expsList.FirstOrDefault(x => x.DateStart >= currenTime && x.DateEnd <= currenTime);
+                testMethod();
+                eventsSum += eventsCount;
+                errorsSum += errorsCount;
+
+                // no errors
+                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+                // new number of events
+                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
+            }
         }
     }
 }

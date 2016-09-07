@@ -694,6 +694,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void Run(
+            string eventTypeName,
             HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
@@ -701,6 +702,7 @@ namespace Aegis.Pumps.Actions
             try
             {
                 this.DoRun(
+                    eventTypeName,
                     requestHeaders,
                     requestUri,
                     eventBuilder);
@@ -715,10 +717,17 @@ namespace Aegis.Pumps.Actions
         }
 
         private void DoRun(
+            string eventTypeName,
             HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
         {
+            // is current action disabled
+            if (this.Client.SettingsOnline.IsAegisEventDisabled(eventTypeName))
+            {
+                return;
+            }
+
             // get IP addresses
             string errorMessage;
             var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
@@ -729,6 +738,12 @@ namespace Aegis.Pumps.Actions
                     this.newRelicExceptionComponentName,
                     null,
                     errorMessage);
+            }
+
+            // if no IPs to process
+            if (ipAddresses.Count == 0)
+            {
+                return;
             }
 
             // get common data
@@ -765,7 +780,7 @@ namespace Aegis.Pumps.Actions
         {
             // get experiment id
             int? expId = null;
-            if (!this.Client.SettingsOnline.IsAvailable)
+            if (this.Client.SettingsOnline.IsAvailable)
             {
                 expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
             }

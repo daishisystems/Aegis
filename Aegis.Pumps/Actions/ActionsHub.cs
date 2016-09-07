@@ -720,7 +720,7 @@ namespace Aegis.Pumps.Actions
             this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
         }
 
-        public bool GetAvailabilityController(
+        public bool GetAvailability(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
@@ -737,21 +737,22 @@ namespace Aegis.Pumps.Actions
                     paramDateOut);
         }
 
-        public void GetResourceController(
+        public void GetResource(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramName)
         {
             this.actionResource.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisResourceEvent()
-                     {
-                         Name = paramName
-                     });
+                    AegisBaseEvent.EventTypes.Resource,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisResourceEvent()
+                    {
+                        Name = paramName
+                    });
         }
 
-        public void GetCalendarController(
+        public void GetCalendar(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
@@ -759,33 +760,35 @@ namespace Aegis.Pumps.Actions
             DateTime paramStartDate)
         {
             this.actionCalendar.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisCalendarEvent()
-                     {
-                         Origin = paramOrigin,
-                         Destination = paramDestination,
-                         StartDate = paramStartDate.ToString("O")
-                     });
+                    AegisBaseEvent.EventTypes.Calendar,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisCalendarEvent()
+                    {
+                        Origin = paramOrigin,
+                        Destination = paramDestination,
+                        StartDate = paramStartDate.ToString("O")
+                    });
         }
 
-        public void GetConfigurationsController(
+        public void GetConfigurations(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination)
         {
             this.actionConfigurations.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisConfigurationsEvent()
-                     {
-                         Origin = paramOrigin,
-                         Destination = paramDestination,
-                     });
+                    AegisBaseEvent.EventTypes.Configurations,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisConfigurationsEvent()
+                    {
+                        Origin = paramOrigin,
+                        Destination = paramDestination,
+                    });
         }
 
-        public void PostPriceController(
+        public void PostPrice(
             HttpHeaders requestHeaders,
             Uri requestUri,
             short paramAdults,
@@ -794,18 +797,19 @@ namespace Aegis.Pumps.Actions
             short paramInfants)
         {
             this.actionPrice.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisPriceEvent()
-                     {
-                         Adults = paramAdults,
-                         Teens = paramTeens,
-                         Children = paramChildren,
-                         Infants = paramInfants
-                     });
+                    AegisBaseEvent.EventTypes.Price,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisPriceEvent()
+                    {
+                        Adults = paramAdults,
+                        Teens = paramTeens,
+                        Children = paramChildren,
+                        Infants = paramInfants
+                    });
         }
 
-        public void PostFlightController(
+        public void PostFlight(
             HttpHeaders requestHeaders,
             Uri requestUri,
             short paramAdults,
@@ -814,111 +818,120 @@ namespace Aegis.Pumps.Actions
             short paramInfants)
         {
             this.actionFlight.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisFlightEvent()
-                     {
-                         Adults = paramAdults,
-                         Teens = paramTeens,
-                         Children = paramChildren,
-                         Infants = paramInfants
-                     });
+                    AegisBaseEvent.EventTypes.Flight,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisFlightEvent()
+                    {
+                        Adults = paramAdults,
+                        Teens = paramTeens,
+                        Children = paramChildren,
+                        Infants = paramInfants
+                    });
         }
 
-        public void GetFastController(
+        public void GetFast(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionFast.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisFastEvent()
-                     {
-                     });
+                    AegisBaseEvent.EventTypes.Fast,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisFastEvent()
+                    {
+                    });
         }
 
-        public void GetExtrasController(
+        public void GetExtras(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionExtras.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisExtrasEvent()
-                     {
-                     });
+                    AegisBaseEvent.EventTypes.Extras,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisExtrasEvent()
+                    {
+                    });
         }
 
-        public void GetQuickAddController(
+        public void GetQuickAdd(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionQuickAdd.Run(
-                     requestHeaders,
-                     requestUri,
-                     () => new AegisQuickAddEvent()
-                     {
-                     });
+                    AegisBaseEvent.EventTypes.QuickAdd,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisQuickAddEvent()
+                    {
+                    });
         }
 
-        public void GetBagController(
+        public void GetBag(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionBag.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisBagEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.Bag,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisBagEvent()
+                    {
+                    });
         }
 
-        public void GetRefreshController(
+        public void GetRefresh(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionRefresh.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisRefreshEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.Refresh,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisRefreshEvent()
+                    {
+                    });
         }
 
-        public void GetSeatController(
+        public void GetSeat(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionSeat.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisSeatEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.Seat,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisSeatEvent()
+                    {
+                    });
         }
 
-        public void GetFeesController(
+        public void GetFees(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionFees.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisFeesEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.Fees,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisFeesEvent()
+                    {
+                    });
         }
 
-        public void GetPaymentMethodsController(
+        public void GetPaymentMethods(
             HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionPaymentMethods.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisPaymentMethodsEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.PaymentMethods,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisPaymentMethodsEvent()
+                    {
+                    });
         }
 
         public void PostDcc(
@@ -930,13 +943,14 @@ namespace Aegis.Pumps.Actions
             // TODO hash on accountNumber
 
             this.actionDcc.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisDccEvent()
-                      {
-                            //AccountNumber = paramAccountNumber,
-                            //PaymentMethodCode = paramPaymentMethodCode
-                      });
+                    AegisBaseEvent.EventTypes.Dcc,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisDccEvent()
+                    {
+                        //AccountNumber = paramAccountNumber,
+                        //PaymentMethodCode = paramPaymentMethodCode
+                    });
         }
 
         public void PostPayment(
@@ -956,15 +970,18 @@ namespace Aegis.Pumps.Actions
             string contactEmail,
             string contactPhone)
         {
-            // TODO hash on accountNumber, accountName, contactPhone, entire address
-            // TODO hash contactEmail but leave domain
+            // TODO hash on accountNumber and use expiration as a salt 
+            //    - expiration + number - 4-first-chars = hash
+            // TODO hash accountName, contactPhone, entire address - remove last 4 chars before hashing?
+            // TODO hash contactEmail and leave domain (use domain as a salt)
 
             this.actionPayment.Run(
-                      requestHeaders,
-                      requestUri,
-                      () => new AegisPaymentEvent()
-                      {
-                      });
+                    AegisBaseEvent.EventTypes.Payment,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisPaymentEvent()
+                    {
+                    });
         }
     }
 }

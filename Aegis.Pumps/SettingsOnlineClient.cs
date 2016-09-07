@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Linq;
 
 namespace Aegis.Pumps
 {
@@ -691,6 +692,16 @@ namespace Aegis.Pumps
         {
             this.TimeStamp = timeStamp;
             this.Data = newData;
+        }
+
+        public bool IsAegisEventDisabled(string name)
+        {
+            if (!this.IsAvailable || this.Data.AegisEventsDisabled == null)
+            {
+                return false;
+            }
+
+            return this.Data.AegisEventsDisabled.Contains(name);
         }
     }
 }

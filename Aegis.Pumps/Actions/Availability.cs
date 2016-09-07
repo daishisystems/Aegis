@@ -728,6 +728,13 @@ namespace Aegis.Pumps.Actions
             DateTime? paramDateIn,
             DateTime? paramDateOut)
         {
+            // is current action disabled
+            if (this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Availability))
+            {
+                // do not block
+                return false;
+            }
+
             // get IP addresses
             string errorMessage;
             var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
@@ -739,6 +746,12 @@ namespace Aegis.Pumps.Actions
                     NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
                     null,
                     errorMessage);
+            }
+
+            // if no IPs to process
+            if (ipAddresses.Count == 0)
+            {
+                return false;
             }
 
             // get common data
@@ -782,7 +795,7 @@ namespace Aegis.Pumps.Actions
         {
             // get experiment id
             int? expId = null;
-            if (!this.Client.SettingsOnline.IsAvailable)
+            if (this.Client.SettingsOnline.IsAvailable)
             {
                 expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
             }
@@ -815,13 +828,6 @@ namespace Aegis.Pumps.Actions
             // are online settings available
             if (!this.Client.SettingsOnline.IsAvailable ||
                 this.Client.SettingsOnline.Data.Blacklist == null)
-            {
-                // do not block
-                return false;
-            }
-
-            // is current action enabled
-            if (!this.Client.SettingsOnline.Data.IsAegisOnAvailabilityEnabled)
             {
                 // do not block
                 return false;
@@ -860,7 +866,7 @@ namespace Aegis.Pumps.Actions
             this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
-            if (this.Client.SettingsOnline.Data.IsSendBlackListIpToServiceEnabled)
+            if (!this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Blacklist))
             {
                 var ipBlackListAegisEvent = new AegisBlackListEvent()
                 {

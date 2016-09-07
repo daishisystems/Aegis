@@ -683,7 +683,7 @@ namespace Aegis.Core.Data
     {
         public override string EventType
         {
-            get { return "dcc"; }
+            get { return EventTypes.Dcc; }
             set { }
         }
 

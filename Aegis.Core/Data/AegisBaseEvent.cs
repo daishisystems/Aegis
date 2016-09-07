@@ -686,6 +686,27 @@ namespace Aegis.Core.Data
     /// </summary>
     public abstract class AegisBaseEvent
     {
+        public static class EventTypes
+        {
+            public const string Availability = "availability";
+            public const string Bag = "bag";
+            public const string Blacklist = "blacklist";
+            public const string Calendar = "calendar";
+            public const string Configurations = "configurations";
+            public const string Dcc = "dcc";
+            public const string Extras = "extras";
+            public const string Fast = "fast";
+            public const string Fees = "fees";
+            public const string Flight = "flight";
+            public const string Payment = "payment";
+            public const string PaymentMethods = "paymentMethods";
+            public const string Price = "price";
+            public const string QuickAdd = "quickAdd";
+            public const string Refresh = "refresh";
+            public const string Resource = "resource";
+            public const string Seat = "seat";
+        }
+
         [JilDirective(Name = "e")]
         public abstract string EventType { get; set; }
 
