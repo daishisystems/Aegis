@@ -874,9 +874,8 @@ namespace Aegis.Pumps.Tests
                 () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
                 () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
                 () => Client.GetActionsHub().PostPayment(requestHeaders, requestUri, 
-                                                null, null, null, null, DateTime.UtcNow, 
-                                                null, null, null, null, null,
-                                                null, null, null)
+                                                null, null, null, null,
+                                                null, null, null, null)
             };
 
 

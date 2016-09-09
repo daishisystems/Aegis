@@ -687,9 +687,10 @@ namespace Aegis.Core.Data
             set { }
         }
 
-        // TODO implement
-        /// <summary>Flight origin</summary>
-        //[JilDirective(Name = "orn")]
-        //public string Origin { get; set; }
+        [JilDirective(Name = "a")]
+        public string AccountNumber { get; set; }
+
+        [JilDirective(Name = "p")]
+        public string PaymentMethodCode { get; set; }
     }
 }

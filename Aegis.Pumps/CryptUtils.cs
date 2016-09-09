@@ -677,84 +677,71 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Aegis.Core;
-using Aegis.Core.Data;
 
-namespace Aegis.Pumps.SchedulerJobs
+namespace Aegis.Pumps
 {
-    internal class SendAegisEventsJob : ClientJob
+    using System.Security.Cryptography;
+
+    public class CryptUtils
     {
-        public SendAegisEventsJob(Client client) : base(client, "AegisSendAegisEvents")
+        private readonly SHA512 sha512;
+
+        public CryptUtils()
         {
+            // TODO initialize KDF
+            this.sha512 = new SHA512Managed();
         }
 
-        protected override void DoExecute()
+        public string HashSimple(string text)
         {
-            try
+            var txt = text?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(txt))
             {
-                // if job is disabled
-                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
-                {
-                    return;
-                }
+                return null;
+            }
 
-                // execute sending data
-                this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisCacheBatchSize, 
-                    this.OnPublishEvents);
-            }
-            catch (TaskCanceledException exception)
-            {
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception);
-            }
+            var txtHash = this.sha512.ComputeHash(Encoding.UTF8.GetBytes(txt));
+
+            return string.Join(string.Empty, txtHash.Select(b => b.ToString("x2")));
         }
 
-        private bool OnPublishEvents(List<AegisBaseEvent> items)
+        public string HashAccountNumber(string accountNumber)
         {
-            try
+            var account = accountNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(account) || account.Length < 8)
             {
-                if (items.Count == 0)
-                {
-                    return true;
-                }
-
-                this.ClientInstance.AegisServiceClient.SendAegisEvents(this.ClientInstance.Settings, items);
-                return true;
+                return null;
             }
-            catch (Exception exception)
+
+            var last4Digits = account.Substring(account.Length - 4, 4);
+            var hash = this.Hash(account, last4Digits);
+
+            return $"{last4Digits}${hash}";
+        }
+
+        public string HashMail(string address, string domain)
+        {
+            var addr = address?.Trim().ToLowerInvariant();
+            var dom = domain?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(addr) || string.IsNullOrWhiteSpace(dom))
             {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception);
-
-                return false;
+                return null;
             }
+
+            var hash = this.Hash(addr, dom);
+            return $"{dom}${hash}";
+        }
+
+        private string Hash(string text, string salt)
+        {
+            var textHash = this.sha512.ComputeHash(Encoding.UTF8.GetBytes(text));
+
+            // TODO run KDF for half of textHash as pwd and another half as salt + salt parameters
+
+            return string.Empty;
         }
     }
 }

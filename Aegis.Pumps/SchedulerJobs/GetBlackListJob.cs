@@ -701,6 +701,12 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
+                // if job is disabled
+                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
+                {
+                    return;
+                }
+
                 // get blacklist data
                 List<BlackListItem> blackListData;
                 DateTimeOffset? newTimeStamp;

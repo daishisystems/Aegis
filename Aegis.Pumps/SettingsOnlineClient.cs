@@ -701,7 +701,22 @@ namespace Aegis.Pumps
                 return false;
             }
 
+            if (this.Data.AegisEventsDisabled.Contains("_all_"))
+            {
+                return true;
+            }
+
             return this.Data.AegisEventsDisabled.Contains(name);
+        }
+
+        public bool IsJobDisabled(string jobName)
+        {
+            if (!this.IsAvailable || this.Data.JobsDisabled == null)
+            {
+                return false;
+            }
+
+            return this.Data.JobsDisabled.Contains(jobName);
         }
     }
 }

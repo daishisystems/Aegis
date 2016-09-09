@@ -691,6 +691,7 @@ namespace Aegis.Core.Data
             public const string Availability = "availability";
             public const string Bag = "bag";
             public const string Blacklist = "blacklist";
+            public const string Booking = "booking";
             public const string Calendar = "calendar";
             public const string Configurations = "configurations";
             public const string Dcc = "dcc";

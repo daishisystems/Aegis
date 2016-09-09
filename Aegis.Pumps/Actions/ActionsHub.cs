@@ -677,12 +677,14 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Net.Http.Headers;
+using System.Net.Mail;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Actions
 {
     public class ActionsHub
     {
+        private readonly CryptUtils crypt;
         private readonly Availability actionAvailability;
         private readonly ActionIpEventNotify<AegisResourceEvent> actionResource;
         private readonly ActionIpEventNotify<AegisCalendarEvent> actionCalendar;
@@ -693,6 +695,7 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisExtrasEvent> actionExtras;
         private readonly ActionIpEventNotify<AegisQuickAddEvent> actionQuickAdd;
         private readonly ActionIpEventNotify<AegisBagEvent> actionBag;
+        private readonly ActionIpEventNotify<AegisBookingEvent> actionBooking;
         private readonly ActionIpEventNotify<AegisRefreshEvent> actionRefresh;
         private readonly ActionIpEventNotify<AegisSeatEvent> actionSeat;
         private readonly ActionIpEventNotify<AegisFeesEvent> actionFees;
@@ -702,6 +705,7 @@ namespace Aegis.Pumps.Actions
 
         public ActionsHub(Client client)
         {
+            this.crypt = new CryptUtils();
             this.actionAvailability = new Availability(client);
             this.actionResource = new ActionIpEventNotify<AegisResourceEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionResource);
             this.actionCalendar = new ActionIpEventNotify<AegisCalendarEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionCalendar);
@@ -712,6 +716,7 @@ namespace Aegis.Pumps.Actions
             this.actionExtras = new ActionIpEventNotify<AegisExtrasEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionExtras);
             this.actionQuickAdd = new ActionIpEventNotify<AegisQuickAddEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionQuickAdd);
             this.actionBag = new ActionIpEventNotify<AegisBagEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionBag);
+            this.actionBooking = new ActionIpEventNotify<AegisBookingEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionBooking);
             this.actionRefresh = new ActionIpEventNotify<AegisRefreshEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionRefresh);
             this.actionSeat = new ActionIpEventNotify<AegisSeatEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionSeat);
             this.actionFees = new ActionIpEventNotify<AegisFeesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionFees);
@@ -934,46 +939,65 @@ namespace Aegis.Pumps.Actions
                     });
         }
 
+        public void PostBooking(
+            HttpHeaders requestHeaders,
+            Uri requestUri)
+        {
+            this.actionBooking.Run(
+                    AegisBaseEvent.EventTypes.Booking,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisBookingEvent()
+                    {
+                    });
+        }
+
         public void PostDcc(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramAccountNumber,
             string paramPaymentMethodCode)
         {
-            // TODO hash on accountNumber
-
             this.actionDcc.Run(
                     AegisBaseEvent.EventTypes.Dcc,
                     requestHeaders,
                     requestUri,
                     () => new AegisDccEvent()
                     {
-                        //AccountNumber = paramAccountNumber,
-                        //PaymentMethodCode = paramPaymentMethodCode
+                        AccountNumber = this.crypt.HashAccountNumber(paramAccountNumber),
+                        PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim()
                     });
         }
 
         public void PostPayment(
             HttpHeaders requestHeaders,
             Uri requestUri,
-            string customerId,
-            string accountNumber,
-            string accountName,
-            string paymentMethodCode,
-            DateTime expiration,
-            string addressCity,
-            string addressCountry,
-            string addressPostal,
-            string addressLine1,
-            string addressLine2,
-            string addressLine3,
-            string contactEmail,
-            string contactPhone)
+            string paramCustomerId,
+            string paramAccountNumber,
+            //string accountName,
+            string paramPaymentMethodCode,
+            //DateTime expiration,
+            string paramAddressCity,
+            string paramAddressCountry,
+            string paramAddressPostal,
+            //string addressLine1,
+            //string addressLine2,
+            //string addressLine3,
+            string paramContactEmail,
+            //string contactPhone,
+            int? paramBookingBalance)
         {
-            // TODO hash on accountNumber and use expiration as a salt 
-            //    - expiration + number - 4-first-chars = hash
-            // TODO hash accountName, contactPhone, entire address - remove last 4 chars before hashing?
-            // TODO hash contactEmail and leave domain (use domain as a salt)
+            // TODO PostPayment code cleanup
+
+            string mailHost = null;
+            string mailHash = null;
+
+            if (!string.IsNullOrWhiteSpace(paramContactEmail))
+            {
+                var mail = new MailAddress(paramContactEmail);
+                mailHost = mail.Host;
+                mailHash = this.crypt.HashMail(mail.Address, mail.Host);
+            }
 
             this.actionPayment.Run(
                     AegisBaseEvent.EventTypes.Payment,
@@ -981,6 +1005,15 @@ namespace Aegis.Pumps.Actions
                     requestUri,
                     () => new AegisPaymentEvent()
                     {
+                        CustomerId = paramCustomerId,
+                        AccountNumber = this.crypt.HashAccountNumber(paramAccountNumber),
+                        PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                        AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                        AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                        AddressPostal = this.crypt.HashSimple(paramAddressPostal),
+                        ContactMailDomain = mailHost,
+                        ContactMail = mailHash,
+                        BookingBalance = paramBookingBalance
                     });
         }
     }

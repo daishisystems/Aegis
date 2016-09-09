@@ -697,6 +697,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string ActionExtras = "Action-Extras";
             public const string ActionQuickAdd = "Action-QuickAdd";
             public const string ActionBag = "Action-Bag";
+            public const string ActionBooking = "Action-Booking";
             public const string ActionRefresh = "Action-Refresh";
             public const string ActionSeat = "Action-Seat";
             public const string ActionFees = "Action-Fees";

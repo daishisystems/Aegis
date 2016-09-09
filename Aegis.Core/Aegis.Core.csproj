@@ -63,6 +63,7 @@
     <Compile Include="Data\AegisBaseIpEvent.cs" />
     <Compile Include="Data\AegisBlackListEvent.cs" />
     <Compile Include="Data\AegisAvailabilityEvent.cs" />
+    <Compile Include="Data\AegisBookingEvent.cs" />
     <Compile Include="Data\AegisCalendarEvent.cs" />
     <Compile Include="Data\AegisConfigurationsEvent.cs" />
     <Compile Include="Data\AegisDccEvent.cs" />

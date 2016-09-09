@@ -724,6 +724,9 @@ namespace Aegis.Pumps
         [JilDirective(Name = "aegisEventsDisabled")]
         public string[] AegisEventsDisabled { get; set; }
 
+        [JilDirective(Name = "jobsDisabled")]
+        public string[] JobsDisabled { get; set; }
+
         [JilDirective(Name = "jobGetBlackListInterval")]
         public int? GetBlackListJobInternvalInSeconds { get; set; }
 

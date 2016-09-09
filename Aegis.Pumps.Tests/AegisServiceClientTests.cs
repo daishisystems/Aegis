@@ -749,5 +749,22 @@ namespace Aegis.Pumps.Tests
                 data.Blacklist.CountriesSimulate.ToList(),
                 resultData.Blacklist.CountriesSimulate.ToList());
         }
+
+        [TestMethod]
+        [Ignore]
+        public void SendEventsToLocalCluster()
+        {
+            var settings = new Settings(null, null, "http://localhost:8467");
+            var self = new AegisServiceClient();
+
+            var events = new List<AegisBaseEvent>()
+            {
+                new AegisAvailabilityEvent(),
+                new AegisBagEvent(),
+                new AegisConfigurationsEvent()                     
+            };
+
+            self.SendAegisEvents(settings, events);
+        }
     }
 }
