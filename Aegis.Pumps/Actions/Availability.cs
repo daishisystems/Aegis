@@ -755,7 +755,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
-            var groupId = this.ComputeGroupId(ipAddresses);
+            var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);

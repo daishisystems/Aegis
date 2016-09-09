@@ -683,16 +683,29 @@ using System.Threading.Tasks;
 
 namespace Aegis.Pumps
 {
+    using System.Net;
     using System.Security.Cryptography;
 
     public class CryptUtils
     {
         private readonly SHA512 sha512;
+        private readonly MD5 md5;
 
         public CryptUtils()
         {
             // TODO initialize KDF
             this.sha512 = new SHA512Managed();
+            this.md5 = MD5.Create();
+        }
+
+        public string ComputeGroupId(List<IPAddress> ipAddresses)
+        {
+            var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
+
+            var md5Raw = this.md5.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var md5Str = string.Join(string.Empty, md5Raw.Select(b => b.ToString("x2")));
+
+            return $"g${ipAddresses.Count}${md5Str.Length}${md5Str}";
         }
 
         public string HashSimple(string text)

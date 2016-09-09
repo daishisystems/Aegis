@@ -737,18 +737,5 @@ namespace Aegis.Pumps.Actions
 
             return string.Join(";", values);
         }
-
-        protected string ComputeGroupId(List<IPAddress> ipAddresses)
-        {
-            var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
-
-            using (var md5Hash = MD5.Create())
-            {
-                var md5Raw = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(data));
-                var md5Str = string.Join(string.Empty, md5Raw.Select(b => b.ToString("x2")));
-
-                return $"g${ipAddresses.Count}${md5Str.Length}${md5Str}";
-            }
-        }
     }
 }

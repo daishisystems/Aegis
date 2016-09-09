@@ -870,6 +870,7 @@ namespace Aegis.Pumps.Tests
                 () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
                 () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, "resource-name"),
                 () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => Client.GetActionsHub().PostBooking(requestHeaders, requestUri),
                 () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
                 () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
                 () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),

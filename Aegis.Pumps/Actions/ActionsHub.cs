@@ -684,7 +684,7 @@ namespace Aegis.Pumps.Actions
 {
     public class ActionsHub
     {
-        private readonly CryptUtils crypt;
+        private readonly Client client;
         private readonly Availability actionAvailability;
         private readonly ActionIpEventNotify<AegisResourceEvent> actionResource;
         private readonly ActionIpEventNotify<AegisCalendarEvent> actionCalendar;
@@ -705,7 +705,7 @@ namespace Aegis.Pumps.Actions
 
         public ActionsHub(Client client)
         {
-            this.crypt = new CryptUtils();
+            this.client = client;
             this.actionAvailability = new Availability(client);
             this.actionResource = new ActionIpEventNotify<AegisResourceEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionResource);
             this.actionCalendar = new ActionIpEventNotify<AegisCalendarEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionCalendar);
@@ -753,7 +753,7 @@ namespace Aegis.Pumps.Actions
                     requestUri,
                     () => new AegisResourceEvent()
                     {
-                        Name = paramName
+                        Name = paramName?.Trim().ToLowerInvariant()
                     });
         }
 
@@ -964,7 +964,7 @@ namespace Aegis.Pumps.Actions
                     requestUri,
                     () => new AegisDccEvent()
                     {
-                        AccountNumber = this.crypt.HashAccountNumber(paramAccountNumber),
+                        AccountNumber = this.client.Crypt.HashAccountNumber(paramAccountNumber),
                         PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim()
                     });
         }
@@ -996,7 +996,7 @@ namespace Aegis.Pumps.Actions
             {
                 var mail = new MailAddress(paramContactEmail);
                 mailHost = mail.Host;
-                mailHash = this.crypt.HashMail(mail.Address, mail.Host);
+                mailHash = this.client.Crypt.HashMail(mail.Address, mail.Host);
             }
 
             this.actionPayment.Run(
@@ -1006,11 +1006,11 @@ namespace Aegis.Pumps.Actions
                     () => new AegisPaymentEvent()
                     {
                         CustomerId = paramCustomerId,
-                        AccountNumber = this.crypt.HashAccountNumber(paramAccountNumber),
+                        AccountNumber = this.client.Crypt.HashAccountNumber(paramAccountNumber),
                         PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
                         AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
                         AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                        AddressPostal = this.crypt.HashSimple(paramAddressPostal),
+                        AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
                         ContactMailDomain = mailHost,
                         ContactMail = mailHash,
                         BookingBalance = paramBookingBalance
