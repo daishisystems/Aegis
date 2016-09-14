@@ -678,34 +678,35 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using Aegis.Core;
 
 namespace Aegis.Pumps
 {
-    using System.Net;
-    using System.Security.Cryptography;
-
     public class CryptUtils
     {
-        private readonly SHA512 sha512;
-        private readonly MD5 md5;
+        private readonly SHA256 sha;
 
         public CryptUtils()
         {
-            // TODO initialize KDF
-            this.sha512 = new SHA512Managed();
-            this.md5 = MD5.Create();
+            this.sha = new SHA256Managed();
         }
 
         public string ComputeGroupId(List<IPAddress> ipAddresses)
         {
+            if (ipAddresses.Count == 0)
+            {
+                return null;
+            }
+
             var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
 
-            var md5Raw = this.md5.ComputeHash(Encoding.UTF8.GetBytes(data));
-            var md5Str = string.Join(string.Empty, md5Raw.Select(b => b.ToString("x2")));
+            var hashRaw = this.sha.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var hashStr = Convert.ToBase64String(hashRaw);
 
-            return $"g${ipAddresses.Count}${md5Str.Length}${md5Str}";
+            return $"g${ipAddresses.Count}${data.Length}${hashStr}";
         }
 
         public string HashSimple(string text)
@@ -716,9 +717,9 @@ namespace Aegis.Pumps
                 return null;
             }
 
-            var txtHash = this.sha512.ComputeHash(Encoding.UTF8.GetBytes(txt));
+            var txtHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(txt));
 
-            return string.Join(string.Empty, txtHash.Select(b => b.ToString("x2")));
+            return Convert.ToBase64String(txtHashBytes);
         }
 
         public string HashAccountNumber(string accountNumber)
@@ -750,11 +751,21 @@ namespace Aegis.Pumps
 
         private string Hash(string text, string salt)
         {
-            var textHash = this.sha512.ComputeHash(Encoding.UTF8.GetBytes(text));
+            const int AdditionalSaltLength = 8;
 
-            // TODO run KDF for half of textHash as pwd and another half as salt + salt parameters
+            var textHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(text));
+            var saltBytes = Encoding.UTF8.GetBytes(salt);
 
-            return string.Empty;
+            // final input = text-hash-except-first-X-bytes
+            var finalInput = textHashBytes.Skip(AdditionalSaltLength).ToArray();
+
+            // final salt = salt + first-X-bytes-of-text-hash
+            var finalSalt = saltBytes.Concat(textHashBytes.Take(AdditionalSaltLength)).ToArray();
+
+            // compute
+            var resultsBytes = ScryptEncoder.EncodeRaw(finalInput, finalSalt, 14, 8, 1);
+
+            return Convert.ToBase64String(resultsBytes);
         }
     }
 }

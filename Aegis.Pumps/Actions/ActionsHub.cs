@@ -974,21 +974,13 @@ namespace Aegis.Pumps.Actions
             Uri requestUri,
             string paramCustomerId,
             string paramAccountNumber,
-            //string accountName,
             string paramPaymentMethodCode,
-            //DateTime expiration,
             string paramAddressCity,
             string paramAddressCountry,
             string paramAddressPostal,
-            //string addressLine1,
-            //string addressLine2,
-            //string addressLine3,
             string paramContactEmail,
-            //string contactPhone,
             int? paramBookingBalance)
         {
-            // TODO PostPayment code cleanup
-
             string mailHost = null;
             string mailHash = null;
 

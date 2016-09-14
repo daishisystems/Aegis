@@ -675,136 +675,65 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Linq;
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http.Headers;
 using Aegis.Core.Data;
+using Aegis.Pumps.Tests.Mocks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps.Actions
+namespace Aegis.Pumps.Tests
 {
-    public class ActionIpEventNotify<T> : Action 
-        where T : AegisBaseIpEvent
+    using System.Net;
+
+    [TestClass]
+    public class CryptUtilsTests
     {
-        private readonly string newRelicExceptionComponentName;
-
-        public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
+        [TestMethod]
+        public void ComputeGroupId()
         {
-            this.newRelicExceptionComponentName = newRelicExceptionComponentName;
+            var self = new CryptUtils();
+
+            Assert.IsNull(self.ComputeGroupId(new List<IPAddress>()));
+
+            Assert.AreEqual(
+                "g$1$11$N9eoBgSHHleYUKZYx63SrnVX0MarzJsx7N3EQkIH66M=",
+                self.ComputeGroupId(new List<IPAddress>() { IPAddress.Parse("192.168.0.1") }));
+
+            Assert.AreEqual(
+                "g$2$23$h7Lx27zlnaHLSAlsB1fUrPE27Jw1JRw1vT1tuxhUMZM=",
+                self.ComputeGroupId(
+                    new List<IPAddress>() { IPAddress.Parse("192.168.0.3"), IPAddress.Parse("192.168.0.1") }));
         }
 
-        public void Run(
-            string eventTypeName,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            Func<T> eventBuilder)
+        [TestMethod]
+        public void HashAccountNumber()
         {
-            try
-            {
-                this.DoRun(
-                    eventTypeName,
-                    requestHeaders,
-                    requestUri,
-                    eventBuilder);
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.AddException(
-                    this.Client.NewRelicInsightsClient,
-                    this.newRelicExceptionComponentName,
-                    exception);
-            }
+            var self = new CryptUtils();
+
+            Assert.IsNull(self.HashAccountNumber(string.Empty));
+            Assert.AreEqual("7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=", self.HashAccountNumber("1234567890"));
         }
 
-        private void DoRun(
-            string eventTypeName,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            Func<T> eventBuilder)
+        [TestMethod]
+        public void HashMail()
         {
-            // is current action disabled
-            if (this.Client.SettingsOnline.IsAegisEventDisabled(eventTypeName))
-            {
-                return;
-            }
+            var self = new CryptUtils();
 
-            // get IP addresses
-            string errorMessage;
-            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
-            if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                NewRelicInsightsEvents.Utils.AddException(
-                    this.Client.NewRelicInsightsClient,
-                    this.newRelicExceptionComponentName,
-                    null,
-                    errorMessage);
-            }
-
-            // if no IPs to process
-            if (ipAddresses.Count == 0)
-            {
-                return;
-            }
-
-            // get common data
-            var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
-            var currentTime = DateTime.UtcNow;
-            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
-            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
-            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders);
-
-            // process each IP
-            foreach (var ipAddress in ipAddresses)
-            {
-                this.DoRunPerIpAddress(
-                                        ipAddress,
-                                        currentTime,
-                                        groupId,
-                                        requestUri,
-                                        httpUserAgent,
-                                        httpAcceptLanguage,
-                                        httpSessionToken,
-                                        eventBuilder);
-            }
+            Assert.IsNull(self.HashMail(null, null));
+            Assert.IsNull(self.HashMail(string.Empty, string.Empty));
+            Assert.AreEqual("domain.com$GGToPF7ZJiAHgnhz4ciXkSINJfJjeEaVr44YDdhQEPM=", self.HashMail("user", "domain.com"));
+            Assert.AreEqual("b$ibZ+u9S+gb8XD+RBjuMBvDow6RTQB9No/1QTGS6/4gw=", self.HashMail("a", "b"));
         }
 
-        private void DoRunPerIpAddress(
-            IPAddress ipAddress,
-            DateTime currentTime,
-            string groupId,
-            Uri requestUri,
-            string httpUserAgent,
-            string httpAcceptLanguage,
-            string httpSessionToken,
-            Func<T> eventBuilder)
+        [TestMethod]
+        public void HashSimple()
         {
-            // get experiment id
-            int? expId = null;
-            if (this.Client.SettingsOnline.IsAvailable)
-            {
-                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
-            }
+            var self = new CryptUtils();
 
-            // add IP address to data-pump
-            var evnt = eventBuilder();
-            evnt.ExperimentId = expId;
-            evnt.IpAddress = ipAddress.ToString();
-            evnt.GroupId = groupId;
-            evnt.HttpUserAgent = httpUserAgent;
-            evnt.HttpAcceptLanguage = httpAcceptLanguage;
-            evnt.HttpSessionToken = httpSessionToken;
-            evnt.Path = requestUri.AbsolutePath;
-            evnt.Time = currentTime.ToString("O");
-
-            var isCacheFull = this.Client.AegisEventCache.Add(evnt);
-            if (isCacheFull)
-            {
-                NewRelicInsightsEvents.Utils.AddException(
-                    this.Client.NewRelicInsightsClient,
-                    this.newRelicExceptionComponentName,
-                    null,
-                    "AegisEventCache is full!");
-            }
+            Assert.IsNull(self.HashSimple(null));
+            Assert.IsNull(self.HashSimple(string.Empty));
+            Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", self.HashSimple("welcome hash text"));
         }
     }
 }
