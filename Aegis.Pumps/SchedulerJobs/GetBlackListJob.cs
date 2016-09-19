@@ -701,6 +701,12 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
+                // if job is disabled
+                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
+                {
+                    return;
+                }
+
                 // get blacklist data
                 List<BlackListItem> blackListData;
                 DateTimeOffset? newTimeStamp;
@@ -725,7 +731,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception);
                 }
                 else
@@ -735,7 +741,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception,
                         "Request timeout.");
                 }
@@ -744,7 +750,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.GetBlackList,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception);
             }
         }

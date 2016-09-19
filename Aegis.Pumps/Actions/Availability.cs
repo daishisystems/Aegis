@@ -675,32 +675,224 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System.Linq;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Actions
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class Availability : Action
     {
-        public override string EventType
+        public Availability(Client client): base(client)
         {
-            get { return EventTypes.Availability; }
-            set { }
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        public bool Run(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // run logic
+            try
+            {
+                return this.DoRun(
+                    requestHeaders,
+                    requestUri,
+                    paramOrigin,
+                    paramDestination,
+                    paramDateIn,
+                    paramDateOut);
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
+                    exception);
+            }
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+            // do not block
+            return false;
+        }
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+        private bool DoRun(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // is current action disabled
+            if (this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Availability))
+            {
+                // do not block
+                return false;
+            }
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            // get IP addresses
+            string errorMessage;
+            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
+
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
+                    null,
+                    errorMessage);
+            }
+
+            // if no IPs to process
+            if (ipAddresses.Count == 0)
+            {
+                return false;
+            }
+
+            // get common data
+            var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
+            var currentTime = DateTime.UtcNow;
+            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
+            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
+
+            // process each IP
+            var isBlocked = false;
+
+            foreach (var ipAddress in ipAddresses)
+            {
+                isBlocked |= this.DoRunPerIpAddress(
+                                            ipAddress,
+                                            currentTime,
+                                            groupId,
+                                            requestUri,
+                                            httpUserAgent,
+                                            httpAcceptLanguage,
+                                            paramOrigin,
+                                            paramDestination,
+                                            paramDateIn,
+                                            paramDateOut);
+            }
+
+            return isBlocked;
+        }
+
+        private bool DoRunPerIpAddress(
+            IPAddress ipAddress,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string httpUserAgent,
+            string httpAcceptLanguage,
+            string paramOrigin,
+            string paramDestination,
+            DateTime? paramDateIn,
+            DateTime? paramDateOut)
+        {
+            // get experiment id
+            int? expId = null;
+            if (this.Client.SettingsOnline.IsAvailable)
+            {
+                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+            }
+
+            // add IP address to data-pump
+            var isCacheFull = this.Client.AegisEventCache.Add(new AegisAvailabilityEvent
+            {
+                ExperimentId = expId,
+                IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
+                HttpUserAgent = httpUserAgent,
+                HttpAcceptLanguage = httpAcceptLanguage,
+                Path = requestUri.AbsolutePath,
+                Time = currentTime.ToString("O"),
+                DateIn = paramDateIn?.ToString("O"),
+                DateOut = paramDateOut?.ToString("O"),
+                Destination = paramDestination,
+                Origin = paramOrigin
+            });
+
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
+                    null,
+                    "AegisEventCache is full!");
+            }
+
+            // are online settings available
+            if (!this.Client.SettingsOnline.IsAvailable ||
+                this.Client.SettingsOnline.Data.Blacklist == null)
+            {
+                // do not block
+                return false;
+            }
+
+            // protect the endpoint
+            BlackListItem blackItem;
+            if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // check whether country is blocked or simulated
+            var isBlocked = this.Client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = this.Client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            if (isBlocked != true && isSimulated != true)
+            {
+                // do not block - not blocked nor simulated
+                return false;
+            }
+
+            // log the malicious event
+            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                ExperimentId = expId,
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
+                Country = blackItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
+
+            // send blacklisted ip to the service
+            if (!this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Blacklist))
+            {
+                var ipBlackListAegisEvent = new AegisBlackListEvent()
+                {
+                    ExperimentId = expId,
+                    IsBlocked = isBlocked == true,
+                    IsSimulated = isSimulated == true,
+                    IpAddress = ipAddress.ToString(),
+                    GroupId = groupId,
+                    Country = blackItem.Country,
+                    Path = requestUri.AbsolutePath,
+                    Time = currentTime.ToString("O"),
+                };
+
+                isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
+                if (isCacheFull)
+                {
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.Client.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
+                        null,
+                        "AegisEventCache is full!");
+                }
+            }
+
+            // return info whether to block or not
+            return isBlocked == true;
+        }
     }
 }

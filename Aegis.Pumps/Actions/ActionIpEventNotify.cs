@@ -675,32 +675,136 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System.Linq;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Actions
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class ActionIpEventNotify<T> : Action 
+        where T : AegisBaseIpEvent
     {
-        public override string EventType
+        private readonly string newRelicExceptionComponentName;
+
+        public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
         {
-            get { return EventTypes.Availability; }
-            set { }
+            this.newRelicExceptionComponentName = newRelicExceptionComponentName;
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        public void Run(
+            string eventTypeName,
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            Func<T> eventBuilder)
+        {
+            try
+            {
+                this.DoRun(
+                    eventTypeName,
+                    requestHeaders,
+                    requestUri,
+                    eventBuilder);
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    exception);
+            }
+        }
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+        private void DoRun(
+            string eventTypeName,
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            Func<T> eventBuilder)
+        {
+            // is current action disabled
+            if (this.Client.SettingsOnline.IsAegisEventDisabled(eventTypeName))
+            {
+                return;
+            }
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+            // get IP addresses
+            string errorMessage;
+            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    null,
+                    errorMessage);
+            }
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            // if no IPs to process
+            if (ipAddresses.Count == 0)
+            {
+                return;
+            }
+
+            // get common data
+            var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
+            var currentTime = DateTime.UtcNow;
+            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
+            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
+            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders);
+
+            // process each IP
+            foreach (var ipAddress in ipAddresses)
+            {
+                this.DoRunPerIpAddress(
+                                        ipAddress,
+                                        currentTime,
+                                        groupId,
+                                        requestUri,
+                                        httpUserAgent,
+                                        httpAcceptLanguage,
+                                        httpSessionToken,
+                                        eventBuilder);
+            }
+        }
+
+        private void DoRunPerIpAddress(
+            IPAddress ipAddress,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string httpUserAgent,
+            string httpAcceptLanguage,
+            string httpSessionToken,
+            Func<T> eventBuilder)
+        {
+            // get experiment id
+            int? expId = null;
+            if (this.Client.SettingsOnline.IsAvailable)
+            {
+                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+            }
+
+            // add IP address to data-pump
+            var evnt = eventBuilder();
+            evnt.ExperimentId = expId;
+            evnt.IpAddress = ipAddress.ToString();
+            evnt.GroupId = groupId;
+            evnt.HttpUserAgent = httpUserAgent;
+            evnt.HttpAcceptLanguage = httpAcceptLanguage;
+            evnt.HttpSessionToken = httpSessionToken;
+            evnt.Path = requestUri.AbsolutePath;
+            evnt.Time = currentTime.ToString("O");
+
+            var isCacheFull = this.Client.AegisEventCache.Add(evnt);
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    null,
+                    "AegisEventCache is full!");
+            }
+        }
     }
 }

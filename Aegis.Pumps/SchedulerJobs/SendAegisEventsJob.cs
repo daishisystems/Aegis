@@ -693,15 +693,16 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // execute sending data
-                this.ClientInstance.AegisEventCache.RelayAvailability(
-                    this.ClientInstance.Settings.AegisCacheBatchSize, 
-                    this.OnPublishAvailability);
+                // if job is disabled
+                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
+                {
+                    return;
+                }
 
-                // execute sending general data
-                this.ClientInstance.AegisEventCache.RelayGeneralEvents(
-                    this.ClientInstance.Settings.AegisCacheBatchSize,
-                    this.OnPublishGeneral);
+                // execute sending data
+                this.ClientInstance.AegisEventCache.RelayEvents(
+                    this.ClientInstance.Settings.AegisCacheBatchSize, 
+                    this.OnPublishEvents);
             }
             catch (TaskCanceledException exception)
             {
@@ -709,7 +710,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception);
                 }
                 else
@@ -719,7 +720,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception,
                         "Request timeout.");
                 }
@@ -728,12 +729,12 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception);
             }
         }
 
-        private bool OnPublishAvailability(List<AegisAvailabilityEvent> items)
+        private bool OnPublishEvents(List<AegisBaseEvent> items)
         {
             try
             {
@@ -742,37 +743,14 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
-                this.ClientInstance.AegisServiceClient.SendAegisAvailabilityEvents(this.ClientInstance.Settings, items);
+                this.ClientInstance.AegisServiceClient.SendAegisEvents(this.ClientInstance.Settings, items);
                 return true;
             }
             catch (Exception exception)
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisAvailabilityEvents,
-                    exception);
-
-                return false;
-            }
-        }
-
-        private bool OnPublishGeneral(List<AegisBaseEvent> items)
-        {
-            try
-            {
-                if (items.Count == 0)
-                {
-                    return true;
-                }
-
-                this.ClientInstance.AegisServiceClient.SendAegisGeneralEvents(this.ClientInstance.Settings, items);
-                return true;
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.SendAegisGeneralEvents,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception);
 
                 return false;

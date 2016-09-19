@@ -693,8 +693,7 @@ namespace Aegis.Pumps
         {
             public const string Blacklist = "blacklist";
             public const string SettingsOnline = "settings";
-            public const string AegisAvailabilityEvents = "events/availability";
-            public const string AegisGeneralEvents = "events/general";
+            public const string AegisEvents = "events";
         }
 
         public bool GetBlackListData(
@@ -766,18 +765,9 @@ namespace Aegis.Pumps
             }
         }
 
-        public void SendAegisAvailabilityEvents(Settings settings, List<AegisAvailabilityEvent> items)
+        public void SendAegisEvents(Settings settings, List<AegisBaseEvent> items)
         {
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisAvailabilityEvents));
-            var httpClientFactory = new HttpClientFactory();
-
-            var itemsJson = JSON.Serialize(items, Options.ExcludeNullsIncludeInherited);
-            this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
-        }
-
-        public void SendAegisGeneralEvents(Settings settings, List<AegisBaseEvent> items)
-        {
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisGeneralEvents));
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisEvents));
             var httpClientFactory = new HttpClientFactory();
 
             var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
@@ -845,8 +835,7 @@ namespace Aegis.Pumps
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new Exception(
-                        "Downloading data resulting in: HTTP " + response.StatusCode);
+                    throw new Exception("Downloading data resulting in: HTTP " + response.StatusCode);
                 }
 
                 // if data is not modified since last request or no data available
@@ -862,37 +851,37 @@ namespace Aegis.Pumps
             }
         }
 
-        private void DoSendAegisEvents(
+        public void DoSendAegisEvents(
             Core.HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
             string itemsJson)
         {
-            // TODO support httpClientFactory
+            HttpRequestMetadataException httpRequestMetadataException;
 
-            var request = WebRequest.Create(httpRequestMetadata.URI);
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+            var httpRequestMetadataIsValid = HttpRequestMetadataValidator.TryValidate(
+                httpRequestMetadata,
+                out httpRequestMetadataException);
 
-            if (httpRequestMetadata.UseNonDefaultTimeout)
+            if (!httpRequestMetadataIsValid)
             {
-                request.Timeout = httpRequestMetadata.NonDefaultTimeout.Milliseconds;
+                throw httpRequestMetadataException;
             }
 
-            if (httpRequestMetadata.UseWebProxy)
+            HttpClientHandler httpClientHandler;
+
+            using (var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler))
             {
-                request.Proxy = httpRequestMetadata.WebProxy;
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var content = new StringContent("=" + itemsJson, Encoding.UTF8, "application/x-www-form-urlencoded");
+                var response = httpClient.PostAsync(httpRequestMetadata.URI, content).Result;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception("POST data resulting in: HTTP " + response.StatusCode);
+                }
             }
-
-            var postData = "=" + itemsJson;
-            var byteArray = Encoding.UTF8.GetBytes(postData);
-
-            request.ContentLength = byteArray.Length;
-            var dataStream = request.GetRequestStream();
-
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            dataStream.Close();
-
-            request.GetResponse();
         }
     }
 }

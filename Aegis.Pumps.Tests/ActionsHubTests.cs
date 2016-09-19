@@ -675,32 +675,229 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
+using Aegis.Pumps.Tests.Mocks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Tests
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    [TestClass]
+    public class ActionsHubTests
     {
-        public override string EventType
+        [TestMethod]
+        public void RunAllWithNoHeader()
         {
-            get { return EventTypes.Availability; }
-            set { }
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                0,
+                1);
+
+            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        [TestMethod]
+        public void RunAllWithOneCorrectHeaderIp()
+        {
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders, 
+                requestUri,
+                newRelicClient,
+                1,
+                0);
+
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void RunAllWithOneInproperHeaderIp()
+        {
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                0,
+                1);
+
+            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+        }
+
+        [TestMethod]
+        public void RunAllWithMultipleHeaderIp()
+        {
+            // client setup
+            var settings = new Settings(null, null, "http://test");
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+
+            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+
+            Assert.IsTrue(Client.IsInitialised);
+            Assert.IsNotNull(Client.Instance?.ActionsHub);
+            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+            // parameters
+            var requestHeaders = new MockHttpHeaders();
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
+            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
+            requestHeaders.Add("NS_CLIENT_IP", "206.168.1.1");
+
+            var requestUri = new Uri("http://www.bla.com/unit/tests");
+
+            // run actions
+            this.RunActions(
+                requestHeaders,
+                requestUri,
+                newRelicClient,
+                4,
+                1);
+
+            // shutdown
+            Client.ShutDown();
+
+            Assert.IsNull(Client.Instance);
+            Assert.IsFalse(Client.IsInitialised);
+        }
+
+        private void RunActions(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            MockNewRelicInsightsClient newRelicClient,
+            int eventsCount,
+            int errorsCount)
+        {
+            Action[] testMethods = 
+            {
+                () => Client.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
+                () => Client.GetActionsHub().GetBag(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, DateTime.UtcNow),
+                () => Client.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
+                () => Client.GetActionsHub().GetExtras(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetFast(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetFees(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, "resource-name"),
+                () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => Client.GetActionsHub().PostBooking(requestHeaders, requestUri),
+                () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
+                () => Client.GetActionsHub().PostPayment(requestHeaders, requestUri, 
+                                                null, null, null, null,
+                                                null, null, null, null)
+            };
+
+
+            // run each test method
+            var eventsSum = 0;
+            var errorsSum = 0;
+            foreach (var testMethod in testMethods)
+            {
+                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
+
+                testMethod();
+                eventsSum += eventsCount;
+                errorsSum += errorsCount;
+
+                // no errors
+                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+                // new number of events
+                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
+            }
+        }
     }
 }

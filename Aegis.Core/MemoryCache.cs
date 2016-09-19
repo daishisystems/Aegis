@@ -694,6 +694,15 @@ namespace Aegis.Core
             this.countLimit = countLimit;
         }
 
+        /// <summary>
+        /// Get estimated number of elements in the cache
+        /// </summary>
+        /// <returns>Estimated number of elements</returns>
+        public int Count()
+        {
+            return this.data.Count + this.dataToProcess.Count;
+        }
+
         /// <summary>Add new item to the cache. It's a non-blocking method.</summary>
         /// <param name="item"></param>
         /// <returns>true if queue max limit is reached otherwise false</returns>

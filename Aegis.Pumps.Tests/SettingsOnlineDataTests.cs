@@ -14,7 +14,7 @@ namespace Aegis.Pumps.Tests
         public void DeserializeEmpty()
         {
             var data = SettingsOnlineData.Deserialize(string.Empty);
-            Assert.AreEqual(false, data.IsAegisOnAvailabilityEnabled);
+            Assert.IsNull(data.AegisEventsDisabled);
         }
 
         [TestMethod]
@@ -38,7 +38,6 @@ namespace Aegis.Pumps.Tests
             var dataStr = data.Serialize();
             var dataNew = SettingsOnlineData.Deserialize(dataStr);
 
-            Assert.AreEqual(data.IsAegisOnAvailabilityEnabled, dataNew.IsAegisOnAvailabilityEnabled);
             CollectionAssert.AreEqual(data.Blacklist.CountriesBlock.ToArray(), dataNew.Blacklist.CountriesBlock.ToArray());
             CollectionAssert.AreEqual(data.Blacklist.CountriesSimulate.ToArray(), dataNew.Blacklist.CountriesSimulate.ToArray());
         }

@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -58,9 +59,26 @@
   <ItemGroup>
     <Compile Include="AegisEventHub.cs" />
     <Compile Include="AegisHelper.cs" />
+    <Compile Include="Data\AegisBagEvent.cs" />
     <Compile Include="Data\AegisBaseEvent.cs" />
+    <Compile Include="Data\AegisBaseIpEvent.cs" />
     <Compile Include="Data\AegisBlackListEvent.cs" />
     <Compile Include="Data\AegisAvailabilityEvent.cs" />
+    <Compile Include="Data\AegisBookingEvent.cs" />
+    <Compile Include="Data\AegisCalendarEvent.cs" />
+    <Compile Include="Data\AegisConfigurationsEvent.cs" />
+    <Compile Include="Data\AegisDccEvent.cs" />
+    <Compile Include="Data\AegisExtrasEvent.cs" />
+    <Compile Include="Data\AegisFastEvent.cs" />
+    <Compile Include="Data\AegisFeesEvent.cs" />
+    <Compile Include="Data\AegisFlightEvent.cs" />
+    <Compile Include="Data\AegisPaymentEvent.cs" />
+    <Compile Include="Data\AegisPaymentMethodsEvent.cs" />
+    <Compile Include="Data\AegisPriceEvent.cs" />
+    <Compile Include="Data\AegisQuickAddEvent.cs" />
+    <Compile Include="Data\AegisRefreshEvent.cs" />
+    <Compile Include="Data\AegisResourceEvent.cs" />
+    <Compile Include="Data\AegisSeatEvent.cs" />
     <Compile Include="Data\BlackListItem.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />
@@ -79,6 +97,7 @@
     <Compile Include="NetworkRouteMetadata.cs" />
     <Compile Include="NoHttpRequestHeadersFoundException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScryptEncoder.cs" />
     <Compile Include="WhiteList.cs" />
     <Compile Include="WhiteListItem.cs" />
     <Compile Include="WhiteListManager.cs" />

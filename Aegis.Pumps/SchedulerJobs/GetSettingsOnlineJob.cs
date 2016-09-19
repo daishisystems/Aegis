@@ -717,7 +717,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception);
                 }
                 else
@@ -727,7 +727,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // Add a custom message in order to ensure that tasks are not canceled.
                     NewRelicInsightsEvents.Utils.UploadException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception,
                         "Request timeout.");
                 }
@@ -736,7 +736,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 NewRelicInsightsEvents.Utils.UploadException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.GetSettingsOnline,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                     exception);
             }
         }

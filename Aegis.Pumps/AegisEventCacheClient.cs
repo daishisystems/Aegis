@@ -706,28 +706,31 @@ namespace Aegis.Pumps
     public class AegisEventCacheClient
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private readonly MemoryCache<AegisAvailabilityEvent> eventsAvailability = new MemoryCache<AegisAvailabilityEvent>(1000000);
-        private readonly MemoryCache<AegisBaseEvent> eventsGeneral = new MemoryCache<AegisBaseEvent>(100000);
+        private readonly MemoryCache<AegisBaseEvent> events = new MemoryCache<AegisBaseEvent>(1000000);
+
+        /// <summary>
+        /// Get estimated number of elements in the cache
+        /// </summary>
+        /// <returns>Estimated number of elements</returns>
+        public int Count()
+        {
+            return this.events.Count();
+        }
 
         /// <summary>
         ///     Add adds an <see cref="AegisEvent" /> instance to the underlying
         ///     cache.
         /// </summary>
-        /// <param name="event">
-        ///     <see cref="@event" /> is an instance of
-        ///     <see cref="AegisEvent" />.
+        /// <param name="evnt">
+        ///     <see cref="evnt" /> is an instance of
+        ///     <see cref="AegisBaseEvent" />.
         /// </param>
         /// <remarks>
-        ///     <para><see cref="@event" /> is added to the end of the cache.</para>
+        ///     <para><see cref="evnt" /> is added to the end of the cache.</para>
         /// </remarks>
-        public void AddAvailability(AegisAvailabilityEvent @event)
+        public bool Add(AegisBaseEvent evnt)
         {
-            this.eventsAvailability.Add(@event);
-        }
-
-        public void AddGeneral(AegisBaseEvent evnt)
-        {
-            this.eventsGeneral.Add(evnt);
+            return this.events.Add(evnt);
         }
 
         /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
@@ -736,14 +739,9 @@ namespace Aegis.Pumps
         ///     <see cref="AegisEvent" /> instances to publish per batch.
         /// </param>
         /// <param name="processorFunc">Function to process items</param>
-        public void RelayAvailability(int batchSize, Func<List<AegisAvailabilityEvent>, bool> processorFunc)
+        public void RelayEvents(int batchSize, Func<List<AegisBaseEvent>, bool> processorFunc)
         {
-            this.eventsAvailability.Process(batchSize, processorFunc);
-        }
-
-        public void RelayGeneralEvents(int batchSize, Func<List<AegisBaseEvent>, bool> processorFunc)
-        {
-            this.eventsGeneral.Process(batchSize, processorFunc);
+            this.events.Process(batchSize, processorFunc);
         }
     }
 }

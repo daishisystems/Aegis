@@ -675,32 +675,65 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
+using Aegis.Core.Data;
+using Aegis.Pumps.Tests.Mocks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Tests
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    using System.Net;
+
+    [TestClass]
+    public class CryptUtilsTests
     {
-        public override string EventType
+        [TestMethod]
+        public void ComputeGroupId()
         {
-            get { return EventTypes.Availability; }
-            set { }
+            var self = new CryptUtils();
+
+            Assert.IsNull(self.ComputeGroupId(new List<IPAddress>()));
+
+            Assert.AreEqual(
+                "g$1$11$N9eoBgSHHleYUKZYx63SrnVX0MarzJsx7N3EQkIH66M=",
+                self.ComputeGroupId(new List<IPAddress>() { IPAddress.Parse("192.168.0.1") }));
+
+            Assert.AreEqual(
+                "g$2$23$h7Lx27zlnaHLSAlsB1fUrPE27Jw1JRw1vT1tuxhUMZM=",
+                self.ComputeGroupId(
+                    new List<IPAddress>() { IPAddress.Parse("192.168.0.3"), IPAddress.Parse("192.168.0.1") }));
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        [TestMethod]
+        public void HashAccountNumber()
+        {
+            var self = new CryptUtils();
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+            Assert.IsNull(self.HashAccountNumber(string.Empty));
+            Assert.AreEqual("7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=", self.HashAccountNumber("1234567890"));
+        }
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+        [TestMethod]
+        public void HashMail()
+        {
+            var self = new CryptUtils();
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            Assert.IsNull(self.HashMail(null, null));
+            Assert.IsNull(self.HashMail(string.Empty, string.Empty));
+            Assert.AreEqual("domain.com$GGToPF7ZJiAHgnhz4ciXkSINJfJjeEaVr44YDdhQEPM=", self.HashMail("user", "domain.com"));
+            Assert.AreEqual("b$ibZ+u9S+gb8XD+RBjuMBvDow6RTQB9No/1QTGS6/4gw=", self.HashMail("a", "b"));
+        }
+
+        [TestMethod]
+        public void HashSimple()
+        {
+            var self = new CryptUtils();
+
+            Assert.IsNull(self.HashSimple(null));
+            Assert.IsNull(self.HashSimple(string.Empty));
+            Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", self.HashSimple("welcome hash text"));
+        }
     }
 }

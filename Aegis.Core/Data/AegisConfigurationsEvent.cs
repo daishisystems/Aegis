@@ -679,21 +679,13 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class AegisConfigurationsEvent : AegisBaseIpEvent
     {
         public override string EventType
         {
-            get { return EventTypes.Availability; }
+            get { return EventTypes.Configurations; }
             set { }
         }
-
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
-
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
 
         /// <summary>Flight origin</summary>
         [JilDirective(Name = "orn")]
