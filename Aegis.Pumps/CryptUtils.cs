@@ -675,32 +675,97 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using Aegis.Core;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class CryptUtils
     {
-        public override string EventType
+        private readonly SHA256 sha;
+
+        public CryptUtils()
         {
-            get { return EventTypes.Availability; }
-            set { }
+            this.sha = new SHA256Managed();
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        public string ComputeGroupId(List<IPAddress> ipAddresses)
+        {
+            if (ipAddresses.Count == 0)
+            {
+                return null;
+            }
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+            var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+            var hashRaw = this.sha.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var hashStr = Convert.ToBase64String(hashRaw);
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            return $"g${ipAddresses.Count}${data.Length}${hashStr}";
+        }
+
+        public string HashSimple(string text)
+        {
+            var txt = text?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(txt))
+            {
+                return null;
+            }
+
+            var txtHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(txt));
+
+            return Convert.ToBase64String(txtHashBytes);
+        }
+
+        public string HashAccountNumber(string accountNumber)
+        {
+            var account = accountNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(account) || account.Length < 8)
+            {
+                return null;
+            }
+
+            var last4Digits = account.Substring(account.Length - 4, 4);
+            var hash = this.Hash(account, last4Digits);
+
+            return $"{last4Digits}${hash}";
+        }
+
+        public string HashMail(string address, string domain)
+        {
+            var addr = address?.Trim().ToLowerInvariant();
+            var dom = domain?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(addr) || string.IsNullOrWhiteSpace(dom))
+            {
+                return null;
+            }
+
+            var hash = this.Hash(addr, dom);
+            return $"{dom}${hash}";
+        }
+
+        private string Hash(string text, string salt)
+        {
+            const int AdditionalSaltLength = 8;
+
+            var textHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(text));
+            var saltBytes = Encoding.UTF8.GetBytes(salt);
+
+            // final input = text-hash-except-first-X-bytes
+            var finalInput = textHashBytes.Skip(AdditionalSaltLength).ToArray();
+
+            // final salt = salt + first-X-bytes-of-text-hash
+            var finalSalt = saltBytes.Concat(textHashBytes.Take(AdditionalSaltLength)).ToArray();
+
+            // compute
+            var resultsBytes = ScryptEncoder.EncodeRaw(finalInput, finalSalt, 14, 8, 1);
+
+            return Convert.ToBase64String(resultsBytes);
+        }
     }
 }

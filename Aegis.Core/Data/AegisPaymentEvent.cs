@@ -679,28 +679,39 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class AegisPaymentEvent : AegisBaseIpEvent
     {
         public override string EventType
         {
-            get { return EventTypes.Availability; }
+            get { return EventTypes.Payment; }
             set { }
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        [JilDirective(Name = "cid")]
+        public string CustomerId { get; set; }
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+        [JilDirective(Name = "a")]
+        public string AccountNumber { get; set; }
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+        [JilDirective(Name = "p")]
+        public string PaymentMethodCode { get; set; }
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+        [JilDirective(Name = "aci")]
+        public string AddressCity { get; set; }
+
+        [JilDirective(Name = "aco")]
+        public string AddressCountry { get; set; }
+
+        [JilDirective(Name = "ap")]
+        public string AddressPostal { get; set; }
+
+        [JilDirective(Name = "cd")]
+        public string ContactMailDomain { get; set; }
+
+        [JilDirective(Name = "cm")]
+        public string ContactMail { get; set; }
+
+        [JilDirective(Name = "b")]
+        public int? BookingBalance { get; set; }
     }
 }

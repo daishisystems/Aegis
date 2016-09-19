@@ -679,14 +679,41 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
+    /// <summary>
+    ///     AegisBaseEvent represents a simple structure that is designed to encapsulate
+    ///     user-specific metadata that the Aegis platform can aggregate and process in
+    ///     order to identify patterns in traffic.
+    /// </summary>
     public abstract class AegisBaseEvent
     {
-        [JilDirective(Name = "eventType")]
+        public static class EventTypes
+        {
+            public const string Availability = "availability";
+            public const string Bag = "bag";
+            public const string Blacklist = "blacklist";
+            public const string Booking = "booking";
+            public const string Calendar = "calendar";
+            public const string Configurations = "configurations";
+            public const string Dcc = "dcc";
+            public const string Extras = "extras";
+            public const string Fast = "fast";
+            public const string Fees = "fees";
+            public const string Flight = "flight";
+            public const string Payment = "payment";
+            public const string PaymentMethods = "paymentMethods";
+            public const string Price = "price";
+            public const string QuickAdd = "quickAdd";
+            public const string Refresh = "refresh";
+            public const string Resource = "resource";
+            public const string Seat = "seat";
+        }
+
+        [JilDirective(Name = "e")]
         public abstract string EventType { get; set; }
 
         /// <summary>Time is a string-based translation of the event time.</summary>
         /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        [JilDirective(Name = "time")]
+        [JilDirective(Name = "t")]
         public string Time { get; set; }
     }
 }

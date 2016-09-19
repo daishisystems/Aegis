@@ -689,6 +689,30 @@ namespace Aegis.Pumps
 {
     public class SettingsOnlineData
     {
+        public class BlackListData
+        {
+            [JilDirective(Name = "countryBlock")]
+            public HashSet<string> CountriesBlock { get; set; }
+
+            [JilDirective(Name = "countrySimulate")]
+            public HashSet<string> CountriesSimulate { get; set; }
+        }
+
+        public class ExperimentData
+        {
+            [JilDirective(Name = "id")]
+            public int ExperimentId { get; set; }
+
+            [JilDirective(Name = "start")]
+            public DateTime DateStart { get; set; }
+
+            [JilDirective(Name = "end")]
+            public DateTime DateEnd { get; set; }
+
+            [JilDirective(Name = "ipMask")]
+            public string IpMask { get; set; }
+        }
+
         private Dictionary<int, List<ExperimentData>> experimentsLookUp;
 
         [JilDirective(Name = "blacklist")]
@@ -697,14 +721,11 @@ namespace Aegis.Pumps
         [JilDirective(Name = "experiments")]
         public ExperimentData[] Experiments { get; set; }
 
-        [JilDirective(Name = "enabledOnAvailability")]
-        public bool IsAegisOnAvailabilityEnabled { get; set; }
+        [JilDirective(Name = "aegisEventsDisabled")]
+        public string[] AegisEventsDisabled { get; set; }
 
-        [JilDirective(Name = "enabledOnBooking")]
-        public bool IsAegisOnBookingEnabled { get; set; }
-
-        [JilDirective(Name = "enabledSendBlackIpToService")]
-        public bool IsSendBlackListIpToServiceEnabled { get; set; }
+        [JilDirective(Name = "jobsDisabled")]
+        public string[] JobsDisabled { get; set; }
 
         [JilDirective(Name = "jobGetBlackListInterval")]
         public int? GetBlackListJobInternvalInSeconds { get; set; }
@@ -776,30 +797,6 @@ namespace Aegis.Pumps
             }
 
             return expsList.FirstOrDefault(x => x.DateStart >= currenTime && x.DateEnd <= currenTime);
-        }
-
-        public class BlackListData
-        {
-            [JilDirective(Name = "countryBlock")]
-            public HashSet<string> CountriesBlock { get; set; }
-
-            [JilDirective(Name = "countrySimulate")]
-            public HashSet<string> CountriesSimulate { get; set; }
-        }
-
-        public class ExperimentData
-        {
-            [JilDirective(Name = "id")]
-            public int ExperimentId { get; set; }
-
-            [JilDirective(Name = "start")]
-            public DateTime DateStart { get; set; }
-
-            [JilDirective(Name = "end")]
-            public DateTime DateEnd { get; set; }
-
-            [JilDirective(Name = "ipMask")]
-            public string IpMask { get; set; }
         }
     }
 }

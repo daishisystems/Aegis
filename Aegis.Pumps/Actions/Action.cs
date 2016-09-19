@@ -675,32 +675,67 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Net;
+using System.Net.Http.Headers;
+using Aegis.Core;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Actions
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public abstract class Action
     {
-        public override string EventType
+        protected readonly Client Client;
+
+        protected Action(Client client)
         {
-            get { return EventTypes.Availability; }
-            set { }
+            this.Client = client;
         }
 
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
+        protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
+            string headerName, 
+            HttpHeaders headers, 
+            out string errorMessage)
+        {
+            errorMessage = null;
 
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
+            // parse headers
+            var networkRouteMapper = new CitrixNetworkRouteMapper(headerName, headers);
 
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
+            var networkRoute = new NetworkRoute();
+            networkRoute.Map(networkRouteMapper);
 
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
+            // if strange header found
+            if (networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult !=
+                HttpHeaderParseResult.SingleHeaderSingleIPAddress)
+            {
+                var httpRequestHeaderValues = "No HTTP request headers to display.";
+
+                if (networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues?.Any() == true)
+                {
+                    httpRequestHeaderValues = string.Join(";", networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues);
+                }
+
+                errorMessage = string.Format("HttpHeaderParseResult : {0}\n{1}",
+                    networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult,
+                    httpRequestHeaderValues);
+            }
+
+            // return parsed IPs
+            return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
+        }
+
+        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers)
+        {
+            IEnumerable<string> values;
+            if (!headers.TryGetValues(headerName, out values))
+            {
+                return null;
+            }
+
+            return string.Join(";", values);
+        }
     }
 }

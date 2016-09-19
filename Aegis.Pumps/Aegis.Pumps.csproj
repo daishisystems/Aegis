@@ -11,6 +11,8 @@
     <AssemblyName>Aegis.Pumps</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -58,11 +60,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions.cs" />
+    <Compile Include="Actions\Action.cs" />
+    <Compile Include="Actions\ActionIpEventNotify.cs" />
+    <Compile Include="Actions\ActionsHub.cs" />
+    <Compile Include="Actions\Availability.cs" />
     <Compile Include="AegisEventCacheClient.cs" />
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="CryptUtils.cs" />
     <Compile Include="SchedulerJobs\ClientJob.cs" />
     <Compile Include="SchedulerJobs\GetBlackListJob.cs" />
     <Compile Include="SchedulerJobs\GetSettingsOnlineJob.cs" />

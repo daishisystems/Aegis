@@ -696,7 +696,7 @@ namespace Aegis.Core
     public class CitrixNetworkRouteMapper : NetworkRouteMapper
     {
         private readonly string _httpRequestHeaderName;
-        private readonly HttpRequestHeaders _httpRequestHeaders;
+        private readonly HttpHeaders _httpRequestHeaders;
 
         /// <summary>Initialises a new <see cref="CitrixNetworkRouteMapper" /> instance.</summary>
         /// <param name="httpRequestHeaderName">
@@ -708,7 +708,7 @@ namespace Aegis.Core
         ///     to parse.
         /// </param>
         public CitrixNetworkRouteMapper(string httpRequestHeaderName,
-            HttpRequestHeaders httpRequestHeaders)
+            HttpHeaders httpRequestHeaders)
         {
             _httpRequestHeaderName = httpRequestHeaderName;
             _httpRequestHeaders = httpRequestHeaders;

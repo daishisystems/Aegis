@@ -675,32 +675,11 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System.Net.Http.Headers;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Tests.Mocks
 {
-    public class AegisAvailabilityEvent : AegisBaseIpEvent
+    public class MockHttpHeaders : HttpHeaders
     {
-        public override string EventType
-        {
-            get { return EventTypes.Availability; }
-            set { }
-        }
-
-        /// <summary>Flight date in</summary>
-        [JilDirective(Name = "dateIn")]
-        public string DateIn { get; set; }
-
-        /// <summary>Flight date out</summary>
-        [JilDirective(Name = "dateOut")]
-        public string DateOut { get; set; }
-
-        /// <summary>Flight origin</summary>
-        [JilDirective(Name = "orn")]
-        public string Origin { get; set; }
-
-        /// <summary>Flight destination</summary>
-        [JilDirective(Name = "dst")]
-        public string Destination { get; set; }
     }
 }

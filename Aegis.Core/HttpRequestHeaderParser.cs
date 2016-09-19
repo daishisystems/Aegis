@@ -709,7 +709,7 @@ namespace Aegis.Core
         ///     <see cref="TryGetHttpRequestHeaderValues" /> returns <c>true</c> if
         ///     <see cref="headers" /> is successfully parsed. Otherwise, <c>false</c>.
         /// </returns>
-        public static bool TryGetHttpRequestHeaderValues(string headerName, HttpRequestHeaders headers,
+        public static bool TryGetHttpRequestHeaderValues(string headerName, HttpHeaders headers,
             out IEnumerable<string> httpRequestHeaderValues)
         {
             if (string.IsNullOrEmpty(headerName) || headers == null)

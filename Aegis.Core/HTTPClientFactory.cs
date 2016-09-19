@@ -705,7 +705,8 @@ namespace Aegis.Core
         ///     A <see cref="HttpClient" />, based on
         ///     <see cref="httpRequestMetadata" />.
         /// </returns>
-        public HttpClient Create(HttpRequestMetadata httpRequestMetadata,
+        public HttpClient Create(
+            HttpRequestMetadata httpRequestMetadata, 
             out HttpClientHandler httpClientHandler)
         {
             HttpClient httpClient;
