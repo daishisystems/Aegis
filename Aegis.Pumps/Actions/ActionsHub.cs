@@ -979,7 +979,7 @@ namespace Aegis.Pumps.Actions
             string paramAddressCountry,
             string paramAddressPostal,
             string paramContactEmail,
-            int? paramBookingBalance)
+            decimal? paramBookingBalance)
         {
             string mailHost = null;
             string mailHash = null;
@@ -989,6 +989,23 @@ namespace Aegis.Pumps.Actions
                 var mail = new MailAddress(paramContactEmail);
                 mailHost = mail.Host;
                 mailHash = this.client.Crypt.HashMail(mail.Address, mail.Host);
+            }
+
+            int? bookingValue = null;
+            if (paramBookingBalance != null)
+            {
+                if (paramBookingBalance.Value >= int.MaxValue)
+                {
+                    bookingValue = int.MaxValue;
+                }
+                else if (paramBookingBalance.Value <= int.MinValue)
+                {
+                    bookingValue = int.MinValue;
+                }
+                else
+                {
+                    bookingValue = (int)paramBookingBalance;
+                }
             }
 
             this.actionPayment.Run(
@@ -1005,7 +1022,7 @@ namespace Aegis.Pumps.Actions
                         AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
                         ContactMailDomain = mailHost,
                         ContactMail = mailHash,
-                        BookingBalance = paramBookingBalance
+                        BookingBalance = bookingValue
                     });
         }
     }

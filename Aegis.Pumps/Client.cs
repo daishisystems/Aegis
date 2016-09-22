@@ -684,7 +684,7 @@ namespace Aegis.Pumps
     public class Client
     {
         public static Client Instance { get; private set; }
-        public static string ClientName { get; private set; }
+        public static string ClientName { get; internal set; }
 
         public static bool IsInitialised => Instance != null;
 

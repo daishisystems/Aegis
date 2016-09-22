@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
 using System.Net;
+using Daishi.NewRelic.Insights;
 
 namespace Aegis.Pumps
 {
@@ -719,6 +719,39 @@ namespace Aegis.Pumps
 
             // Aegis service uri
             this.AegisServiceUri = aegisServiceUri;
+        }
+
+        /// <summary>
+        /// Initialise settings class. Does not throw any standard exception.
+        /// </summary>
+        public static Settings Initialise(
+            string clientName, 
+            INewRelicInsightsClient newRelicInsightsClient,
+            string webProxy,
+            string webNonDefaultTimeout,
+            string aegisServiceUri)
+        {
+            try
+            {
+                // set current client application name
+                Client.ClientName = clientName;
+
+                // initialise settings
+                return new Settings(
+                    webProxy,
+                    webNonDefaultTimeout,
+                    aegisServiceUri);
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.UploadException(
+                    newRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.SettingsInitialisation,
+                    exception);
+            }
+
+            // error
+            return null;
         }
     }
 }
