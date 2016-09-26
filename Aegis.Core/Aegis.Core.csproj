@@ -57,7 +57,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AegisEventHub.cs" />
     <Compile Include="AegisHelper.cs" />
     <Compile Include="Data\AegisBagEvent.cs" />
     <Compile Include="Data\AegisBaseEvent.cs" />

@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace Aegis.Core
@@ -709,25 +709,28 @@ namespace Aegis.Core
         ///     <see cref="TryGetHttpRequestHeaderValues" /> returns <c>true</c> if
         ///     <see cref="headers" /> is successfully parsed. Otherwise, <c>false</c>.
         /// </returns>
-        public static bool TryGetHttpRequestHeaderValues(string headerName, HttpHeaders headers,
-            out IEnumerable<string> httpRequestHeaderValues)
+        public static bool TryGetHttpRequestHeaderValues(
+            IEnumerable<string> headerNames,
+            NameValueCollection headers,
+            List<string> httpRequestHeaderValues)
         {
-            if (string.IsNullOrEmpty(headerName) || headers == null)
+            if (headerNames == null || headers == null)
             {
-                httpRequestHeaderValues = new List<string>();
                 return false;
             }
 
-            var canParseHttpRequestHeaderValues = headers.TryGetValues(headerName,
-                out httpRequestHeaderValues);
-
-            if (canParseHttpRequestHeaderValues)
+            bool result = false;
+            foreach (var name in headerNames)
             {
-                return true;
+                var values = headers.GetValues(name);
+                if (values != null)
+                {
+                    httpRequestHeaderValues.AddRange(values);
+                    result = true;
+                }
             }
 
-            httpRequestHeaderValues = new List<string>();
-            return false;
+            return result;
         }
 
         /// <summary>

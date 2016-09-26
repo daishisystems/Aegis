@@ -677,8 +677,9 @@ Public License instead of this License.  But first, please read
 
 using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net;
-using System.Net.Http.Headers;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Actions
@@ -690,7 +691,8 @@ namespace Aegis.Pumps.Actions
         }
 
         public bool Run(
-            HttpHeaders requestHeaders,
+            IEnumerable<string> ipHeaderNames,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -701,6 +703,7 @@ namespace Aegis.Pumps.Actions
             try
             {
                 return this.DoRun(
+                    ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     paramOrigin,
@@ -721,7 +724,8 @@ namespace Aegis.Pumps.Actions
         }
 
         private bool DoRun(
-            HttpHeaders requestHeaders,
+            IEnumerable<string> ipHeaderNames,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -737,7 +741,7 @@ namespace Aegis.Pumps.Actions
 
             // get IP addresses
             string errorMessage;
-            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
+            var ipAddresses = this.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage).ToList();
 
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
@@ -803,6 +807,8 @@ namespace Aegis.Pumps.Actions
             // add IP address to data-pump
             var isCacheFull = this.Client.AegisEventCache.Add(new AegisAvailabilityEvent
             {
+                ApplicationName = Client.ClientName,
+                ApplicationVersion = Client.ClientVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddress.ToString(),
                 GroupId = groupId,
@@ -832,6 +838,8 @@ namespace Aegis.Pumps.Actions
                 // do not block
                 return false;
             }
+
+            // TODO refactor Action.Availability: split to use notify template class and block functionality as an extension?
 
             // protect the endpoint
             BlackListItem blackItem;
@@ -870,6 +878,8 @@ namespace Aegis.Pumps.Actions
             {
                 var ipBlackListAegisEvent = new AegisBlackListEvent()
                 {
+                    ApplicationName = Client.ClientName,
+                    ApplicationVersion = Client.ClientVersion,
                     ExperimentId = expId,
                     IsBlocked = isBlocked == true,
                     IsSimulated = isSimulated == true,

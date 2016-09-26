@@ -676,7 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Net.Http.Headers;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net.Mail;
 using Aegis.Core.Data;
 
@@ -685,6 +686,8 @@ namespace Aegis.Pumps.Actions
     public class ActionsHub
     {
         private readonly Client client;
+        private readonly IEnumerable<string> ipHeaderNames;
+
         private readonly Availability actionAvailability;
         private readonly ActionIpEventNotify<AegisResourceEvent> actionResource;
         private readonly ActionIpEventNotify<AegisCalendarEvent> actionCalendar;
@@ -703,9 +706,11 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisDccEvent> actionDcc;
         private readonly ActionIpEventNotify<AegisPaymentEvent> actionPayment;
 
-        public ActionsHub(Client client)
+        public ActionsHub(Client client, IEnumerable<string> httpIpHeaderNames)
         {
             this.client = client;
+            this.ipHeaderNames = httpIpHeaderNames;
+
             this.actionAvailability = new Availability(client);
             this.actionResource = new ActionIpEventNotify<AegisResourceEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionResource);
             this.actionCalendar = new ActionIpEventNotify<AegisCalendarEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionCalendar);
@@ -726,7 +731,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public bool GetAvailability(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -734,6 +739,7 @@ namespace Aegis.Pumps.Actions
             DateTime? paramDateOut)
         {
             return this.actionAvailability.Run(
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     paramOrigin,
@@ -743,12 +749,13 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetResource(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramName)
         {
             this.actionResource.Run(
                     AegisBaseEvent.EventTypes.Resource,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisResourceEvent()
@@ -758,7 +765,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetCalendar(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -766,6 +773,7 @@ namespace Aegis.Pumps.Actions
         {
             this.actionCalendar.Run(
                     AegisBaseEvent.EventTypes.Calendar,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisCalendarEvent()
@@ -777,13 +785,14 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetConfigurations(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination)
         {
             this.actionConfigurations.Run(
                     AegisBaseEvent.EventTypes.Configurations,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisConfigurationsEvent()
@@ -794,7 +803,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostPrice(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             short paramAdults,
             short paramTeens,
@@ -803,6 +812,7 @@ namespace Aegis.Pumps.Actions
         {
             this.actionPrice.Run(
                     AegisBaseEvent.EventTypes.Price,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisPriceEvent()
@@ -815,7 +825,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostFlight(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             short paramAdults,
             short paramTeens,
@@ -824,6 +834,7 @@ namespace Aegis.Pumps.Actions
         {
             this.actionFlight.Run(
                     AegisBaseEvent.EventTypes.Flight,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisFlightEvent()
@@ -836,11 +847,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetFast(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionFast.Run(
                     AegisBaseEvent.EventTypes.Fast,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisFastEvent()
@@ -849,11 +861,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetExtras(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionExtras.Run(
                     AegisBaseEvent.EventTypes.Extras,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisExtrasEvent()
@@ -862,11 +875,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetQuickAdd(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionQuickAdd.Run(
                     AegisBaseEvent.EventTypes.QuickAdd,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisQuickAddEvent()
@@ -875,11 +889,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetBag(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionBag.Run(
                     AegisBaseEvent.EventTypes.Bag,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisBagEvent()
@@ -888,11 +903,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetRefresh(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionRefresh.Run(
                     AegisBaseEvent.EventTypes.Refresh,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisRefreshEvent()
@@ -901,11 +917,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetSeat(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionSeat.Run(
                     AegisBaseEvent.EventTypes.Seat,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisSeatEvent()
@@ -914,11 +931,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetFees(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionFees.Run(
                     AegisBaseEvent.EventTypes.Fees,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisFeesEvent()
@@ -927,11 +945,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetPaymentMethods(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionPaymentMethods.Run(
                     AegisBaseEvent.EventTypes.PaymentMethods,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisPaymentMethodsEvent()
@@ -940,11 +959,12 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostBooking(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri)
         {
             this.actionBooking.Run(
                     AegisBaseEvent.EventTypes.Booking,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisBookingEvent()
@@ -953,13 +973,14 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostDcc(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramAccountNumber,
             string paramPaymentMethodCode)
         {
             this.actionDcc.Run(
                     AegisBaseEvent.EventTypes.Dcc,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisDccEvent()
@@ -970,7 +991,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostPayment(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             string paramCustomerId,
             string paramAccountNumber,
@@ -979,7 +1000,8 @@ namespace Aegis.Pumps.Actions
             string paramAddressCountry,
             string paramAddressPostal,
             string paramContactEmail,
-            decimal? paramBookingBalance)
+            decimal? paramBookingBalance,
+            string paramBookingCurrency)
         {
             string mailHost = null;
             string mailHash = null;
@@ -1010,6 +1032,7 @@ namespace Aegis.Pumps.Actions
 
             this.actionPayment.Run(
                     AegisBaseEvent.EventTypes.Payment,
+                    this.ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     () => new AegisPaymentEvent()
@@ -1022,7 +1045,8 @@ namespace Aegis.Pumps.Actions
                         AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
                         ContactMailDomain = mailHost,
                         ContactMail = mailHash,
-                        BookingBalance = bookingValue
+                        BookingBalance = bookingValue,
+                        BookingCurrency = paramBookingCurrency
                     });
         }
     }

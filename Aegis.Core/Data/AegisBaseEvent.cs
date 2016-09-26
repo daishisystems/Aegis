@@ -715,5 +715,19 @@ namespace Aegis.Core.Data
         /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
         [JilDirective(Name = "t")]
         public string Time { get; set; }
+
+        /// <summary>
+        ///     <see cref="ApplicationName" /> is the friendly name of the application in
+        ///     which the error occurred.
+        /// </summary>
+        [JilDirective(Name = "appN")]
+        public string ApplicationName { get; set; }
+
+        /// <summary>
+        ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
+        ///     which the error occurred.
+        /// </summary>
+        [JilDirective(Name = "appV")]
+        public string ApplicationVersion { get; set; }
     }
 }

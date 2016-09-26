@@ -676,11 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Net;
-using System.Net.Http.Headers;
 using Aegis.Core;
 
 namespace Aegis.Pumps.Actions
@@ -695,14 +693,14 @@ namespace Aegis.Pumps.Actions
         }
 
         protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
-            string headerName, 
-            HttpHeaders headers, 
+            IEnumerable<string> headerNames,
+            NameValueCollection headers, 
             out string errorMessage)
         {
             errorMessage = null;
 
             // parse headers
-            var networkRouteMapper = new CitrixNetworkRouteMapper(headerName, headers);
+            var networkRouteMapper = new CitrixNetworkRouteMapper(headerNames, headers);
 
             var networkRoute = new NetworkRoute();
             networkRoute.Map(networkRouteMapper);
@@ -727,10 +725,11 @@ namespace Aegis.Pumps.Actions
             return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
         }
 
-        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers)
+        protected string GetHttpHeaderValue(string headerName, NameValueCollection headers)
         {
-            IEnumerable<string> values;
-            if (!headers.TryGetValues(headerName, out values))
+            var values = headers.GetValues(headerName);
+
+            if (values == null)
             {
                 return null;
             }

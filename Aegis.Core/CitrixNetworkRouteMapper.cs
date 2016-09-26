@@ -677,13 +677,13 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
 
 namespace Aegis.Core
 {
-    /// <see cref="CitrixNetworkRouteMapper" />
+ /// <see cref="CitrixNetworkRouteMapper" />
     /// maps the full network route; that is, the
     /// collection of
     /// <see cref="IPAddress" />
@@ -695,8 +695,8 @@ namespace Aegis.Core
     /// instances, if applicable, and where disclosed.
     public class CitrixNetworkRouteMapper : NetworkRouteMapper
     {
-        private readonly string _httpRequestHeaderName;
-        private readonly HttpHeaders _httpRequestHeaders;
+        private readonly List<string> _httpRequestHeaderNames;
+        private readonly NameValueCollection _httpRequestHeaders;
 
         /// <summary>Initialises a new <see cref="CitrixNetworkRouteMapper" /> instance.</summary>
         /// <param name="httpRequestHeaderName">
@@ -707,10 +707,22 @@ namespace Aegis.Core
         ///     <see cref="HttpRequestHeaders" /> is the collection of HTTP request headers
         ///     to parse.
         /// </param>
-        public CitrixNetworkRouteMapper(string httpRequestHeaderName,
-            HttpHeaders httpRequestHeaders)
+        public CitrixNetworkRouteMapper(
+            IEnumerable<string> httpRequestHeaderNames,
+            NameValueCollection httpRequestHeaders)
         {
-            _httpRequestHeaderName = httpRequestHeaderName;
+            if (httpRequestHeaderNames == null)
+            {
+                throw new ArgumentException("HTTP request header metadata not specified.");
+            }
+
+            _httpRequestHeaderNames = httpRequestHeaderNames.ToList();
+
+            if (_httpRequestHeaderNames.Count == 0)
+            {
+                throw new ArgumentException("HTTP request header metadata is empty.");
+            }
+
             _httpRequestHeaders = httpRequestHeaders;
             NetworkRouteMetadata = new NetworkRouteMetadata();
         }
@@ -730,33 +742,23 @@ namespace Aegis.Core
         /// </exception>
         public override void GetHttpRequestHeaderValues()
         {
-            if (string.IsNullOrEmpty(_httpRequestHeaderName) || _httpRequestHeaders == null)
+            if (_httpRequestHeaderNames.Count == 0 || _httpRequestHeaders == null)
             {
                 throw new ArgumentException("HTTP request header metadata not specified.");
             }
 
-            try
-            {
-                IEnumerable<string> httpRequestHeaderValues;
+            var result = new List<string>();
+            this.NetworkRouteMetadata.HttpRequestHeaderValues = result;
 
-                var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
-                    .TryGetHttpRequestHeaderValues(_httpRequestHeaderName, _httpRequestHeaders,
-                        out httpRequestHeaderValues);
+            var canGetHttpRequestHeaderValues = HttpRequestHeaderParser
+                .TryGetHttpRequestHeaderValues(
+                    this._httpRequestHeaderNames, 
+                    this._httpRequestHeaders,
+                    result);
 
-                if (canGetHttpRequestHeaderValues)
-                {
-                    NetworkRouteMetadata.HttpRequestHeaderValues = httpRequestHeaderValues;
-                }
-                else
-                {
-                    NetworkRouteMetadata.HttpRequestHeaderValues = new List<string>();
-                    throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
-                }
-            }
-            catch (Exception)
+            if (!canGetHttpRequestHeaderValues)
             {
-                NetworkRouteMetadata.HttpRequestHeaderValues = new List<string>();
-                throw;
+                throw new NoHttpRequestHeadersFoundException(string.Join(";", this._httpRequestHeaderNames));
             }
         }
 
@@ -775,7 +777,7 @@ namespace Aegis.Core
             if (NetworkRouteMetadata.HttpRequestHeaderValues == null ||
                 !NetworkRouteMetadata.HttpRequestHeaderValues.Any())
             {
-                throw new NoHttpRequestHeadersFoundException(_httpRequestHeaderName);
+                throw new NoHttpRequestHeadersFoundException(string.Join(";", _httpRequestHeaderNames));
             }
 
             var unparsableHttpRequestHeaders = new List<string>();

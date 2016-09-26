@@ -676,9 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
@@ -700,12 +700,13 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void InvalidHeaderNameReturnsFalseAndOutputsEmptyCollection()
         {
-            var request = new HttpRequestMessage();
-            IEnumerable<string> httpRequestHeaderValues;
+            var httpRequestHeaderValues = new List<string>();
 
             var canParseHttpRequestHeaderValues =
-                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(string.Empty,
-                    request.Headers, out httpRequestHeaderValues);
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(
+                    new string[] { string.Empty },
+                    new NameValueCollection(),
+                    httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
             Assert.AreEqual(0, httpRequestHeaderValues.Count());
@@ -721,11 +722,13 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void NullHttpHeadersReturnsFalseAndOutputsEmptyCollection()
         {
-            IEnumerable<string> httpRequestHeaderValues;
+            var httpRequestHeaderValues = new List<string>();
 
             var canParseHttpRequestHeaderValues =
-                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues("TEST", null,
-                    out httpRequestHeaderValues);
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(
+                    new string[] { "TEST" },
+                    null,
+                    httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
             Assert.AreEqual(0, httpRequestHeaderValues.Count());
@@ -741,12 +744,13 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void EmptyHttpHeadersReturnsFalseAndOutputsEmptyCollection()
         {
-            var request = new HttpRequestMessage();
-            IEnumerable<string> httpRequestHeaderValues;
+            var httpRequestHeaderValues = new List<string>();
 
             var canParseHttpRequestHeaderValues =
-                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues("TEST", request.Headers,
-                    out httpRequestHeaderValues);
+                HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(
+                    new string[] { "TEST" }, 
+                    new NameValueCollection(), 
+                    httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
             Assert.AreEqual(0, httpRequestHeaderValues.Count());

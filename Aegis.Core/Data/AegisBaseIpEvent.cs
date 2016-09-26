@@ -710,7 +710,7 @@ namespace Aegis.Core.Data
 
         public override string ToString()
         {
-            return $"IP address: {this.IpAddress}";
+            return $"Event {this.EventType} with IP address: {this.IpAddress}";
         }
     }
 }

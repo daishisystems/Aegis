@@ -725,7 +725,6 @@ namespace Aegis.Pumps
         /// Initialise settings class. Does not throw any standard exception.
         /// </summary>
         public static Settings Initialise(
-            string clientName, 
             INewRelicInsightsClient newRelicInsightsClient,
             string webProxy,
             string webNonDefaultTimeout,
@@ -733,9 +732,6 @@ namespace Aegis.Pumps
         {
             try
             {
-                // set current client application name
-                Client.ClientName = clientName;
-
                 // initialise settings
                 return new Settings(
                     webProxy,

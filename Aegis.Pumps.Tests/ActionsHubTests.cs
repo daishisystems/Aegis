@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
+using System.Collections.Specialized;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -687,6 +687,12 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class ActionsHubTests
     {
+        [TestCleanup]
+        public void TearDown()
+        {
+            Client.ShutDown();
+        }
+
         [TestMethod]
         public void RunAllWithNoHeader()
         {
@@ -697,7 +703,8 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -705,7 +712,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -736,7 +743,8 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -744,8 +752,11 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -777,7 +788,8 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -785,8 +797,11 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -817,7 +832,8 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -825,12 +841,16 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
             requestHeaders.Add("NS_CLIENT_IP", "206.168.1.1");
+
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -850,7 +870,7 @@ namespace Aegis.Pumps.Tests
         }
 
         private void RunActions(
-            HttpHeaders requestHeaders,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             MockNewRelicInsightsClient newRelicClient,
             int eventsCount,
@@ -876,28 +896,51 @@ namespace Aegis.Pumps.Tests
                 () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
                 () => Client.GetActionsHub().PostPayment(requestHeaders, requestUri, 
                                                 null, null, null, null,
-                                                null, null, null, null)
+                                                null, null, null, null, null)
             };
 
 
             // run each test method
-            var eventsSum = 0;
             var errorsSum = 0;
             foreach (var testMethod in testMethods)
             {
                 Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
-                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
+                Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
 
                 testMethod();
-                eventsSum += eventsCount;
                 errorsSum += errorsCount;
 
                 // no errors
                 Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
                 // new number of events
-                Assert.AreEqual(eventsSum, Client.Instance.AegisEventCache.Count());
+                Assert.AreEqual(eventsCount, Client.Instance.AegisEventCache.Count());
+
+                Client.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
             }
+        }
+
+        private bool RunActionsCheckEvents(List<AegisBaseEvent> events)
+        {
+            foreach (var evnt in events)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);
+
+                var evntbaseIp = evnt as AegisBaseIpEvent;
+                if (evntbaseIp != null)
+                {
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.GroupId), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.IpAddress), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpUserAgent), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
+                }
+            }
+
+            return true;
         }
     }
 }

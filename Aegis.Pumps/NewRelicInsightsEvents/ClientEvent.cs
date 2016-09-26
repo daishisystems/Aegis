@@ -698,6 +698,13 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public string ApplicationName => Client.ClientName;
 
         /// <summary>
+        ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
+        ///     which the error occurred.
+        /// </summary>
+        [JilDirective(Name = "applicationVersion")]
+        public string ApplicationVersion => Client.ClientVersion;
+
+        /// <summary>
         ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
         ///     expressed in Unix ticks.
         /// </summary>

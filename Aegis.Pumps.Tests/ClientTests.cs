@@ -677,16 +677,22 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
+using System.Collections.Specialized;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
-{ 
+{
     [TestClass]
     public class ClientTests
     {
+        [TestCleanup]
+        public void TearDown()
+        {
+            Client.ShutDown();
+        }
+
         [TestMethod]
         public void InitialisationAndShutDown()
         {
@@ -696,7 +702,8 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
-            Client.Initialise("UnitTests", newRelicClient, settings);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.Initialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" });
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance);
@@ -728,7 +735,7 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void OnAvailabilityController_NoInitialized()
         {
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -751,10 +758,11 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -784,10 +792,11 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -819,7 +828,8 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             var blackListData = new List<BlackListItem>()
                                     {
@@ -832,7 +842,7 @@ namespace Aegis.Pumps.Tests
             Client.Instance.BlackList.SetNewData(blackListData, null);
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -864,7 +874,8 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
@@ -882,7 +893,7 @@ namespace Aegis.Pumps.Tests
             Client.Instance.BlackList.SetNewData(blackListData, null);
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -914,7 +925,8 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
@@ -933,7 +945,7 @@ namespace Aegis.Pumps.Tests
 
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -965,7 +977,8 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test");
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.DoInitialise("UnitTests", newRelicClient, settings, false);
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
@@ -985,7 +998,7 @@ namespace Aegis.Pumps.Tests
 
 
             // OnAvailabilityController
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");

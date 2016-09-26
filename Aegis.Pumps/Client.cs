@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using Daishi.NewRelic.Insights;
 using Aegis.Pumps.Actions;
 
@@ -684,7 +685,8 @@ namespace Aegis.Pumps
     public class Client
     {
         public static Client Instance { get; private set; }
-        public static string ClientName { get; internal set; }
+        public static string ClientName { get; private set; }
+        public static string ClientVersion { get; private set; }
 
         public static bool IsInitialised => Instance != null;
 
@@ -698,7 +700,10 @@ namespace Aegis.Pumps
         public readonly Actions.ActionsHub ActionsHub;
         private SchedulerRegistry scheduler;
 
-        private Client(INewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        private Client(
+            INewRelicInsightsClient newRelicInsightsClient, 
+            Settings settings, 
+            IEnumerable<string> httpIpHeaderNames)
         {
             if (newRelicInsightsClient == null)
             {
@@ -717,22 +722,31 @@ namespace Aegis.Pumps
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();
-            this.ActionsHub = new Actions.ActionsHub(this);
-            //this.ActionResource = new Actions.ActionIpEventNotify<AegisResourceEvent>(this, NewRelicInsightsEvents.Utils.ComponentNames.ResourceRequest);
-            //this.ActionCalendar = new Actions.ActionIpEventNotify<AegisCalendarEvent>(this, NewRelicInsightsEvents.Utils.ComponentNames.CalendarRequest);
+            this.ActionsHub = new Actions.ActionsHub(this, httpIpHeaderNames);
             this.scheduler = new SchedulerRegistry();
+        }
+
+        public static void SetUp(
+            string clientName,
+            string clientVersion)
+        {
+            ClientName = clientName;
+            ClientVersion = clientVersion;
         }
 
         /// <summary>
         /// Initialise client. Does not throw any standard exception.
         /// </summary>
         /// <returns></returns>
-        public static bool Initialise(string clientName, INewRelicInsightsClient newRelicInsightsClient, Settings settings)
+        public static bool Initialise(
+            INewRelicInsightsClient newRelicInsightsClient, 
+            Settings settings,
+            IEnumerable<string> httpIpHeaderNames)
         {
             // initialise and do proper cleanup in case of problems
             try
             {
-                DoInitialise(clientName, newRelicInsightsClient, settings, true);
+                DoInitialise(newRelicInsightsClient, settings, httpIpHeaderNames, true);
 
                 // success - class initialised
                 return true;
@@ -778,16 +792,27 @@ namespace Aegis.Pumps
             return Instance.ActionsHub;
         }
 
+        public static void ReportError(string message)
+        {
+            if (!IsInitialised)
+            {
+                return;
+            }
+
+            NewRelicInsightsEvents.Utils.AddException(
+                Instance.NewRelicInsightsClient,
+                NewRelicInsightsEvents.Utils.ComponentNames.ClientReportError,
+                null,
+                message);
+        }
+
         public static void DoInitialise(
-            string clientName,
             INewRelicInsightsClient newRelicInsightsClient,
-            Settings settings, 
+            Settings settings,
+            IEnumerable<string> httpIpHeaderNames,
             bool isSchedulingEnabled)
         {
-            // set current client application name
-            ClientName = clientName;
-
-            var self = new Client(newRelicInsightsClient, settings);
+            var self = new Client(newRelicInsightsClient, settings, httpIpHeaderNames);
 
             // assign object to the instance
             Instance = self;

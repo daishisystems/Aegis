@@ -678,7 +678,8 @@ Public License instead of this License.  But first, please read
 using System.Linq;
 using System;
 using System.Net;
-using System.Net.Http.Headers;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Actions
@@ -695,7 +696,8 @@ namespace Aegis.Pumps.Actions
 
         public void Run(
             string eventTypeName,
-            HttpHeaders requestHeaders,
+            IEnumerable<string> ipHeaderNames,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
         {
@@ -703,6 +705,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.DoRun(
                     eventTypeName,
+                    ipHeaderNames,
                     requestHeaders,
                     requestUri,
                     eventBuilder);
@@ -718,7 +721,8 @@ namespace Aegis.Pumps.Actions
 
         private void DoRun(
             string eventTypeName,
-            HttpHeaders requestHeaders,
+            IEnumerable<string> ipHeaderNames,
+            NameValueCollection requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
         {
@@ -730,7 +734,7 @@ namespace Aegis.Pumps.Actions
 
             // get IP addresses
             string errorMessage;
-            var ipAddresses = this.ParseIpAddressesFromHeaders("NS_CLIENT_IP", requestHeaders, out errorMessage).ToList();
+            var ipAddresses = this.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage).ToList();
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 NewRelicInsightsEvents.Utils.AddException(
@@ -787,6 +791,8 @@ namespace Aegis.Pumps.Actions
 
             // add IP address to data-pump
             var evnt = eventBuilder();
+            evnt.ApplicationName = Client.ClientName;
+            evnt.ApplicationVersion = Client.ClientVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddress.ToString();
             evnt.GroupId = groupId;

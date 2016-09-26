@@ -685,6 +685,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public class ComponentNames
         {
             public const string ClientInitialisation = "Client initialisation";
+            public const string ClientReportError = "Client report error";
             public const string SettingsInitialisation = "Settings initialisation";
 
             // Actions
