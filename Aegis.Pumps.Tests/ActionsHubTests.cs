@@ -859,7 +859,7 @@ namespace Aegis.Pumps.Tests
                 requestHeaders,
                 requestUri,
                 newRelicClient,
-                4,
+                3,
                 1);
 
             // shutdown

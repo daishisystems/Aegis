@@ -769,7 +769,7 @@ namespace Aegis.Pumps.Actions
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
-            DateTime paramStartDate)
+            DateTime? paramStartDate)
         {
             this.actionCalendar.Run(
                     AegisBaseEvent.EventTypes.Calendar,
@@ -780,7 +780,7 @@ namespace Aegis.Pumps.Actions
                     {
                         Origin = paramOrigin,
                         Destination = paramDestination,
-                        StartDate = paramStartDate.ToString("O")
+                        StartDate = paramStartDate?.ToString("O")
                     });
         }
 
@@ -805,10 +805,10 @@ namespace Aegis.Pumps.Actions
         public void PostPrice(
             NameValueCollection requestHeaders,
             Uri requestUri,
-            short paramAdults,
-            short paramTeens,
-            short paramChildren,
-            short paramInfants)
+            short? paramAdults,
+            short? paramTeens,
+            short? paramChildren,
+            short? paramInfants)
         {
             this.actionPrice.Run(
                     AegisBaseEvent.EventTypes.Price,
@@ -827,10 +827,10 @@ namespace Aegis.Pumps.Actions
         public void PostFlight(
             NameValueCollection requestHeaders,
             Uri requestUri,
-            short paramAdults,
-            short paramTeens,
-            short paramChildren,
-            short paramInfants)
+            short? paramAdults,
+            short? paramTeens,
+            short? paramChildren,
+            short? paramInfants)
         {
             this.actionFlight.Run(
                     AegisBaseEvent.EventTypes.Flight,

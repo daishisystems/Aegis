@@ -716,7 +716,7 @@ namespace Aegis.Core
                 throw new ArgumentException("HTTP request header metadata not specified.");
             }
 
-            _httpRequestHeaderNames = httpRequestHeaderNames.ToList();
+            _httpRequestHeaderNames = httpRequestHeaderNames.Distinct().ToList();
 
             if (_httpRequestHeaderNames.Count == 0)
             {
@@ -803,6 +803,10 @@ namespace Aegis.Core
                     unparsableHttpRequestHeaders.Add(httpRequestHeaderValue);
                 }
             }
+
+            // remove duplicates
+            NetworkRouteMetadata.UnparsableHttpRequestHeaderValues = NetworkRouteMetadata.UnparsableHttpRequestHeaderValues.Distinct();
+            NetworkRouteMetadata.ParsedIPAddresses = NetworkRouteMetadata.ParsedIPAddresses.Distinct();
         }
     }
 }

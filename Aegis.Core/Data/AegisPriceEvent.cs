@@ -688,15 +688,15 @@ namespace Aegis.Core.Data
         }
 
         [JilDirective(Name = "adults")]
-        public short Adults { get; set; }
+        public short? Adults { get; set; }
 
         [JilDirective(Name = "teens")]
-        public short Teens { get; set; }
+        public short? Teens { get; set; }
 
         [JilDirective(Name = "children")]
-        public short Children { get; set; }
+        public short? Children { get; set; }
 
         [JilDirective(Name = "infants")]
-        public short Infants { get; set; }
+        public short? Infants { get; set; }
     }
 }
