@@ -711,10 +711,10 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "cm")]
         public string ContactMail { get; set; }
 
-        [JilDirective(Name = "bb")]
-        public int? BookingBalance { get; set; }
+        [JilDirective(Name = "pi1")]
+        public string PaymentInfo1 { get; set; }
 
-        [JilDirective(Name = "bc")]
-        public string BookingCurrency { get; set; }
+        [JilDirective(Name = "pi2")]
+        public string PaymentInfo2 { get; set; }
     }
 }
