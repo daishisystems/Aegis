@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using Aegis.Core.Data;
 
@@ -731,7 +731,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public bool GetAvailability(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -749,7 +749,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetResource(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramName)
         {
@@ -765,7 +765,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetCalendar(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination,
@@ -785,7 +785,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetConfigurations(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
             string paramDestination)
@@ -803,7 +803,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostPrice(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             short? paramAdults,
             short? paramTeens,
@@ -825,7 +825,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostFlight(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             short? paramAdults,
             short? paramTeens,
@@ -847,7 +847,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetFast(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionFast.Run(
@@ -861,7 +861,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetExtras(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionExtras.Run(
@@ -875,7 +875,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetQuickAdd(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionQuickAdd.Run(
@@ -889,7 +889,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetBag(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionBag.Run(
@@ -903,7 +903,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetRefresh(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionRefresh.Run(
@@ -917,7 +917,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetSeat(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionSeat.Run(
@@ -931,7 +931,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetFees(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionFees.Run(
@@ -945,7 +945,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void GetPaymentMethods(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionPaymentMethods.Run(
@@ -959,7 +959,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostBooking(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri)
         {
             this.actionBooking.Run(
@@ -973,7 +973,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostDcc(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramAccountNumber,
             string paramPaymentMethodCode)
@@ -991,7 +991,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public void PostPayment(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             string paramCustomerId,
             string paramAccountNumber,

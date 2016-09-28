@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net.Http.Headers;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -712,7 +713,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -752,7 +753,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("User-Agent", "testUserAgent");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage");
@@ -797,7 +798,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
             requestHeaders.Add("User-Agent", "testUserAgent");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage");
@@ -841,7 +842,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
@@ -870,7 +871,7 @@ namespace Aegis.Pumps.Tests
         }
 
         private void RunActions(
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             MockNewRelicInsightsClient newRelicClient,
             int eventsCount,

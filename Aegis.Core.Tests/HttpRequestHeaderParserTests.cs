@@ -676,9 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
@@ -701,11 +701,12 @@ namespace Aegis.Core.Tests
         public void InvalidHeaderNameReturnsFalseAndOutputsEmptyCollection()
         {
             var httpRequestHeaderValues = new List<string>();
+            var request = new HttpRequestMessage();
 
             var canParseHttpRequestHeaderValues =
                 HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(
                     new string[] { string.Empty },
-                    new NameValueCollection(),
+                    request.Headers,
                     httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);
@@ -745,11 +746,12 @@ namespace Aegis.Core.Tests
         public void EmptyHttpHeadersReturnsFalseAndOutputsEmptyCollection()
         {
             var httpRequestHeaderValues = new List<string>();
+            var request = new HttpRequestMessage();
 
             var canParseHttpRequestHeaderValues =
                 HttpRequestHeaderParser.TryGetHttpRequestHeaderValues(
                     new string[] { "TEST" }, 
-                    new NameValueCollection(), 
+                    request.Headers, 
                     httpRequestHeaderValues);
 
             Assert.IsFalse(canParseHttpRequestHeaderValues);

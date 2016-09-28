@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace Aegis.Core
@@ -711,7 +711,7 @@ namespace Aegis.Core
         /// </returns>
         public static bool TryGetHttpRequestHeaderValues(
             IEnumerable<string> headerNames,
-            NameValueCollection headers,
+            HttpHeaders headers,
             List<string> httpRequestHeaderValues)
         {
             if (headerNames == null || headers == null)
@@ -722,12 +722,14 @@ namespace Aegis.Core
             bool result = false;
             foreach (var name in headerNames)
             {
-                var values = headers.GetValues(name);
-                if (values != null)
+                IEnumerable<string> values;
+                if (!headers.TryGetValues(name, out values))
                 {
-                    httpRequestHeaderValues.AddRange(values);
-                    result = true;
+                    continue;
                 }
+
+                httpRequestHeaderValues.AddRange(values);
+                result = true;
             }
 
             return result;

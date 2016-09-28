@@ -735,7 +735,7 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void OnAvailabilityController_NoInitialized()
         {
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -762,7 +762,7 @@ namespace Aegis.Pumps.Tests
             Client.DoInitialise(newRelicClient, settings, false);
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -796,7 +796,7 @@ namespace Aegis.Pumps.Tests
             Client.DoInitialise(newRelicClient, settings, false);
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -842,7 +842,7 @@ namespace Aegis.Pumps.Tests
             Client.Instance.BlackList.SetNewData(blackListData, null);
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -893,7 +893,7 @@ namespace Aegis.Pumps.Tests
             Client.Instance.BlackList.SetNewData(blackListData, null);
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -945,7 +945,7 @@ namespace Aegis.Pumps.Tests
 
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -998,7 +998,7 @@ namespace Aegis.Pumps.Tests
 
 
             // OnAvailabilityController
-            var requestHeaders = new NameValueCollection();
+            var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");

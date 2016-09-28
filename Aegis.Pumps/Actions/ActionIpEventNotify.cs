@@ -677,9 +677,9 @@ Public License instead of this License.  But first, please read
 
 using System.Linq;
 using System;
-using System.Net;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Net;
+using System.Net.Http.Headers;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Actions
@@ -697,7 +697,7 @@ namespace Aegis.Pumps.Actions
         public void Run(
             string eventTypeName,
             IEnumerable<string> ipHeaderNames,
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
         {
@@ -722,7 +722,7 @@ namespace Aegis.Pumps.Actions
         private void DoRun(
             string eventTypeName,
             IEnumerable<string> ipHeaderNames,
-            NameValueCollection requestHeaders,
+            HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
         {

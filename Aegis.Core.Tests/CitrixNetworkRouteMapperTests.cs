@@ -728,9 +728,11 @@ namespace Aegis.Core.Tests
         [ExpectedException(typeof (NoHttpRequestHeadersFoundException))]
         public void EmptyHttpRequestHeaderCollectionThrowsException()
         {
+            var headers = new HttpRequestMessage();
+
             var networkRouteMapper = new CitrixNetworkRouteMapper(
-                new string[] { "TEST" }, 
-                new NameValueCollection());
+                new string[] { "TEST" },
+                headers.Headers);
             networkRouteMapper.GetHttpRequestHeaderValues();
         }
 
@@ -741,12 +743,12 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void SingleHttpRequestHeaderIsReturned()
         {
-            var headers = new NameValueCollection();
-            headers.Add("TEST", "TEST");
+            var headers = new HttpRequestMessage();
+            headers.Headers.Add("TEST", "TEST");
 
             var networkRouteMapper = new CitrixNetworkRouteMapper(
                 new string[] { "TEST" }, 
-                headers);
+                headers.Headers);
             networkRouteMapper.GetHttpRequestHeaderValues();
 
             Assert.AreEqual(1, networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.Count());
@@ -760,12 +762,12 @@ namespace Aegis.Core.Tests
         [TestMethod]
         public void MultipleHttpRequestHeadersAreReturned()
         {
-            var headers = new NameValueCollection();
-            headers.Add("TEST", "TEST1");
-            headers.Add("TEST", "TEST2");
+            var headers = new HttpRequestMessage();
+            headers.Headers.Add("TEST", "TEST1");
+            headers.Headers.Add("TEST", "TEST2");
 
             var networkRouteMapper = new CitrixNetworkRouteMapper(
-                new string[] { "TEST" }, headers);
+                new string[] { "TEST" }, headers.Headers);
             networkRouteMapper.GetHttpRequestHeaderValues();
 
             Assert.AreEqual(2, networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues.Count());
@@ -797,9 +799,11 @@ namespace Aegis.Core.Tests
         [ExpectedException(typeof (ArgumentException))]
         public void EmptyHttpRequestHeadersThrowsException()
         {
+            var request = new HttpRequestMessage();
+
             NetworkRouteMapper networkRouteMapper = new CitrixNetworkRouteMapper(
                 null,
-                new NameValueCollection());
+                request.Headers);
             networkRouteMapper.GetIPAddresses();
         }
 

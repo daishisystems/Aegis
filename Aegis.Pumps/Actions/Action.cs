@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net.Http.Headers;
 using System.Linq;
 using System.Net;
 using Aegis.Core;
@@ -694,7 +695,7 @@ namespace Aegis.Pumps.Actions
 
         protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
             IEnumerable<string> headerNames,
-            NameValueCollection headers, 
+            HttpHeaders headers, 
             out string errorMessage)
         {
             errorMessage = null;
@@ -730,6 +731,18 @@ namespace Aegis.Pumps.Actions
             var values = headers.GetValues(headerName);
 
             if (values == null)
+            {
+                return null;
+            }
+
+            return string.Join(";", values);
+        }
+
+        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers)
+        {
+            IEnumerable<string> values;
+
+            if (!headers.TryGetValues(headerName, out values))
             {
                 return null;
             }

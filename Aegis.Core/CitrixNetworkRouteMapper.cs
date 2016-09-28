@@ -677,13 +677,13 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 
 namespace Aegis.Core
 {
- /// <see cref="CitrixNetworkRouteMapper" />
+    /// <see cref="CitrixNetworkRouteMapper" />
     /// maps the full network route; that is, the
     /// collection of
     /// <see cref="IPAddress" />
@@ -696,7 +696,7 @@ namespace Aegis.Core
     public class CitrixNetworkRouteMapper : NetworkRouteMapper
     {
         private readonly List<string> _httpRequestHeaderNames;
-        private readonly NameValueCollection _httpRequestHeaders;
+        private readonly HttpHeaders _httpRequestHeaders;
 
         /// <summary>Initialises a new <see cref="CitrixNetworkRouteMapper" /> instance.</summary>
         /// <param name="httpRequestHeaderName">
@@ -709,7 +709,7 @@ namespace Aegis.Core
         /// </param>
         public CitrixNetworkRouteMapper(
             IEnumerable<string> httpRequestHeaderNames,
-            NameValueCollection httpRequestHeaders)
+            HttpHeaders httpRequestHeaders)
         {
             if (httpRequestHeaderNames == null)
             {
