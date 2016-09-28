@@ -676,6 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Daishi.NewRelic.Insights;
 
@@ -688,6 +690,7 @@ namespace Aegis.Pumps
         public readonly WebProxy WebProxy;
         public readonly TimeSpan? WebNonDefaultTimeout;
         public readonly string AegisServiceUri;
+        public readonly IEnumerable<string> HttpIpHeaderNames;
         public readonly int AegisCacheBatchSize = 1000;
         public readonly int GetBlackListJobInternvalInSeconds = 600;
         public readonly int GetSettingsOnlineJobInternvalInSeconds = 900;
@@ -696,7 +699,8 @@ namespace Aegis.Pumps
         public Settings(
             string webProxy,
             string webNonDefaultTimeout,
-            string aegisServiceUri)
+            string aegisServiceUri,
+            IEnumerable<string> httpIpHeaderNames)
         {
             if (string.IsNullOrWhiteSpace(aegisServiceUri))
             {
@@ -719,6 +723,8 @@ namespace Aegis.Pumps
 
             // Aegis service uri
             this.AegisServiceUri = aegisServiceUri;
+
+            this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -728,7 +734,8 @@ namespace Aegis.Pumps
             INewRelicInsightsClient newRelicInsightsClient,
             string webProxy,
             string webNonDefaultTimeout,
-            string aegisServiceUri)
+            string aegisServiceUri,
+            IEnumerable<string> httpIpHeaderNames)
         {
             try
             {
@@ -736,7 +743,8 @@ namespace Aegis.Pumps
                 return new Settings(
                     webProxy,
                     webNonDefaultTimeout,
-                    aegisServiceUri);
+                    aegisServiceUri,
+                    httpIpHeaderNames);
             }
             catch (Exception exception)
             {

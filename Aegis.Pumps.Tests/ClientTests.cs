@@ -696,14 +696,14 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void InitialisationAndShutDown()
         {
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.Initialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" });
+            Client.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance);
@@ -755,11 +755,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsMissing()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             // OnAvailabilityController
             var requestHeaders = new NameValueCollection();
@@ -789,11 +789,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsIncorrect()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             // OnAvailabilityController
             var requestHeaders = new NameValueCollection();
@@ -825,11 +825,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsRight_NoSettingsAvailable()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             var blackListData = new List<BlackListItem>()
                                     {
@@ -871,11 +871,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsRight_NotBlocked()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
@@ -922,11 +922,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsRight_Blocked()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
@@ -974,11 +974,11 @@ namespace Aegis.Pumps.Tests
         public void OnAvailabilityController_HttpHeaderIsRight_Simulated()
         {
             // initialize
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();

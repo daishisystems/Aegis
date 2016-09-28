@@ -702,8 +702,7 @@ namespace Aegis.Pumps
 
         private Client(
             INewRelicInsightsClient newRelicInsightsClient, 
-            Settings settings, 
-            IEnumerable<string> httpIpHeaderNames)
+            Settings settings)
         {
             if (newRelicInsightsClient == null)
             {
@@ -722,7 +721,7 @@ namespace Aegis.Pumps
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();
-            this.ActionsHub = new Actions.ActionsHub(this, httpIpHeaderNames);
+            this.ActionsHub = new Actions.ActionsHub(this, settings.HttpIpHeaderNames);
             this.scheduler = new SchedulerRegistry();
         }
 
@@ -740,13 +739,12 @@ namespace Aegis.Pumps
         /// <returns></returns>
         public static bool Initialise(
             INewRelicInsightsClient newRelicInsightsClient, 
-            Settings settings,
-            IEnumerable<string> httpIpHeaderNames)
+            Settings settings)
         {
             // initialise and do proper cleanup in case of problems
             try
             {
-                DoInitialise(newRelicInsightsClient, settings, httpIpHeaderNames, true);
+                DoInitialise(newRelicInsightsClient, settings, true);
 
                 // success - class initialised
                 return true;
@@ -809,10 +807,9 @@ namespace Aegis.Pumps
         public static void DoInitialise(
             INewRelicInsightsClient newRelicInsightsClient,
             Settings settings,
-            IEnumerable<string> httpIpHeaderNames,
             bool isSchedulingEnabled)
         {
-            var self = new Client(newRelicInsightsClient, settings, httpIpHeaderNames);
+            var self = new Client(newRelicInsightsClient, settings);
 
             // assign object to the instance
             Instance = self;

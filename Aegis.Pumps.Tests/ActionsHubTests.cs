@@ -697,14 +697,14 @@ namespace Aegis.Pumps.Tests
         public void RunAllWithNoHeader()
         {
             // client setup
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -737,14 +737,14 @@ namespace Aegis.Pumps.Tests
         public void RunAllWithOneCorrectHeaderIp()
         {
             // client setup
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -782,14 +782,14 @@ namespace Aegis.Pumps.Tests
         public void RunAllWithOneInproperHeaderIp()
         {
             // client setup
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);
@@ -826,14 +826,14 @@ namespace Aegis.Pumps.Tests
         public void RunAllWithMultipleHeaderIp()
         {
             // client setup
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
 
             Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, new[] { "NS_CLIENT_IP" }, false);
+            Client.DoInitialise(newRelicClient, settings, false);
 
             Assert.IsTrue(Client.IsInitialised);
             Assert.IsNotNull(Client.Instance?.ActionsHub);

@@ -708,7 +708,7 @@ namespace Aegis.Pumps.Tests
             mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
             mock.MockOutData = dataJson;
 
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
 
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
@@ -735,7 +735,7 @@ namespace Aegis.Pumps.Tests
             mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
             mock.MockOutData = dataJson;
 
-            var settings = new Settings(null, null, "http://test");
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
 
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
@@ -754,7 +754,7 @@ namespace Aegis.Pumps.Tests
         [Ignore]
         public void SendEventsToLocalCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467");
+            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
             var self = new AegisServiceClient();
 
             var events = new List<AegisBaseEvent>()
