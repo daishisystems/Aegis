@@ -690,7 +690,7 @@ namespace Aegis.Pumps
         public readonly WebProxy WebProxy;
         public readonly TimeSpan? WebNonDefaultTimeout;
         public readonly string AegisServiceUri;
-        public readonly IEnumerable<string> HttpIpHeaderNames;
+        public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisCacheBatchSize = 1000;
         public readonly int GetBlackListJobInternvalInSeconds = 600;
         public readonly int GetSettingsOnlineJobInternvalInSeconds = 900;
@@ -724,7 +724,7 @@ namespace Aegis.Pumps
             // Aegis service uri
             this.AegisServiceUri = aegisServiceUri;
 
-            this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase);
+            this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         /// <summary>

@@ -691,7 +691,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public bool Run(
-            IEnumerable<string> ipHeaderNames,
+            List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,
@@ -724,7 +724,7 @@ namespace Aegis.Pumps.Actions
         }
 
         private bool DoRun(
-            IEnumerable<string> ipHeaderNames,
+            List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramOrigin,

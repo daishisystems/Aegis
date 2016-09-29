@@ -696,7 +696,7 @@ namespace Aegis.Pumps.Actions
 
         public void Run(
             string eventTypeName,
-            IEnumerable<string> ipHeaderNames,
+            List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)
@@ -721,7 +721,7 @@ namespace Aegis.Pumps.Actions
 
         private void DoRun(
             string eventTypeName,
-            IEnumerable<string> ipHeaderNames,
+            List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
             Func<T> eventBuilder)

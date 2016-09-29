@@ -676,8 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -714,7 +715,7 @@ namespace Aegis.Core.Tests
         public void InvalidHttpRequestHeadersThrowsException()
         {
             var networkRouteMapper = new CitrixNetworkRouteMapper(
-                new string[] { "TEST" }, 
+                new List<string> { "TEST" }, 
                 null);
             networkRouteMapper.GetHttpRequestHeaderValues();
         }

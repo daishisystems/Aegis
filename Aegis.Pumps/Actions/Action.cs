@@ -694,7 +694,7 @@ namespace Aegis.Pumps.Actions
         }
 
         protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
-            IEnumerable<string> headerNames,
+            List<string> headerNames,
             HttpHeaders headers, 
             out string errorMessage)
         {
