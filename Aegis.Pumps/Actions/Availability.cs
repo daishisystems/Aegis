@@ -841,6 +841,13 @@ namespace Aegis.Pumps.Actions
 
             // TODO refactor Action.Availability: split to use notify template class and block functionality as an extension?
 
+            // is blacklisting functionality disabled
+            if (this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Blacklist))
+            {
+                // do not block
+                return false;
+            }
+
             // protect the endpoint
             BlackListItem blackItem;
             if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddress.ToString(), out blackItem))
@@ -874,31 +881,28 @@ namespace Aegis.Pumps.Actions
             this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
-            if (!this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Blacklist))
+            var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
-                var ipBlackListAegisEvent = new AegisBlackListEvent()
-                {
-                    ApplicationName = Client.ClientName,
-                    ApplicationVersion = Client.ClientVersion,
-                    ExperimentId = expId,
-                    IsBlocked = isBlocked == true,
-                    IsSimulated = isSimulated == true,
-                    IpAddress = ipAddress.ToString(),
-                    GroupId = groupId,
-                    Country = blackItem.Country,
-                    Path = requestUri.AbsolutePath,
-                    Time = currentTime.ToString("O"),
-                };
+                ApplicationName = Client.ClientName,
+                ApplicationVersion = Client.ClientVersion,
+                ExperimentId = expId,
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddress.ToString(),
+                GroupId = groupId,
+                Country = blackItem.Country,
+                Path = requestUri.AbsolutePath,
+                Time = currentTime.ToString("O"),
+            };
 
-                isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
-                if (isCacheFull)
-                {
-                    NewRelicInsightsEvents.Utils.AddException(
-                        this.Client.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
-                        null,
-                        "AegisEventCache is full!");
-                }
+            isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability,
+                    null,
+                    "AegisEventCache is full!");
             }
 
             // return info whether to block or not
