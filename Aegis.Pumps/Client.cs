@@ -682,7 +682,7 @@ using Aegis.Pumps.Actions;
 
 namespace Aegis.Pumps
 {
-    public class Client
+    public class Client // TODO change name to AegisClient so easier to use at dotREZ?
     {
         public static Client Instance { get; private set; }
         public static string ClientName { get; private set; }
@@ -729,8 +729,8 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion)
         {
-            ClientName = clientName;
-            ClientVersion = clientVersion;
+            ClientName = clientName?.ToLowerInvariant().Trim();
+            ClientVersion = clientVersion?.ToLowerInvariant().Trim();
         }
 
         /// <summary>

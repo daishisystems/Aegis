@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Net.Http;
@@ -696,7 +697,14 @@ namespace Aegis.Pumps
             public const string AegisEvents = "events";
         }
 
+        private static class ParameterNames
+        {
+            public const string Client = "client";
+            public const string SettingsKey = "key";
+        }
+
         public bool GetBlackListData(
+            string clientName,
             Settings settings,
             DateTimeOffset? requestTimeStamp,
             out List<BlackListItem> data,
@@ -704,7 +712,11 @@ namespace Aegis.Pumps
         {
             data = null;
 
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.Blacklist));
+            var uriService = this.CreateUri(
+                settings,
+                ServiceNames.Blacklist,
+                new Dictionary<string, string>() { { ParameterNames.Client, clientName } });
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
@@ -728,6 +740,7 @@ namespace Aegis.Pumps
         }
 
         public bool GetSettingsOnlineData(
+            string clientName,
             Settings settings,
             DateTimeOffset? requestTimeStamp,
             out SettingsOnlineData data,
@@ -735,9 +748,16 @@ namespace Aegis.Pumps
         {
             data = null;
 
-            var uriService = this.CreateUri(settings, 
-                                        ServiceNames.SettingsOnline, 
-                                        new KeyValuePair<string,string>("key", settings.AegisServiceSettingsOnlineKey));
+            var keyValue = $"{settings.AegisServiceSettingsOnlineKey}-{clientName}";
+
+            var uriService = this.CreateUri(
+                settings,
+                ServiceNames.SettingsOnline,
+                new Dictionary<string, string>()
+                    {
+                        { ParameterNames.SettingsKey, keyValue },
+                        { ParameterNames.Client, clientName }
+                    });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
@@ -765,9 +785,13 @@ namespace Aegis.Pumps
             }
         }
 
-        public void SendAegisEvents(Settings settings, List<AegisBaseEvent> items)
+        public void SendAegisEvents(string clientName, Settings settings, List<AegisBaseEvent> items)
         {
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, this.CreateUri(settings, ServiceNames.AegisEvents));
+            var uriService = this.CreateUri(
+                settings,
+                ServiceNames.AegisEvents,
+                new Dictionary<string, string>() { { ParameterNames.Client, clientName } });
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 
             var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
@@ -786,19 +810,19 @@ namespace Aegis.Pumps
                        };
         }
 
-        private Uri CreateUri(Settings settings, string uriServiceName, KeyValuePair<string, string>? param1 = null)
+        private Uri CreateUri(
+            Settings settings, 
+            string uriServiceName, 
+            IDictionary<string, string> parameters = null)
         {
-            string uriString;
+            var parametersStr = string.Empty;
 
-            if (param1 != null)
+            if (parameters != null)
             {
-                uriString = $"{settings.AegisServiceUri}/{uriServiceName}?{param1.Value.Key}={param1.Value.Value}";
-            }
-            else
-            {
-                uriString = $"{settings.AegisServiceUri}/{uriServiceName}";
+                parametersStr = "?" + string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"));
             }
 
+            var uriString = $"{settings.AegisServiceUri}/{uriServiceName}{parametersStr}";
             return new Uri(uriString);
         }
 

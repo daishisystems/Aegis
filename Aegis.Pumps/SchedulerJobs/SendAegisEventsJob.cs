@@ -743,7 +743,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
-                this.ClientInstance.AegisServiceClient.SendAegisEvents(this.ClientInstance.Settings, items);
+                this.ClientInstance.AegisServiceClient.SendAegisEvents(Client.ClientName, this.ClientInstance.Settings, items);
                 return true;
             }
             catch (Exception exception)

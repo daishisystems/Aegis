@@ -712,7 +712,7 @@ namespace Aegis.Pumps.Tests
 
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetBlackListData(settings, null, out resultData, out resultTimeStamp);
+            mock.GetBlackListData("unit-test-client", settings, null, out resultData, out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             Assert.AreEqual(data.Count, resultData.Count);
@@ -739,7 +739,7 @@ namespace Aegis.Pumps.Tests
 
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetSettingsOnlineData(settings, null, out resultData, out resultTimeStamp);
+            mock.GetSettingsOnlineData("unit-test-client", settings, null, out resultData, out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             CollectionAssert.AreEqual(
@@ -764,7 +764,7 @@ namespace Aegis.Pumps.Tests
                 new AegisConfigurationsEvent()                     
             };
 
-            self.SendAegisEvents(settings, events);
+            self.SendAegisEvents("unit-test-client", settings, events);
         }
     }
 }

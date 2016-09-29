@@ -712,6 +712,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 DateTimeOffset? newTimeStamp;
 
                 var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
+                    Client.ClientName,
                     this.ClientInstance.Settings,
                     this.ClientInstance.BlackList.TimeStamp,
                     out blackListData,
