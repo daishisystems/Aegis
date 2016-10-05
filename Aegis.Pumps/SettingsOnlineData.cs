@@ -727,15 +727,8 @@ namespace Aegis.Pumps
         [JilDirective(Name = "jobsDisabled")]
         public string[] JobsDisabled { get; set; }
 
-        // TODO change to the dictionary with intervals
-        [JilDirective(Name = "jobGetBlackListInterval")]
-        public int? GetBlackListJobInternvalInSeconds { get; set; }
-
-        [JilDirective(Name = "jobGetSettingsOnlineInterval")]
-        public int? GetSettingsOnlineJobInternvalInSeconds { get; set; }
-
-        [JilDirective(Name = "jobSendAegisEventsInterval")]
-        public int? SendAegisEventsJobInternvalInSeconds { get; set; }
+        [JilDirective(Name = "jobsInterval")]
+        public Dictionary<string, int> JobsInterval { get; set; }
 
         public static SettingsOnlineData Deserialize(string dataString)
         {

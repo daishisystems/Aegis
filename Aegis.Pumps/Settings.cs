@@ -692,9 +692,9 @@ namespace Aegis.Pumps
         public readonly string AegisServiceUri;
         public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisCacheBatchSize = 1000;
-        public readonly int GetBlackListJobInternvalInSeconds = 600;
-        public readonly int GetSettingsOnlineJobInternvalInSeconds = 900;
-        public readonly int SendAegisEventsJobInternvalInSeconds = 10;
+        public readonly int GetBlackListJobIntervalInSeconds = 600;
+        public readonly int GetSettingsOnlineJobIntervalInSeconds = 900;
+        public readonly int SendAegisEventsJobIntervalInSeconds = 10;
 
         public Settings(
             string webProxy,

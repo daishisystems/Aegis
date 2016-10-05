@@ -82,6 +82,7 @@
     <Compile Include="Mocks\MockHTTPRequestMetadata.cs" />
     <Compile Include="Mocks\MockNewRelicInsightsClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SchedulerRegistryTests.cs" />
     <Compile Include="SettingsOnlineDataTests.cs" />
   </ItemGroup>
   <ItemGroup>

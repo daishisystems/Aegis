@@ -718,5 +718,20 @@ namespace Aegis.Pumps
 
             return this.Data.JobsDisabled.Contains(jobName);
         }
+
+        public int? GetJobInterval(string jobName)
+        {
+            if (!this.IsAvailable || this.Data.JobsInterval == null)
+            {
+                return null;
+            }
+
+            if (!this.Data.JobsInterval.ContainsKey(jobName))
+            {
+                return null;
+            }
+
+            return this.Data.JobsInterval[jobName];
+        }
     }
 }

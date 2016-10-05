@@ -677,84 +677,94 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentScheduler;
+using Aegis.Pumps.Tests.Mocks;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Tests
 {
-    public class SchedulerRegistry : Registry
+    [TestClass]
+    public class SchedulerRegistryTests
     {
-        private readonly List<Schedule> scheduledItems;
-
-        public SchedulerRegistry()
+        private class TestRegistry : SchedulerRegistry
         {
-            this.scheduledItems = new List<Schedule>();
-        }
-
-        public void Initialise(Client client, bool isSchedulingEnabled = true)
-        {
-            const int InitialStartDelay = 180; // in seconds
-            const int JobStartDelay = 90; // in seconds
-
-            // add jobs
-            this.Add(
-                client,
-                new SchedulerJobs.GetSettingsOnlineJob(client),
-                InitialStartDelay,
-                client.Settings.GetSettingsOnlineJobIntervalInSeconds);
-
-            this.Add(
-                client,
-                new SchedulerJobs.GetBlackListJob(client),
-                InitialStartDelay + JobStartDelay,
-                client.Settings.GetBlackListJobIntervalInSeconds);
-
-            this.Add(
-                client,
-                new SchedulerJobs.SendAegisEventsJob(client),
-                InitialStartDelay + JobStartDelay,
-                client.Settings.SendAegisEventsJobIntervalInSeconds);
-
-            // start schedulers
-            if (isSchedulingEnabled)
+            public void PublicAdd(
+                Client client,
+                SchedulerJobs.ClientJob self,
+                int startTimeDelay,
+                int defaultInterval)
             {
-                JobManager.Initialize(this);
+                this.Add(client, self, startTimeDelay, defaultInterval);
             }
         }
 
-        public void ShutDown()
+        private class TestClientJob : SchedulerJobs.ClientJob
         {
-            foreach (var sched in this.scheduledItems)
+            public readonly List<DateTime> Events = new List<DateTime>();
+
+            public TestClientJob(Client client)
+                : base(client, "TestClientJob")
             {
-                JobManager.RemoveJob(sched.Name);
             }
 
-            this.scheduledItems.Clear();
+            protected override void DoExecute()
+            {
+                this.Events.Add(DateTime.Now);
+            }
         }
 
-        protected void Add(
-            Client client,
-            SchedulerJobs.ClientJob self,
-            int startTimeDelay,
-            int defaultInterval)
+        [TestCleanup]
+        public void TearDown()
         {
-            // for safety reason online settings value can't be higher than the following limit
-            const int LimitInSecs = 3600; // an hour
-
-            var sched = this.Schedule(self).WithName(self.JobName);
-            this.scheduledItems.Add(sched);
-
-            sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-                .AndEvery(
-                    GetWithLimit(
-                        client.SettingsOnline.GetJobInterval(self.JobName),
-                        defaultInterval,
-                        LimitInSecs))
-            .Seconds();
+            Client.ShutDown();
         }
 
-        protected static int GetWithLimit(int? primaryValue, int secondaryValue, int limit)
+        [TestMethod]
+        public void StartAndStop()
         {
-            return primaryValue != null ? Math.Min(primaryValue.Value, limit) : secondaryValue;
+            // initialize
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Client.SetUp("UnitTests", "1.2.1");
+            Client.DoInitialise(newRelicClient, settings, false);
+
+            // initialize classes
+            var selfRegistry = new TestRegistry();
+            var selfJob = new TestClientJob(Client.Instance);
+
+            Assert.AreEqual(0, selfJob.Events.Count);
+
+            // add new job
+            int startTimeDelay = 10;
+            int interval = 5;
+            var testStartTime = DateTime.Now;
+
+            selfRegistry.PublicAdd(Client.Instance, selfJob, startTimeDelay, interval);
+            Assert.AreEqual(0, selfJob.Events.Count);
+
+            // start job manager
+            JobManager.Initialize(selfRegistry);
+
+            // sleep
+            Task.Delay((startTimeDelay + (2 * interval)) * 1000).Wait();
+
+            // stop registry
+            selfRegistry.ShutDown();
+
+            var shutDownCount = selfJob.Events.Count;
+
+            Assert.IsTrue(shutDownCount >= 3);
+            Assert.IsTrue(shutDownCount <= 6);
+            Assert.IsTrue(((selfJob.Events[0] - testStartTime).Seconds - startTimeDelay) <= 2);
+            Assert.IsTrue(((selfJob.Events[1] - selfJob.Events[0]).Seconds - interval) <= 2);
+            Assert.IsTrue(((selfJob.Events[2] - selfJob.Events[1]).Seconds - interval) <= 2);
+
+            // sleep
+            Task.Delay((startTimeDelay + interval + 5) * 1000).Wait();
+
+            Assert.AreEqual(shutDownCount, selfJob.Events.Count);
         }
     }
 }
