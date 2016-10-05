@@ -732,7 +732,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
-                    NewRelicInsightsEvents.Utils.UploadException(
+                    NewRelicInsightsEvents.Utils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception);
@@ -742,7 +742,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // If the exception.CancellationToken.IsCancellationRequested is false,
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
-                    NewRelicInsightsEvents.Utils.UploadException(
+                    NewRelicInsightsEvents.Utils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception,
@@ -751,7 +751,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (Exception exception)
             {
-                NewRelicInsightsEvents.Utils.UploadException(
+                NewRelicInsightsEvents.Utils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception);

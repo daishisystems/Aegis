@@ -880,11 +880,7 @@ namespace Aegis.Pumps
                 httpClient.DefaultRequestHeaders.IfModifiedSince = requestTimeStamp;
 
                 var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception("Downloading data resulting in: HTTP " + response.StatusCode);
-                }
+                var responseData = response.Content.ReadAsStringAsync().Result;
 
                 // if data is not modified since last request or no data available
                 if (response.StatusCode == HttpStatusCode.NotModified)
@@ -892,8 +888,13 @@ namespace Aegis.Pumps
                     return false;
                 }
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception("Downloading data resulting in: HTTP " + response.StatusCode);
+                }
+
                 // retrieve data
-                data = response.Content.ReadAsStringAsync().Result;
+                data = responseData;
                 timeStamp = response.Content.Headers.LastModified;
                 return true;
             }
@@ -924,6 +925,7 @@ namespace Aegis.Pumps
 
                 var content = new StringContent("=" + itemsJson, Encoding.UTF8, "application/x-www-form-urlencoded");
                 var response = httpClient.PostAsync(httpRequestMetadata.URI, content).Result;
+                response.Content.ReadAsByteArrayAsync().Wait();
 
                 if (!response.IsSuccessStatusCode)
                 {
