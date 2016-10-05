@@ -809,6 +809,7 @@ namespace Aegis.Pumps.Actions
             {
                 ApplicationName = Client.ClientName,
                 ApplicationVersion = Client.ClientVersion,
+                AegisVersion = Client.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddress.ToString(),
                 GroupId = groupId,
@@ -885,6 +886,7 @@ namespace Aegis.Pumps.Actions
             {
                 ApplicationName = Client.ClientName,
                 ApplicationVersion = Client.ClientVersion,
+                AegisVersion = Client.AegisVersion,
                 ExperimentId = expId,
                 IsBlocked = isBlocked == true,
                 IsSimulated = isSimulated == true,

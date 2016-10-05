@@ -676,10 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.IO;
 using System.Linq;
 using System.Net;
 using Jil;
@@ -721,12 +718,16 @@ namespace Aegis.Pumps
         [JilDirective(Name = "experiments")]
         public ExperimentData[] Experiments { get; set; }
 
+        [JilDirective(Name = "experimentsBucketVersion")]
+        public string ExperimentsBucketVersion { get; set; }
+
         [JilDirective(Name = "aegisEventsDisabled")]
         public string[] AegisEventsDisabled { get; set; }
 
         [JilDirective(Name = "jobsDisabled")]
         public string[] JobsDisabled { get; set; }
 
+        // TODO change to the dictionary with intervals
         [JilDirective(Name = "jobGetBlackListInterval")]
         public int? GetBlackListJobInternvalInSeconds { get; set; }
 
@@ -788,7 +789,7 @@ namespace Aegis.Pumps
                 return null;
             }
 
-            var ipExpBucket = ExperimentsUtils.GetIpExpBucket(ipAddress);
+            var ipExpBucket = ExperimentsUtils.GetIpExpBucket(ipAddress, this.ExperimentsBucketVersion);
 
             List<ExperimentData> expsList;
             if (!this.experimentsLookUp.TryGetValue(ipExpBucket, out expsList))

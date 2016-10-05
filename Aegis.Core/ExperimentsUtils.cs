@@ -689,14 +689,44 @@ namespace Aegis.Core
     {
         private const int IpMaskBitArrayLength = 256;
 
-        public static int GetIpExpBucket(IPAddress ipAddress)
+        public static int GetIpExpBucket(IPAddress ipAddress, string bucketVersion)
         {
-            var lastPartStr = ipAddress.ToString().Split('.').LastOrDefault();
+            var ipParts = ipAddress.ToString().Split('.');
+            if (ipParts.Length == 0)
+            {
+                return -1;
+            }
+
+            string part;
+
+            switch (bucketVersion)
+            {
+                case "i0":
+                    part = ipParts.ElementAtOrDefault(0);
+                    break;
+
+                case "i2":
+                    part = ipParts.ElementAtOrDefault(2);
+                    break;
+
+                case "i3":
+                    part = ipParts.ElementAtOrDefault(3);
+                    break;
+
+                case "last":
+                    part = ipParts.LastOrDefault();
+                    break;
+
+                case "i1":
+                default:
+                    part = ipParts.ElementAtOrDefault(1);
+                    break;
+            }
 
             int result;
-            if (!int.TryParse(lastPartStr, out result))
+            if (!int.TryParse(part, out result))
             {
-                return 0;
+                return -1;
             }
 
             return result;

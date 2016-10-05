@@ -881,7 +881,7 @@ namespace Aegis.Pumps.Tests
             {
                 () => Client.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
                 () => Client.GetActionsHub().GetBag(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, DateTime.UtcNow),
+                () => Client.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, null),
                 () => Client.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
                 () => Client.GetActionsHub().GetExtras(requestHeaders, requestUri),
                 () => Client.GetActionsHub().GetFast(requestHeaders, requestUri),
@@ -889,7 +889,7 @@ namespace Aegis.Pumps.Tests
                 () => Client.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
                 () => Client.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
                 () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, "resource-name"),
+                () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, null),
                 () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
                 () => Client.GetActionsHub().PostBooking(requestHeaders, requestUri),
                 () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
@@ -927,6 +927,7 @@ namespace Aegis.Pumps.Tests
             {
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);
 

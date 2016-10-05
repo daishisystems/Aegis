@@ -709,13 +709,19 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            const string ClientName = "unit-test-client-name";
+            const string ClientVer = "111.0.333.41";
+            const string AegisVer = "1.2.3.4.5";
 
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetBlackListData("unit-test-client", settings, null, out resultData, out resultTimeStamp);
+            mock.GetBlackListData(ClientName, ClientVer, AegisVer, settings, null, out resultData, out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             Assert.AreEqual(data.Count, resultData.Count);
+            StringAssert.Contains(mock.MockInUri.Query, ClientName);
+            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
+            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
         }
 
         [TestMethod]
@@ -736,10 +742,13 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            const string ClientName = "unit-test-client-name";
+            const string ClientVer = "111.0.333.41";
+            const string AegisVer = "1.2.3.4.5";
 
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetSettingsOnlineData("unit-test-client", settings, null, out resultData, out resultTimeStamp);
+            mock.GetSettingsOnlineData(ClientName, ClientVer, AegisVer, settings, null, out resultData, out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             CollectionAssert.AreEqual(
@@ -748,6 +757,10 @@ namespace Aegis.Pumps.Tests
             CollectionAssert.AreEqual(
                 data.Blacklist.CountriesSimulate.ToList(),
                 resultData.Blacklist.CountriesSimulate.ToList());
+
+            StringAssert.Contains(mock.MockInUri.Query, ClientName);
+            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
+            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
         }
 
         [TestMethod]
@@ -757,14 +770,29 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
             var self = new AegisServiceClient();
 
-            var events = new List<AegisBaseEvent>()
+            var events = new List<AegisBaseIpEvent>()
             {
                 new AegisAvailabilityEvent(),
                 new AegisBagEvent(),
                 new AegisConfigurationsEvent()                     
             };
 
-            self.SendAegisEvents("unit-test-client", settings, events);
+            foreach (var ev in events)
+            {
+                ev.ApplicationName = "test-appName";
+                ev.ApplicationVersion = "test-appVer";
+                ev.AegisVersion = "test-aegis-version";
+                ev.Time = DateTime.UtcNow.ToString("o");
+                ev.ExperimentId = 7;
+                ev.GroupId = "test-groupId";
+                ev.Path = "test-path";
+                ev.HttpAcceptLanguage = "test-httpAcceptLang";
+                ev.HttpUserAgent = "test-httpUserAgent";
+                ev.HttpSessionToken = "test-httpSessionToken";
+                ev.IpAddress = "192.168.0.1";
+            }
+
+            self.SendAegisEvents("unit-test-client", "u-test-ver", "u-test-aegis-ver", settings, new List<AegisBaseEvent>(events));
         }
     }
 }

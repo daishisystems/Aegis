@@ -688,6 +688,8 @@ namespace Aegis.Pumps.Tests.Mocks
 
         public DateTimeOffset? MockOutTimeStamp { get; set; }
 
+        public Uri MockInUri { get; private set; }
+
         protected override bool DoGetStringData(
             Core.HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
@@ -695,6 +697,8 @@ namespace Aegis.Pumps.Tests.Mocks
             out string data,
             out DateTimeOffset? timeStamp)
         {
+            this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());
+
             data = this.MockOutData;
             timeStamp = this.MockOutTimeStamp;
             return this.MockResult;

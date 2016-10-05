@@ -705,6 +705,13 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public string ApplicationVersion => Client.ClientVersion;
 
         /// <summary>
+        ///     <see cref="AegisVersion" /> is the version of the Aegis in
+        ///     which the error occurred.
+        /// </summary>
+        [JilDirective(Name = "aegisVersion")]
+        public string AegisVersion => Client.AegisVersion;
+
+        /// <summary>
         ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
         ///     expressed in Unix ticks.
         /// </summary>

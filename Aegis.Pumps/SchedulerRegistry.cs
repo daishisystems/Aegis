@@ -692,8 +692,13 @@ namespace Aegis.Pumps
 
         public void Initialise(Client client, bool isSchedulingEnabled = true)
         {
-            // online settings value can't be higher than following limit
+            // online settings value can't be higher than the following limit
             const int LimitInSecs = 3600; // an hour
+
+            // TODO made all jobs start 5 minutes since now (not now)
+            // so all client components will be initialized and
+            // if this is a test run, job won't be executed
+            // TODO may start job with 1 minute interval from highest priority (settings, blacklilst, events)
 
             // add jobs
             this.Add(new SchedulerJobs.GetBlackListJob(client))

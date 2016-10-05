@@ -701,12 +701,35 @@ namespace Aegis.Core.Tests
         }
 
         [TestMethod]
-        public void GetIpExpBucket()
+        public void GetIpExpBucket_Default()
         {
-            Assert.AreEqual(22, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22")));
-            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.1")));
-            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.255")));
-            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.0")));
+            Assert.AreEqual(168, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22"), null));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.1.0.1"), null));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.255.0.255"), null));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.0.0.0"), null));
+
+            Assert.AreEqual(168, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22"), "i1"));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.1.0.1"), "i1"));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.255.0.255"), "i1"));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.0.0.0"), "i1"));
+        }
+
+        [TestMethod]
+        public void GetIpExpBucket_Last()
+        {
+            Assert.AreEqual(22, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22"), "last"));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.1"), "last"));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.255"), "last"));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.0"), "last"));
+        }
+
+        [TestMethod]
+        public void GetIpExpBucket_First()
+        {
+            Assert.AreEqual(192, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("192.168.0.22"), "i0"));
+            Assert.AreEqual(1, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("1.168.0.1"), "i0"));
+            Assert.AreEqual(255, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("255.168.0.255"), "i0"));
+            Assert.AreEqual(0, ExperimentsUtils.GetIpExpBucket(IPAddress.Parse("0.168.0.0"), "i0"));
         }
     }
 }

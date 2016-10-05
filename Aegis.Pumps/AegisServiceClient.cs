@@ -699,12 +699,16 @@ namespace Aegis.Pumps
 
         private static class ParameterNames
         {
-            public const string Client = "client";
+            public const string ClientName = "client";
+            public const string ClientVersion = "clientVer";
+            public const string AegisVersion = "aegisVer";
             public const string SettingsKey = "key";
         }
 
         public bool GetBlackListData(
             string clientName,
+            string clientVersion,
+            string aegisVersion,
             Settings settings,
             DateTimeOffset? requestTimeStamp,
             out List<BlackListItem> data,
@@ -715,7 +719,12 @@ namespace Aegis.Pumps
             var uriService = this.CreateUri(
                 settings,
                 ServiceNames.Blacklist,
-                new Dictionary<string, string>() { { ParameterNames.Client, clientName } });
+                new Dictionary<string, string>()
+                    {
+                        { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.AegisVersion, aegisVersion },
+                    });
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 
@@ -741,6 +750,8 @@ namespace Aegis.Pumps
 
         public bool GetSettingsOnlineData(
             string clientName,
+            string clientVersion,
+            string aegisVersion,
             Settings settings,
             DateTimeOffset? requestTimeStamp,
             out SettingsOnlineData data,
@@ -756,7 +767,9 @@ namespace Aegis.Pumps
                 new Dictionary<string, string>()
                     {
                         { ParameterNames.SettingsKey, keyValue },
-                        { ParameterNames.Client, clientName }
+                        { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.AegisVersion, aegisVersion }
                     });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
@@ -785,12 +798,23 @@ namespace Aegis.Pumps
             }
         }
 
-        public void SendAegisEvents(string clientName, Settings settings, List<AegisBaseEvent> items)
+        public void SendAegisEvents(
+            string clientName,
+            string clientVersion,
+            string aegisVersion,
+            Settings settings, 
+            List<AegisBaseEvent> items)
         {
             var uriService = this.CreateUri(
                 settings,
                 ServiceNames.AegisEvents,
-                new Dictionary<string, string>() { { ParameterNames.Client, clientName } });
+                new Dictionary<string, string>()
+                    {
+                        { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.AegisVersion, aegisVersion }
+                    });
+
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
 

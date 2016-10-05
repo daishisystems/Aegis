@@ -687,6 +687,7 @@ namespace Aegis.Pumps
         public static Client Instance { get; private set; }
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
+        public static string AegisVersion { get; private set; }
 
         public static bool IsInitialised => Instance != null;
 
@@ -729,8 +730,9 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion)
         {
-            ClientName = clientName?.ToLowerInvariant().Trim();
-            ClientVersion = clientVersion?.ToLowerInvariant().Trim();
+            AegisVersion = typeof(Client).Assembly.GetName().Version.ToString();
+            ClientName = clientName?.ToLowerInvariant().Trim() ?? string.Empty;
+            ClientVersion = clientVersion?.ToLowerInvariant().Trim() ?? string.Empty;
         }
 
         /// <summary>

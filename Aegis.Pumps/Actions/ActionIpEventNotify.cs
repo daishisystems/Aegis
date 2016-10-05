@@ -793,6 +793,7 @@ namespace Aegis.Pumps.Actions
             var evnt = eventBuilder();
             evnt.ApplicationName = Client.ClientName;
             evnt.ApplicationVersion = Client.ClientVersion;
+            evnt.AegisVersion = Client.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddress.ToString();
             evnt.GroupId = groupId;
