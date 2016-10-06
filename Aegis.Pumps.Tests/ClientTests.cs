@@ -962,6 +962,8 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, Client.Instance.AegisEventCache.Count());
 
+            // TODO check AegisEventCache for AegisBlackListEvent event and its fields
+
             // shutdown
             Client.ShutDown();
 

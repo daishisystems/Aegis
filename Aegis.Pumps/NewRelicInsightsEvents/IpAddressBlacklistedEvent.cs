@@ -687,6 +687,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     /// </summary>
     public class IpAddressBlacklistedEvent : ClientEvent
     {
+        [JilDirective(Name = "srcEventType")]
+        public string SourceEventType { get; set; }
+
         [JilDirective(Name = "expId")]
         public int? ExperimentId { get; set; }
 

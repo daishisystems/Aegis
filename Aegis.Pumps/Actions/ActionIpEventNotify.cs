@@ -688,6 +688,7 @@ namespace Aegis.Pumps.Actions
         where T : AegisBaseIpEvent
     {
         private readonly string newRelicExceptionComponentName;
+        private readonly bool isBlockingEnabled;
 
         public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
         {
@@ -719,7 +720,7 @@ namespace Aegis.Pumps.Actions
             }
         }
 
-        private void DoRun(
+        private bool DoRun(
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
@@ -727,9 +728,12 @@ namespace Aegis.Pumps.Actions
             Func<T> eventBuilder)
         {
             // is current action disabled
-            if (this.Client.SettingsOnline.IsAegisEventDisabled(eventTypeName))
+            var isNotificationDisabled = this.Client.SettingsOnline.IsAegisEventNotificationDisabled(eventTypeName);
+            var isBlockingDisabled = this.Client.SettingsOnline.IsAegisBlockingDisabled(eventTypeName);
+
+            if (isNotificationDisabled && isBlockingDisabled)
             {
-                return;
+                return false;
             }
 
             // get IP addresses
@@ -747,7 +751,7 @@ namespace Aegis.Pumps.Actions
             // if no IPs to process
             if (ipAddresses.Count == 0)
             {
-                return;
+                return false;
             }
 
             // get common data
@@ -758,22 +762,54 @@ namespace Aegis.Pumps.Actions
             var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders);
 
             // process each IP
+            var isBlocked = false;
+
             foreach (var ipAddress in ipAddresses)
             {
-                this.DoRunPerIpAddress(
-                                        ipAddress,
-                                        currentTime,
-                                        groupId,
-                                        requestUri,
-                                        httpUserAgent,
-                                        httpAcceptLanguage,
-                                        httpSessionToken,
-                                        eventBuilder);
+                // get experiment id
+                int? expId = null;
+                if (this.Client.SettingsOnline.IsAvailable)
+                {
+                    expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
+                }
+
+                // run notification part
+                if (!isNotificationDisabled)
+                {
+                    this.DoRunNotification(
+                        expId,
+                        ipAddress.ToString(),
+                        currentTime,
+                        groupId,
+                        requestUri,
+                        httpUserAgent,
+                        httpAcceptLanguage,
+                        httpSessionToken,
+                        eventBuilder);
+                }
+
+                // run blocking part
+                if (this.isBlockingEnabled && !isBlockingDisabled)
+                {
+                    isBlocked |= this.DoRunBlocking(
+                                            eventTypeName,
+                                            expId,
+                                            ipAddress.ToString(),
+                                            currentTime,
+                                            groupId,
+                                            requestUri,
+                                            httpUserAgent,
+                                            httpAcceptLanguage,
+                                            httpSessionToken);
+                }
             }
+
+            return isBlocked;
         }
 
-        private void DoRunPerIpAddress(
-            IPAddress ipAddress,
+        private void DoRunNotification(
+            int? expId,
+            string ipAddressString,
             DateTime currentTime,
             string groupId,
             Uri requestUri,
@@ -782,20 +818,13 @@ namespace Aegis.Pumps.Actions
             string httpSessionToken,
             Func<T> eventBuilder)
         {
-            // get experiment id
-            int? expId = null;
-            if (this.Client.SettingsOnline.IsAvailable)
-            {
-                expId = this.Client.SettingsOnline.Data.GetExperiment(ipAddress, currentTime)?.ExperimentId;
-            }
-
             // add IP address to data-pump
             var evnt = eventBuilder();
             evnt.ApplicationName = Client.ClientName;
             evnt.ApplicationVersion = Client.ClientVersion;
             evnt.AegisVersion = Client.AegisVersion;
             evnt.ExperimentId = expId;
-            evnt.IpAddress = ipAddress.ToString();
+            evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
             evnt.HttpUserAgent = httpUserAgent;
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
@@ -812,6 +841,100 @@ namespace Aegis.Pumps.Actions
                     null,
                     "AegisEventCache is full!");
             }
+        }
+
+        private bool DoRunBlocking(
+            string eventTypeName,
+            int? expId,
+            string ipAddressString,
+            DateTime currentTime,
+            string groupId,
+            Uri requestUri,
+            string httpUserAgent,
+            string httpAcceptLanguage,
+            string httpSessionToken)
+        {
+            // are online settings available
+            if (!this.Client.SettingsOnline.IsAvailable ||
+                this.Client.SettingsOnline.Data.Blacklist == null)
+            {
+                // do not block
+                return false;
+            }
+
+            // protect the endpoint
+            BlackListItem blackItem;
+            if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddressString, out blackItem))
+            {
+                // do not block
+                return false;
+            }
+
+            // TODO check settings if country-level blocking is enabled
+            // check whether country is blocked or simulated
+            var isBlocked = this.Client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
+            var isSimulated = this.Client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            if (isBlocked != true && isSimulated != true)
+            {
+                // do not block - not blocked nor simulated
+                return false;
+            }
+
+            // TODO check with blackItem if this eventTypeName can block it
+
+            // is blacklisting notification disabled
+            if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Blacklist))
+            {
+                // return info whether to block or not
+                return isBlocked == true;
+            }
+
+            // log the malicious event
+            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
+            {
+                SourceEventType = eventTypeName,
+                ExperimentId = expId,
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddressString,
+                GroupId = groupId,
+                Country = blackItem.Country,
+                AbsolutePath = requestUri.AbsolutePath,
+                FullPath = requestUri.PathAndQuery
+            };
+
+            this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
+
+            // send blacklisted ip to the service
+            // TODO set http fields
+            var ipBlackListAegisEvent = new AegisBlackListEvent()
+            {
+                ApplicationName = Client.ClientName,
+                ApplicationVersion = Client.ClientVersion,
+                AegisVersion = Client.AegisVersion,
+                SourceEventType = eventTypeName,
+                ExperimentId = expId,
+                IsBlocked = isBlocked == true,
+                IsSimulated = isSimulated == true,
+                IpAddress = ipAddressString,
+                GroupId = groupId,
+                Country = blackItem.Country,
+                Path = requestUri.AbsolutePath,
+                Time = currentTime.ToString("O"),
+            };
+
+            var isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
+            if (isCacheFull)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.Client.NewRelicInsightsClient,
+                    this.newRelicExceptionComponentName,
+                    null,
+                    "AegisEventCache is full!");
+            }
+
+            // return info whether to block or not
+            return isBlocked == true;
         }
     }
 }

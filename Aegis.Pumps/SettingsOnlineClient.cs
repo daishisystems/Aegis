@@ -694,7 +694,7 @@ namespace Aegis.Pumps
             this.Data = newData;
         }
 
-        public bool IsAegisEventDisabled(string name)
+        public bool IsAegisEventNotificationDisabled(string eventName)
         {
             if (!this.IsAvailable || this.Data.AegisEventsDisabled == null)
             {
@@ -706,7 +706,13 @@ namespace Aegis.Pumps
                 return true;
             }
 
-            return this.Data.AegisEventsDisabled.Contains(name);
+            return this.Data.AegisEventsDisabled.Contains(eventName);
+        }
+
+        public bool IsAegisBlockingDisabled(string eventName)
+        {
+            // TODO implement logic 
+            return false;
         }
 
         public bool IsJobDisabled(string jobName)

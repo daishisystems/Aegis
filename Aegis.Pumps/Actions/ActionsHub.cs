@@ -705,6 +705,7 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisPaymentMethodsEvent> actionPaymentMethods;
         private readonly ActionIpEventNotify<AegisDccEvent> actionDcc;
         private readonly ActionIpEventNotify<AegisPaymentEvent> actionPayment;
+        private readonly ActionIpEventNotify<AegisPromoCodesEvent> actionPromoCodes;
 
         public ActionsHub(Client client, List<string> httpIpHeaderNames)
         {
@@ -728,8 +729,7 @@ namespace Aegis.Pumps.Actions
             this.actionPaymentMethods = new ActionIpEventNotify<AegisPaymentMethodsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPaymentMethods);
             this.actionDcc = new ActionIpEventNotify<AegisDccEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionDcc);
             this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
-
-            // TODO add promo code
+            this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
         }
 
         public bool GetAvailability(
@@ -958,6 +958,23 @@ namespace Aegis.Pumps.Actions
                     () => new AegisPaymentMethodsEvent()
                     {
                     });
+        }
+
+        public bool GetPromoCodes(
+            HttpHeaders requestHeaders,
+            Uri requestUri)
+        {
+            // TODO implement
+            this.actionPromoCodes.Run(
+                    AegisBaseEvent.EventTypes.PromoCodes,
+                    this.ipHeaderNames,
+                    requestHeaders,
+                    requestUri,
+                    () => new AegisPromoCodesEvent()
+                    {
+                    });
+
+            return false;
         }
 
         public void PostBooking(

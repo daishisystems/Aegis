@@ -701,6 +701,7 @@ namespace Aegis.Pumps.Actions
             errorMessage = null;
 
             // parse headers
+            // TODO refactor
             var networkRouteMapper = new CitrixNetworkRouteMapper(headerNames, headers);
 
             var networkRoute = new NetworkRoute();

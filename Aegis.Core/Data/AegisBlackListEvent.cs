@@ -687,6 +687,9 @@ namespace Aegis.Core.Data
             set { }
         }
 
+        [JilDirective(Name = "srcE")]
+        public string SourceEventType { get; set; }
+
         [JilDirective(Name = "isB")]
         public bool IsBlocked { get; set; }
 

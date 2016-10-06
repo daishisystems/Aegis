@@ -733,7 +733,7 @@ namespace Aegis.Pumps.Actions
             DateTime? paramDateOut)
         {
             // is current action disabled
-            if (this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Availability))
+            if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Availability))
             {
                 // do not block
                 return false;
@@ -843,7 +843,7 @@ namespace Aegis.Pumps.Actions
             // TODO refactor Action.Availability: split to use notify template class and block functionality as an extension?
 
             // is blacklisting functionality disabled
-            if (this.Client.SettingsOnline.IsAegisEventDisabled(AegisBaseEvent.EventTypes.Blacklist))
+            if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Blacklist))
             {
                 // do not block
                 return false;

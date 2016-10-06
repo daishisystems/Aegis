@@ -677,7 +677,6 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
@@ -891,6 +890,7 @@ namespace Aegis.Pumps.Tests
                 () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
                 () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, null),
                 () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => Client.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
                 () => Client.GetActionsHub().PostBooking(requestHeaders, requestUri),
                 () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
                 () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),

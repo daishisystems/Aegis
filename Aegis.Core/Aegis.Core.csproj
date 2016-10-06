@@ -74,6 +74,7 @@
     <Compile Include="Data\AegisPaymentEvent.cs" />
     <Compile Include="Data\AegisPaymentMethodsEvent.cs" />
     <Compile Include="Data\AegisPriceEvent.cs" />
+    <Compile Include="Data\AegisPromoCodesEvent.cs" />
     <Compile Include="Data\AegisQuickAddEvent.cs" />
     <Compile Include="Data\AegisRefreshEvent.cs" />
     <Compile Include="Data\AegisResourceEvent.cs" />

@@ -706,6 +706,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string ActionPaymentMethods = "Action-PaymentMethods";
             public const string ActionDcc = "Action-Dcc";
             public const string ActionPayment = "Action-Payment";
+            public const string ActionPromoCodes = "Action-PromoCodes";
 
             // Jobs
             public const string JobGetBlackList = "Job-GetBlackList";
