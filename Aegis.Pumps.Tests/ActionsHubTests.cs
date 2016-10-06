@@ -694,6 +694,26 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
+        public void ParseIpAddressesFromHeaders()
+        {
+            var headerNames = new[] { "NS_CLIENT_IP", "BLABLA" };
+            var headers = new MockHttpHeaders();
+            headers.Add("header1", "value1");
+            headers.Add("header1", "value1");
+            headers.Add("header2", "value2");
+            headers.Add("NS_CLIENT_IP", "200.200.200.200");
+            headers.Add("NS_CLIENT_IP", "201.201.201.201");
+            headers.Add("BLABLA", "23.23.23.23");
+            headers.Add("BLABLA", "unparsed.ip.address.bl");
+
+            string error;
+            var ips = Aegis.Pumps.Actions.Action.ParseIpAddressesFromHeaders(headerNames, headers, out error);
+
+            Assert.AreEqual(3, ips.Count);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(error));
+        }
+
+        [TestMethod]
         public void RunAllWithNoHeader()
         {
             // client setup

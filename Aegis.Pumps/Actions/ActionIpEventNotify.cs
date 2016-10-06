@@ -741,7 +741,7 @@ namespace Aegis.Pumps.Actions
 
             // get IP addresses
             string errorMessage;
-            var ipAddresses = this.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage).ToList();
+            var ipAddresses = Action.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage);
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 NewRelicInsightsEvents.Utils.AddException(
@@ -752,7 +752,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // if no IPs to process
-            if (ipAddresses.Count == 0)
+            if (ipAddresses == null || ipAddresses.Count == 0)
             {
                 return false;
             }

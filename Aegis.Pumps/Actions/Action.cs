@@ -680,6 +680,7 @@ using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using System.Linq;
 using System.Net;
+using System.Text;
 using Aegis.Core;
 
 namespace Aegis.Pumps.Actions
@@ -693,38 +694,60 @@ namespace Aegis.Pumps.Actions
             this.Client = client;
         }
 
-        protected IEnumerable<IPAddress> ParseIpAddressesFromHeaders(
-            List<string> headerNames,
-            HttpHeaders headers, 
+        public static List<IPAddress> ParseIpAddressesFromHeaders(
+            IList<string> headerNames,
+            HttpHeaders headers,
             out string errorMessage)
         {
             errorMessage = null;
 
-            // parse headers
-            // TODO refactor
-            var networkRouteMapper = new CitrixNetworkRouteMapper(headerNames, headers);
-
-            var networkRoute = new NetworkRoute();
-            networkRoute.Map(networkRouteMapper);
-
-            // if strange header found
-            if (networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult !=
-                HttpHeaderParseResult.SingleHeaderSingleIPAddress)
+            // check arguments
+            if (headers == null || headerNames == null || headerNames.Count == 0)
             {
-                var httpRequestHeaderValues = "No HTTP request headers to display.";
+                errorMessage = "Arguments error";
+                return null;
+            }
 
-                if (networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues?.Any() == true)
+            // for each header name
+            var debugMessage = new StringBuilder("headers:");
+            var parsedIps = new List<IPAddress>();
+            var unparsedIps = new List<string>();
+
+            foreach (var headerName in headerNames)
+            {
+                // get values
+                IEnumerable<string> values;
+                if (!headers.TryGetValues(headerName, out values))
                 {
-                    httpRequestHeaderValues = string.Join(";", networkRouteMapper.NetworkRouteMetadata.HttpRequestHeaderValues);
+                    continue;
                 }
 
-                errorMessage = string.Format("HttpHeaderParseResult : {0}\n{1}",
-                    networkRouteMapper.NetworkRouteMetadata.HttpHeaderParseResult,
-                    httpRequestHeaderValues);
+                // add debug info
+                debugMessage.Append($"|{headerName}=");
+
+                // for each value
+                foreach (var headerValue in values)
+                {
+                    debugMessage.Append($"{headerValue};");
+
+                    HttpRequestHeaderParser.TryGetIps(headerValue, parsedIps, unparsedIps);
+                }
+            }
+
+            // get rid of duplicates
+            var parsedIpsNonDups = parsedIps.Distinct().ToList();
+
+            // update debug message
+            if (unparsedIps.Count > 0 || parsedIpsNonDups.Count != 1)
+            {
+                debugMessage.Append($" unparsedIps:{string.Join(";", unparsedIps)}");
+                debugMessage.Append($" parsedIpsNonDups:{string.Join(";", parsedIpsNonDups)}");
+
+                errorMessage = $"ParseIpAddressesFromHeaders error: {debugMessage}";
             }
 
             // return parsed IPs
-            return networkRouteMapper.NetworkRouteMetadata.ParsedIPAddresses.Where(ip => !ip.IsPrivate());
+            return parsedIpsNonDups.Where(ip => !ip.IsPrivate()).ToList();
         }
 
         protected string GetHttpHeaderValue(string headerName, NameValueCollection headers)

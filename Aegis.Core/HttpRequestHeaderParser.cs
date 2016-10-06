@@ -689,6 +689,8 @@ namespace Aegis.Core
     /// </summary>
     public static class HttpRequestHeaderParser
     {
+        private static readonly Regex IpAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", RegexOptions.Compiled);
+
         /// <summary>
         ///     <see cref="TryGetHttpRequestHeaderValues" /> attempts to return the HTTP
         ///     header value(s) pertaining to the HTTP header associated with the
@@ -764,9 +766,7 @@ namespace Aegis.Core
                 return false;
             }
 
-            var ipAddressRegex = new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}");
-
-            var matches = ipAddressRegex.Matches(httpRequestHeaderValue);
+            var matches = IpAddressRegex.Matches(httpRequestHeaderValue);
 
             if (matches.Count > 0)
             {
@@ -792,6 +792,39 @@ namespace Aegis.Core
 
             ipAddresses = new List<IPAddress>();
             return false;
+        }
+
+        public static void TryGetIps(string headerValue, List<IPAddress> parsedIps, List<string> unparsedIps)
+        {
+            // check empty argument
+            if (string.IsNullOrWhiteSpace(headerValue))
+            {
+                return;
+            }
+
+            // run regex
+            var matches = IpAddressRegex.Matches(headerValue);
+            if (matches.Count == 0)
+            {
+                unparsedIps.Add(headerValue);
+                return;
+            }
+
+            // check each match
+            foreach (var match in matches)
+            {
+                IPAddress ipAddress;
+                var isValid = IPAddress.TryParse(match.ToString(), out ipAddress);
+
+                if (isValid)
+                {
+                    parsedIps.Add(ipAddress);
+                }
+                else
+                {
+                    unparsedIps.Add(match.ToString());
+                }
+            }
         }
     }
 }
