@@ -701,7 +701,7 @@ namespace Aegis.Pumps
                 return false;
             }
 
-            if (this.Data.AegisEventsDisabled.Contains("_all_"))
+            if (this.Data.AegisEventsDisabled.Contains(SettingsOnlineData.KeyAll))
             {
                 return true;
             }
@@ -709,10 +709,19 @@ namespace Aegis.Pumps
             return this.Data.AegisEventsDisabled.Contains(eventName);
         }
 
-        public bool IsAegisBlockingDisabled(string eventName)
+        public bool IsAegisBlockingEnabled(string eventName)
         {
-            // TODO implement logic 
-            return false;
+            if (!this.IsAvailable || this.Data.AegisBlockingEnabled == null)
+            {
+                return false;
+            }
+
+            if (this.Data.AegisBlockingEnabled.Contains(SettingsOnlineData.KeyAll))
+            {
+                return true;
+            }
+
+            return this.Data.AegisBlockingEnabled.Contains(eventName);
         }
 
         public bool IsJobDisabled(string jobName)

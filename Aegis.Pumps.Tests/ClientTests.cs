@@ -845,6 +845,10 @@ namespace Aegis.Pumps.Tests
             var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
+
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -858,6 +862,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, Client.Instance.AegisEventCache.Count());
+            Client.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
 
             // shutdown
             Client.ShutDown();
@@ -878,6 +883,7 @@ namespace Aegis.Pumps.Tests
             Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
+            settingsData.AegisBlockingEnabled = new HashSet<string>(new[] { SettingsOnlineData.KeyAll });
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
             settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
             Client.Instance.SettingsOnline.SetNewData(settingsData, null);
@@ -896,6 +902,10 @@ namespace Aegis.Pumps.Tests
             var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
 
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
+
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
             var result = Client.GetActionsHub()?.GetAvailability(
@@ -909,6 +919,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, Client.Instance.AegisEventCache.Count());
+            Client.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
 
             // shutdown
             Client.ShutDown();
@@ -929,6 +940,7 @@ namespace Aegis.Pumps.Tests
             Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
+            settingsData.AegisBlockingEnabled = new HashSet<string>(new [] { SettingsOnlineData .KeyAll });
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
             settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
             Client.Instance.SettingsOnline.SetNewData(settingsData, null);
@@ -938,7 +950,8 @@ namespace Aegis.Pumps.Tests
                                         new BlackListItem()
                                             {
                                                 Country = "testland",
-                                                IpAddressRaw = "204.168.1.1"
+                                                IpAddressRaw = "204.168.1.1",
+                                                IsBlocked = true
                                             }
                                     };
             Client.Instance.BlackList.SetNewData(blackListData, null);
@@ -947,6 +960,10 @@ namespace Aegis.Pumps.Tests
             // OnAvailabilityController
             var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -961,8 +978,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result == true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, Client.Instance.AegisEventCache.Count());
-
-            // TODO check AegisEventCache for AegisBlackListEvent event and its fields
+            Client.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
 
             // shutdown
             Client.ShutDown();
@@ -983,6 +999,7 @@ namespace Aegis.Pumps.Tests
             Client.DoInitialise(newRelicClient, settings, false);
 
             var settingsData = new SettingsOnlineData();
+            settingsData.AegisBlockingEnabled = new HashSet<string>(new[] { SettingsOnlineData.KeyAll });
             settingsData.Blacklist = new SettingsOnlineData.BlackListData();
             settingsData.Blacklist.CountriesBlock = new HashSet<string>() { "testland" };
             settingsData.Blacklist.CountriesSimulate = new HashSet<string>() { "testlandSimulate" };
@@ -993,7 +1010,8 @@ namespace Aegis.Pumps.Tests
                                         new BlackListItem()
                                             {
                                                 Country = "testlandSimulate",
-                                                IpAddressRaw = "204.168.1.1"
+                                                IpAddressRaw = "204.168.1.1",
+                                                IsSimulated = true
                                             }
                                     };
             Client.Instance.BlackList.SetNewData(blackListData, null);
@@ -1002,6 +1020,10 @@ namespace Aegis.Pumps.Tests
             // OnAvailabilityController
             var requestHeaders = new MockHttpHeaders();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
+
+            requestHeaders.Add("User-Agent", "testUserAgent");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -1016,6 +1038,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, Client.Instance.AegisEventCache.Count());
+            Client.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
 
             // shutdown
             Client.ShutDown();
@@ -1023,6 +1046,30 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(Client.Instance);
             Assert.IsFalse(Client.IsInitialised);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        private bool DoCheckAegisEvents(List<AegisBaseEvent> events)
+        {
+            foreach (var evnt in events)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);
+
+                var evntbaseIp = evnt as AegisBaseIpEvent;
+                if (evntbaseIp != null)
+                {
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.GroupId), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.IpAddress), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpUserAgent), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
+                }
+            }
+
+            return true;
         }
     }
 }

@@ -686,8 +686,13 @@ namespace Aegis.Pumps
 {
     public class SettingsOnlineData
     {
+        public const string KeyAll = "_all_";
+
         public class BlackListData
         {
+            [JilDirective(Name = "isCountryBlockEnabled")]
+            public bool IsCountryBlockingEnabled { get; set; }
+
             [JilDirective(Name = "countryBlock")]
             public HashSet<string> CountriesBlock { get; set; }
 
@@ -722,10 +727,13 @@ namespace Aegis.Pumps
         public string ExperimentsBucketVersion { get; set; }
 
         [JilDirective(Name = "aegisEventsDisabled")]
-        public string[] AegisEventsDisabled { get; set; }
+        public HashSet<string> AegisEventsDisabled { get; set; }
+
+        [JilDirective(Name = "aegisBlockingEnabled")]
+        public HashSet<string> AegisBlockingEnabled { get; set; }
 
         [JilDirective(Name = "jobsDisabled")]
-        public string[] JobsDisabled { get; set; }
+        public HashSet<string> JobsDisabled { get; set; }
 
         [JilDirective(Name = "jobsInterval")]
         public Dictionary<string, int> JobsInterval { get; set; }

@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Net;
-using System.Runtime.Serialization;
+using System.Collections.Generic;
 using Jil;
 
 namespace Aegis.Core.Data
@@ -689,6 +689,19 @@ namespace Aegis.Core.Data
     public class BlackListItem
     {
         private string ipAddressString;
+
+        [JilDirective(Name = "isB")]
+        public bool IsBlocked { get; set; }
+
+        [JilDirective(Name = "isS")]
+        public bool IsSimulated { get; set; }
+
+        [JilDirective(Name = "disB")]
+        public HashSet<string> DisabledEventsBlocking { get; set; }
+
+        [JilDirective(Name = "disS")]
+        public HashSet<string> DisabledEventsSimulate { get; set; }
+
 
         /// <summary>
         ///     <see cref="Country" /> is the country of origin, from which

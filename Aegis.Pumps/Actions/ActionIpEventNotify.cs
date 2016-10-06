@@ -688,14 +688,15 @@ namespace Aegis.Pumps.Actions
         where T : AegisBaseIpEvent
     {
         private readonly string newRelicExceptionComponentName;
-        private readonly bool isBlockingEnabled;
+        private readonly bool isBlockingMechanismEnabled;
 
         public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
         {
             this.newRelicExceptionComponentName = newRelicExceptionComponentName;
+            this.isBlockingMechanismEnabled = true;
         }
 
-        public void Run(
+        public bool Run(
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
@@ -704,7 +705,7 @@ namespace Aegis.Pumps.Actions
         {
             try
             {
-                this.DoRun(
+                return this.DoRun(
                     eventTypeName,
                     ipHeaderNames,
                     requestHeaders,
@@ -718,6 +719,8 @@ namespace Aegis.Pumps.Actions
                     this.newRelicExceptionComponentName,
                     exception);
             }
+
+            return false;
         }
 
         private bool DoRun(
@@ -728,10 +731,10 @@ namespace Aegis.Pumps.Actions
             Func<T> eventBuilder)
         {
             // is current action disabled
-            var isNotificationDisabled = this.Client.SettingsOnline.IsAegisEventNotificationDisabled(eventTypeName);
-            var isBlockingDisabled = this.Client.SettingsOnline.IsAegisBlockingDisabled(eventTypeName);
+            var isNotificationSettingsDisabled = this.Client.SettingsOnline.IsAegisEventNotificationDisabled(eventTypeName);
+            var isBlockingSettingsEnabled = this.Client.SettingsOnline.IsAegisBlockingEnabled(eventTypeName);
 
-            if (isNotificationDisabled && isBlockingDisabled)
+            if (isNotificationSettingsDisabled && !isBlockingSettingsEnabled)
             {
                 return false;
             }
@@ -774,7 +777,7 @@ namespace Aegis.Pumps.Actions
                 }
 
                 // run notification part
-                if (!isNotificationDisabled)
+                if (!isNotificationSettingsDisabled)
                 {
                     this.DoRunNotification(
                         expId,
@@ -789,7 +792,7 @@ namespace Aegis.Pumps.Actions
                 }
 
                 // run blocking part
-                if (this.isBlockingEnabled && !isBlockingDisabled)
+                if (this.isBlockingMechanismEnabled && isBlockingSettingsEnabled)
                 {
                     isBlocked |= this.DoRunBlocking(
                                             eventTypeName,
@@ -870,23 +873,28 @@ namespace Aegis.Pumps.Actions
                 return false;
             }
 
-            // TODO check settings if country-level blocking is enabled
-            // check whether country is blocked or simulated
-            var isBlocked = this.Client.SettingsOnline.Data.Blacklist?.CountriesBlock?.Contains(blackItem.Country);
-            var isSimulated = this.Client.SettingsOnline.Data.Blacklist?.CountriesSimulate?.Contains(blackItem.Country);
+            // check if blocked or simulated
+            bool isBlocked, isSimulated;
+
+            this.Client.BlackList.CheckBlockedOrSimulated(
+                this.Client.SettingsOnline.Data.Blacklist,
+                eventTypeName,
+                blackItem, 
+                out isBlocked, 
+                out isSimulated);
+
+            // exit if not blocked or simulated
             if (isBlocked != true && isSimulated != true)
             {
                 // do not block - not blocked nor simulated
                 return false;
             }
 
-            // TODO check with blackItem if this eventTypeName can block it
-
             // is blacklisting notification disabled
             if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Blacklist))
             {
                 // return info whether to block or not
-                return isBlocked == true;
+                return isBlocked;
             }
 
             // log the malicious event
@@ -894,8 +902,8 @@ namespace Aegis.Pumps.Actions
             {
                 SourceEventType = eventTypeName,
                 ExperimentId = expId,
-                IsBlocked = isBlocked == true,
-                IsSimulated = isSimulated == true,
+                IsBlocked = isBlocked,
+                IsSimulated = isSimulated,
                 IpAddress = ipAddressString,
                 GroupId = groupId,
                 Country = blackItem.Country,
@@ -906,21 +914,19 @@ namespace Aegis.Pumps.Actions
             this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
-            // TODO set http fields
             var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
                 ApplicationName = Client.ClientName,
                 ApplicationVersion = Client.ClientVersion,
                 AegisVersion = Client.AegisVersion,
-                SourceEventType = eventTypeName,
                 ExperimentId = expId,
-                IsBlocked = isBlocked == true,
-                IsSimulated = isSimulated == true,
                 IpAddress = ipAddressString,
                 GroupId = groupId,
-                Country = blackItem.Country,
+                HttpUserAgent = httpUserAgent,
+                HttpAcceptLanguage = httpAcceptLanguage,
+                HttpSessionToken = httpSessionToken,
                 Path = requestUri.AbsolutePath,
-                Time = currentTime.ToString("O"),
+                Time = currentTime.ToString("O")
             };
 
             var isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
@@ -934,7 +940,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // return info whether to block or not
-            return isBlocked == true;
+            return isBlocked;
         }
     }
 }

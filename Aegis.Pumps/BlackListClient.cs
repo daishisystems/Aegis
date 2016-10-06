@@ -719,5 +719,35 @@ namespace Aegis.Pumps
         {
             return this.blacklist.TryGetValue(ipAddress, out blackListItem);
         }
+
+        public void CheckBlockedOrSimulated(
+            SettingsOnlineData.BlackListData blackListData, 
+            string eventTypeName, 
+            BlackListItem blackItem, 
+            out bool isBlocked, 
+            out bool isSimulated)
+        {
+            // set default item values
+            isBlocked = blackItem.IsBlocked;
+            isSimulated = blackItem.IsSimulated;
+
+            // check whether country is blocked or simulated
+            if (blackListData?.IsCountryBlockingEnabled == true)
+            {
+                isBlocked = isBlocked && (blackListData?.CountriesBlock?.Contains(blackItem.Country) == true);
+                isSimulated = isSimulated && (blackListData?.CountriesSimulate?.Contains(blackItem.Country) == true);
+            }
+
+            // check event type
+            if (blackItem.DisabledEventsBlocking?.Contains(eventTypeName) == true)
+            {
+                isBlocked = false;
+            }
+
+            if (blackItem.DisabledEventsSimulate?.Contains(eventTypeName) == true)
+            {
+                isSimulated = false;
+            }
+        }
     }
 }
