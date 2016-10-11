@@ -765,7 +765,7 @@ namespace Aegis.Pumps.Tests
 
         [TestMethod]
         [Ignore]
-        public void SendEventsToLocalCluster()
+        public void SendEventsToTheRealCluster()
         {
             var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
             var self = new AegisServiceClient();
@@ -794,5 +794,29 @@ namespace Aegis.Pumps.Tests
 
             self.SendAegisEvents("unit-test-client", "u-test-ver", "u-test-aegis-ver", settings, new List<AegisBaseEvent>(events));
         }
+
+        [TestMethod]
+        [Ignore]
+        public void GetBlackListFromTheRealCluster()
+        {
+            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var self = new AegisServiceClient();
+
+            List<BlackListItem> blackListItems;
+            DateTimeOffset? timeStamp;
+
+            var result = self.GetBlackListData(
+                "unit-test-client",
+                "u-test-ver",
+                "u-test-aegis-ver",
+                settings,
+                null,
+                out blackListItems,
+                out timeStamp);
+
+            Assert.IsTrue(result);
+            Assert.IsNotNull(timeStamp);
+        }
+
     }
 }
