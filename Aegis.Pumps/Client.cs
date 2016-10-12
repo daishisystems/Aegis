@@ -688,6 +688,7 @@ namespace Aegis.Pumps
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
         public static string AegisVersion { get; private set; }
+        public static DateTimeOffset InitializationTime { get; private set; }
 
         public static bool IsInitialised => Instance != null;
 
@@ -733,6 +734,7 @@ namespace Aegis.Pumps
             AegisVersion = typeof(Client).Assembly.GetName().Version.ToString();
             ClientName = clientName?.ToLowerInvariant().Trim() ?? string.Empty;
             ClientVersion = clientVersion?.ToLowerInvariant().Trim() ?? string.Empty;
+            InitializationTime = DateTimeOffset.UtcNow;
         }
 
         /// <summary>

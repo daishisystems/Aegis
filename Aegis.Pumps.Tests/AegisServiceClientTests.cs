@@ -709,13 +709,22 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
             const string ClientName = "unit-test-client-name";
             const string ClientVer = "111.0.333.41";
             const string AegisVer = "1.2.3.4.5";
 
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetBlackListData(ClientName, ClientVer, AegisVer, settings, null, out resultData, out resultTimeStamp);
+            mock.GetBlackListData(
+                ClientName,
+                ClientVer,
+                AegisVer,
+                settings,
+                settingsOnline,
+                null,
+                out resultData,
+                out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             Assert.AreEqual(data.Count, resultData.Count);
@@ -742,13 +751,22 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
             const string ClientName = "unit-test-client-name";
             const string ClientVer = "111.0.333.41";
             const string AegisVer = "1.2.3.4.5";
 
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
-            mock.GetSettingsOnlineData(ClientName, ClientVer, AegisVer, settings, null, out resultData, out resultTimeStamp);
+            mock.GetSettingsOnlineData(
+                ClientName,
+                ClientVer,
+                AegisVer,
+                settings,
+                settingsOnline,
+                null,
+                out resultData,
+                out resultTimeStamp);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             CollectionAssert.AreEqual(
@@ -768,6 +786,7 @@ namespace Aegis.Pumps.Tests
         public void SendEventsToTheRealCluster()
         {
             var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
             var events = new List<AegisBaseIpEvent>()
@@ -792,7 +811,13 @@ namespace Aegis.Pumps.Tests
                 ev.IpAddress = "192.168.0.1";
             }
 
-            self.SendAegisEvents("unit-test-client", "u-test-ver", "u-test-aegis-ver", settings, new List<AegisBaseEvent>(events));
+            self.SendAegisEvents(
+                "unit-test-client",
+                "u-test-ver",
+                "u-test-aegis-ver",
+                settings,
+                settingsOnline,
+                new List<AegisBaseEvent>(events));
         }
 
         [TestMethod]
@@ -800,6 +825,7 @@ namespace Aegis.Pumps.Tests
         public void GetBlackListFromTheRealCluster()
         {
             var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
             List<BlackListItem> blackListItems;
@@ -810,6 +836,7 @@ namespace Aegis.Pumps.Tests
                 "u-test-ver",
                 "u-test-aegis-ver",
                 settings,
+                settingsOnline,
                 null,
                 out blackListItems,
                 out timeStamp);
@@ -818,5 +845,28 @@ namespace Aegis.Pumps.Tests
             Assert.IsNotNull(timeStamp);
         }
 
+        [TestMethod]
+        [Ignore]
+        public void GetSettingsFromTheRealCluster()
+        {
+            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+            var self = new AegisServiceClient();
+
+            SettingsOnlineData settingsData;
+            DateTimeOffset? timeStamp;
+
+            var result = self.GetSettingsOnlineData(
+                "unit-test-client",
+                "u-test-ver",
+                "u-test-aegis-ver",
+                settings,
+                settingsOnline,
+                null,
+                out settingsData,
+                out timeStamp);
+
+            Assert.IsTrue(result);
+        }
     }
 }

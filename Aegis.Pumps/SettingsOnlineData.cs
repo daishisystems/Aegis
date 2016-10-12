@@ -717,6 +717,9 @@ namespace Aegis.Pumps
 
         private Dictionary<int, List<ExperimentData>> experimentsLookUp;
 
+        [JilDirective(Name = "serviceEndpoints")]
+        public Dictionary<string, string> ServiceEndpoints { get; set; }
+
         [JilDirective(Name = "blacklist")]
         public BlackListData Blacklist { get; set; }
 

@@ -686,12 +686,30 @@ namespace Aegis.Pumps
 
         public DateTimeOffset? TimeStamp { get; private set; }
 
+        public DateTimeOffset? TimeStampSuccessfulCheck { get; set; }
+
         public bool IsAvailable => this.Data != null;
 
         public void SetNewData(SettingsOnlineData newData, DateTimeOffset? timeStamp)
         {
             this.TimeStamp = timeStamp;
             this.Data = newData;
+        }
+
+        public string GetServiceEndpoint(string name)
+        {
+            if (!this.IsAvailable || this.Data.ServiceEndpoints == null)
+            {
+                return null;
+            }
+
+            string value;
+            if (!this.Data.ServiceEndpoints.TryGetValue(name, out value))
+            {
+                return null;
+            }
+
+            return value;
         }
 
         public bool IsAegisEventNotificationDisabled(string eventName)

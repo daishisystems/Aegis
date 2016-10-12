@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Mail;
 using Aegis.Core.Data;
@@ -707,10 +708,10 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisPaymentEvent> actionPayment;
         private readonly ActionIpEventNotify<AegisPromoCodesEvent> actionPromoCodes;
 
-        public ActionsHub(Client client, List<string> httpIpHeaderNames)
+        public ActionsHub(Client client, IEnumerable<string> httpIpHeaderNames)
         {
             this.client = client;
-            this.ipHeaderNames = httpIpHeaderNames;
+            this.ipHeaderNames = httpIpHeaderNames.ToList();
 
             this.actionAvailability = new ActionIpEventNotify<AegisAvailabilityEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionAvailability);
             this.actionResource = new ActionIpEventNotify<AegisResourceEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionResource);

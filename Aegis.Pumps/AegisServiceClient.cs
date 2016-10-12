@@ -682,15 +682,15 @@ using System.Net;
 using System.Text;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Aegis.Core;
 using Jil;
+using Aegis.Core;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps
 {
     public class AegisServiceClient
     {
-        private static class ServiceNames
+        public static class ServiceNames
         {
             public const string Blacklist = "blacklist";
             public const string SettingsOnline = "settings";
@@ -710,6 +710,7 @@ namespace Aegis.Pumps
             string clientVersion,
             string aegisVersion,
             Settings settings,
+            SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
             out List<BlackListItem> data,
             out DateTimeOffset? timeStamp)
@@ -718,6 +719,7 @@ namespace Aegis.Pumps
 
             var uriService = this.CreateUri(
                 settings,
+                settingsOnline,
                 ServiceNames.Blacklist,
                 new Dictionary<string, string>()
                     {
@@ -753,9 +755,11 @@ namespace Aegis.Pumps
             string clientVersion,
             string aegisVersion,
             Settings settings,
+            SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
             out SettingsOnlineData data,
-            out DateTimeOffset? timeStamp)
+            out DateTimeOffset? timeStamp,
+            string forcedAegisServiceUri = null)
         {
             data = null;
 
@@ -763,6 +767,7 @@ namespace Aegis.Pumps
 
             var uriService = this.CreateUri(
                 settings,
+                settingsOnline,
                 ServiceNames.SettingsOnline,
                 new Dictionary<string, string>()
                     {
@@ -770,7 +775,8 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientName, clientName },
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.AegisVersion, aegisVersion }
-                    });
+                    },
+                forcedAegisServiceUri);
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
             var httpClientFactory = new HttpClientFactory();
@@ -802,11 +808,13 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion,
             string aegisVersion,
-            Settings settings, 
+            Settings settings,
+            SettingsOnlineClient settingsOnline,
             List<AegisBaseEvent> items)
         {
             var uriService = this.CreateUri(
                 settings,
+                settingsOnline,
                 ServiceNames.AegisEvents,
                 new Dictionary<string, string>()
                     {
@@ -835,10 +843,13 @@ namespace Aegis.Pumps
         }
 
         private Uri CreateUri(
-            Settings settings, 
+            Settings settings,
+            SettingsOnlineClient settingsOnline,
             string uriServiceName, 
-            IDictionary<string, string> parameters = null)
+            IDictionary<string, string> parameters = null,
+            string forcedAegisServiceUri = null)
         {
+            // format parameters
             var parametersStr = string.Empty;
 
             if (parameters != null)
@@ -846,6 +857,18 @@ namespace Aegis.Pumps
                 parametersStr = "?" + string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"));
             }
 
+            // get right service url
+            var serviceUri = settingsOnline.GetServiceEndpoint(uriServiceName);
+            if (string.IsNullOrWhiteSpace(serviceUri))
+            {
+                serviceUri = settings.AegisServiceUri;
+            }
+            if (!string.IsNullOrWhiteSpace(forcedAegisServiceUri))
+            {
+                serviceUri = forcedAegisServiceUri;
+            }
+
+            // build string
             var uriString = $"{settings.AegisServiceUri}/{uriServiceName}{parametersStr}";
             return new Uri(uriString);
         }

@@ -690,6 +690,8 @@ namespace Aegis.Pumps
         public readonly WebProxy WebProxy;
         public readonly TimeSpan? WebNonDefaultTimeout;
         public readonly string AegisServiceUri;
+        public readonly List<string> AegisServiceUriAll;
+        public readonly int AegisServiceUnavailabilityLimitInHours = 6;
         public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisCacheBatchSize = 1000;
         public readonly int GetBlackListJobIntervalInSeconds = 600;
@@ -700,7 +702,8 @@ namespace Aegis.Pumps
             string webProxy,
             string webNonDefaultTimeout,
             string aegisServiceUri,
-            IEnumerable<string> httpIpHeaderNames)
+            IEnumerable<string> httpIpHeaderNames,
+            string aegisServiceUriBackUp = null)
         {
             if (string.IsNullOrWhiteSpace(aegisServiceUri))
             {
@@ -724,6 +727,13 @@ namespace Aegis.Pumps
             // Aegis service uri
             this.AegisServiceUri = aegisServiceUri;
 
+            this.AegisServiceUriAll = new List<string> { aegisServiceUri };
+            if (!string.IsNullOrWhiteSpace(aegisServiceUriBackUp))
+            {
+                this.AegisServiceUriAll.Add(aegisServiceUriBackUp);
+            }
+
+            // http headers names
             this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
@@ -735,7 +745,8 @@ namespace Aegis.Pumps
             string webProxy,
             string webNonDefaultTimeout,
             string aegisServiceUri,
-            IEnumerable<string> httpIpHeaderNames)
+            IEnumerable<string> httpIpHeaderNames,
+            string aegisServiceUriBackUp = null)
         {
             try
             {
@@ -744,7 +755,8 @@ namespace Aegis.Pumps
                     webProxy,
                     webNonDefaultTimeout,
                     aegisServiceUri,
-                    httpIpHeaderNames);
+                    httpIpHeaderNames,
+                    aegisServiceUriBackUp);
             }
             catch (Exception exception)
             {

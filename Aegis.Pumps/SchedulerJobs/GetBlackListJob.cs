@@ -716,6 +716,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     Client.ClientVersion,
                     Client.AegisVersion,
                     this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
                     this.ClientInstance.BlackList.TimeStamp,
                     out blackListData,
                     out newTimeStamp);

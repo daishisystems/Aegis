@@ -747,7 +747,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     Client.ClientName,
                     Client.ClientVersion,
                     Client.AegisVersion,
-                    this.ClientInstance.Settings, 
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
                     items);
 
                 return true;

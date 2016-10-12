@@ -676,13 +676,15 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
     internal class GetSettingsOnlineJob : ClientJob
     {
-        public GetSettingsOnlineJob(Client client) : base(client, "AegisGetSettingsOnlineJob")
+        public GetSettingsOnlineJob(Client client)
+            : base(client, "AegisGetSettingsOnlineJob")
         {
         }
 
@@ -690,29 +692,42 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // get settings online data
-                SettingsOnlineData settingsOnlineData;
-                DateTimeOffset? newTimeStamp;
-
-                var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
-                    Client.ClientName,
-                    Client.ClientVersion,
-                    Client.AegisVersion,
-                    this.ClientInstance.Settings,
-                    this.ClientInstance.SettingsOnline.TimeStamp,
-                    out settingsOnlineData,
-                    out newTimeStamp);
-
-                if (!isUpdated)
+                // if there was not successful check for a long time then try other services 
+                var lastTime = this.ClientInstance.SettingsOnline.TimeStampSuccessfulCheck ?? Client.InitializationTime;
+                var hoursSinceLastSuccess = (DateTimeOffset.UtcNow - lastTime).Hours;
+                if (hoursSinceLastSuccess >= this.ClientInstance.Settings.AegisServiceUnavailabilityLimitInHours)
                 {
+                    // report issue
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
+                        null,
+                        $"GetSettingsOnlineData is failing for {hoursSinceLastSuccess} hours. Trying alternatives.");
+
+                    // get list of endpoints to try
+                    var endpointsKnown = new List<string>(this.ClientInstance.Settings.AegisServiceUriAll);
+
+                    var endpointOnline = this.ClientInstance.SettingsOnline.GetServiceEndpoint(AegisServiceClient.ServiceNames.SettingsOnline);
+                    if (!string.IsNullOrWhiteSpace(endpointOnline))
+                    {
+                        endpointsKnown.Add(endpointOnline);
+                    }
+
+                    // check each endpoint
+                    foreach (var endpoint in endpointsKnown)
+                    {
+                        // check and break if success
+                        if (this.GetSettingsOnlineData(endpoint))
+                        {
+                            break;
+                        }
+                    }
+
                     return;
                 }
 
-                // set new data
-                this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
-
-                // notify about settings change
-                this.ClientInstance.SettingsChangeNotification();
+                // get settings online data
+                this.GetSettingsOnlineData(null);
             }
             catch (TaskCanceledException exception)
             {
@@ -742,6 +757,73 @@ namespace Aegis.Pumps.SchedulerJobs
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                     exception);
             }
+        }
+
+        private bool GetSettingsOnlineData(string forcedAegisServiceUri)
+        {
+            try
+            {
+                // get settings online data
+                SettingsOnlineData settingsOnlineData;
+                DateTimeOffset? newTimeStamp;
+
+                var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
+                    Client.ClientName,
+                    Client.ClientVersion,
+                    Client.AegisVersion,
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
+                    this.ClientInstance.SettingsOnline.TimeStamp,
+                    out settingsOnlineData,
+                    out newTimeStamp,
+                    forcedAegisServiceUri);
+
+                // update successful check
+                this.ClientInstance.SettingsOnline.TimeStampSuccessfulCheck = DateTimeOffset.UtcNow;
+
+                // exit if not updated
+                if (!isUpdated)
+                {
+                    return true;
+                }
+
+                // set new data
+                this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
+
+                // notify about settings change
+                this.ClientInstance.SettingsChangeNotification();
+                return true;
+            }
+            catch (TaskCanceledException exception)
+            {
+                if (exception.CancellationToken.IsCancellationRequested)
+                {
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
+                        exception);
+                }
+                else
+                {
+                    // If the exception.CancellationToken.IsCancellationRequested is false,
+                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
+                    // Add a custom message in order to ensure that tasks are not canceled.
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
+                        exception,
+                        "Request timeout.");
+                }
+            }
+            catch (Exception exception)
+            {
+                NewRelicInsightsEvents.Utils.AddException(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
+                    exception);
+            }
+
+            return false;
         }
     }
 }
