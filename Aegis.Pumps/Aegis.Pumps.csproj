@@ -66,7 +66,7 @@
     <Compile Include="AegisEventCacheClient.cs" />
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
-    <Compile Include="Client.cs" />
+    <Compile Include="AegisClient.cs" />
     <Compile Include="CryptUtils.cs" />
     <Compile Include="SchedulerJobs\ClientJob.cs" />
     <Compile Include="SchedulerJobs\GetBlackListJob.cs" />

@@ -74,7 +74,7 @@
     <Compile Include="ActionsHubTests.cs" />
     <Compile Include="AegisServiceClientTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
-    <Compile Include="ClientTests.cs" />
+    <Compile Include="AegisClientTests.cs" />
     <Compile Include="CryptUtilsTests.cs" />
     <Compile Include="HTTPRequestMetadataCacheTests.cs" />
     <Compile Include="Mocks\MockAegisServiceClient.cs" />
