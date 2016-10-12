@@ -690,7 +690,7 @@ namespace Aegis.Pumps.Tests
         private class TestRegistry : SchedulerRegistry
         {
             public void PublicAdd(
-                Client client,
+                AegisClient client,
                 SchedulerJobs.ClientJob self,
                 int startTimeDelay,
                 int defaultInterval)
@@ -703,7 +703,7 @@ namespace Aegis.Pumps.Tests
         {
             public readonly List<DateTime> Events = new List<DateTime>();
 
-            public TestClientJob(Client client)
+            public TestClientJob(AegisClient client)
                 : base(client, "TestClientJob")
             {
             }
@@ -717,7 +717,7 @@ namespace Aegis.Pumps.Tests
         [TestCleanup]
         public void TearDown()
         {
-            Client.ShutDown();
+            AegisClient.ShutDown();
         }
 
         [TestMethod]
@@ -727,12 +727,12 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.DoInitialise(newRelicClient, settings, false);
 
             // initialize classes
             var selfRegistry = new TestRegistry();
-            var selfJob = new TestClientJob(Client.Instance);
+            var selfJob = new TestClientJob(AegisClient.Instance);
 
             Assert.AreEqual(0, selfJob.Events.Count);
 
@@ -741,7 +741,7 @@ namespace Aegis.Pumps.Tests
             int interval = 5;
             var testStartTime = DateTime.Now;
 
-            selfRegistry.PublicAdd(Client.Instance, selfJob, startTimeDelay, interval);
+            selfRegistry.PublicAdd(AegisClient.Instance, selfJob, startTimeDelay, interval);
             Assert.AreEqual(0, selfJob.Events.Count);
 
             // start job manager

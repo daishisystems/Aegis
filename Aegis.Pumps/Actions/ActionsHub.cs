@@ -686,7 +686,7 @@ namespace Aegis.Pumps.Actions
 {
     public class ActionsHub
     {
-        private readonly Client client;
+        private readonly AegisClient client;
         private readonly List<string> ipHeaderNames;
 
         private readonly ActionIpEventNotify<AegisAvailabilityEvent> actionAvailability;
@@ -708,7 +708,7 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisPaymentEvent> actionPayment;
         private readonly ActionIpEventNotify<AegisPromoCodesEvent> actionPromoCodes;
 
-        public ActionsHub(Client client, IEnumerable<string> httpIpHeaderNames)
+        public ActionsHub(AegisClient client, IEnumerable<string> httpIpHeaderNames)
         {
             this.client = client;
             this.ipHeaderNames = httpIpHeaderNames.ToList();

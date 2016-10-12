@@ -682,9 +682,9 @@ using Aegis.Pumps.Actions;
 
 namespace Aegis.Pumps
 {
-    public class Client // TODO change name to AegisClient so easier to use at dotREZ?
+    public class AegisClient
     {
-        public static Client Instance { get; private set; }
+        public static AegisClient Instance { get; private set; }
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
         public static string AegisVersion { get; private set; }
@@ -702,7 +702,7 @@ namespace Aegis.Pumps
         public readonly Actions.ActionsHub ActionsHub;
         private SchedulerRegistry scheduler;
 
-        private Client(
+        private AegisClient(
             INewRelicInsightsClient newRelicInsightsClient, 
             Settings settings)
         {
@@ -731,7 +731,7 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion)
         {
-            AegisVersion = typeof(Client).Assembly.GetName().Version.ToString();
+            AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
             ClientName = clientName?.ToLowerInvariant().Trim() ?? string.Empty;
             ClientVersion = clientVersion?.ToLowerInvariant().Trim() ?? string.Empty;
             InitializationTime = DateTimeOffset.UtcNow;
@@ -813,7 +813,7 @@ namespace Aegis.Pumps
             Settings settings,
             bool isSchedulingEnabled)
         {
-            var self = new Client(newRelicInsightsClient, settings);
+            var self = new AegisClient(newRelicInsightsClient, settings);
 
             // assign object to the instance
             Instance = self;

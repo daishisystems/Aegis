@@ -685,7 +685,7 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendAegisEventsJob : ClientJob
     {
-        public SendAegisEventsJob(Client client) : base(client, "AegisSendAegisEvents")
+        public SendAegisEventsJob(AegisClient client) : base(client, "AegisSendAegisEvents")
         {
         }
 
@@ -744,9 +744,9 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 this.ClientInstance.AegisServiceClient.SendAegisEvents(
-                    Client.ClientName,
-                    Client.ClientVersion,
-                    Client.AegisVersion,
+                    AegisClient.ClientName,
+                    AegisClient.ClientVersion,
+                    AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     items);

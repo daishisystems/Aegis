@@ -683,7 +683,7 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class GetSettingsOnlineJob : ClientJob
     {
-        public GetSettingsOnlineJob(Client client)
+        public GetSettingsOnlineJob(AegisClient client)
             : base(client, "AegisGetSettingsOnlineJob")
         {
         }
@@ -693,7 +693,7 @@ namespace Aegis.Pumps.SchedulerJobs
             try
             {
                 // if there was not successful check for a long time then try other services 
-                var lastTime = this.ClientInstance.SettingsOnline.TimeStampSuccessfulCheck ?? Client.InitializationTime;
+                var lastTime = this.ClientInstance.SettingsOnline.TimeStampSuccessfulCheck ?? AegisClient.InitializationTime;
                 var hoursSinceLastSuccess = (DateTimeOffset.UtcNow - lastTime).Hours;
                 if (hoursSinceLastSuccess >= this.ClientInstance.Settings.AegisServiceUnavailabilityLimitInHours)
                 {
@@ -768,9 +768,9 @@ namespace Aegis.Pumps.SchedulerJobs
                 DateTimeOffset? newTimeStamp;
 
                 var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
-                    Client.ClientName,
-                    Client.ClientVersion,
-                    Client.AegisVersion,
+                    AegisClient.ClientName,
+                    AegisClient.ClientVersion,
+                    AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     this.ClientInstance.SettingsOnline.TimeStamp,

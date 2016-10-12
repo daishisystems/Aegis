@@ -689,7 +689,7 @@ namespace Aegis.Pumps.SchedulerJobs
     /// </summary>
     internal class GetBlackListJob : ClientJob
     {
-        public GetBlackListJob(Client client) : base(client, "AegisGetBlackListJob")
+        public GetBlackListJob(AegisClient client) : base(client, "AegisGetBlackListJob")
         {
         }
 
@@ -712,9 +712,9 @@ namespace Aegis.Pumps.SchedulerJobs
                 DateTimeOffset? newTimeStamp;
 
                 var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
-                    Client.ClientName,
-                    Client.ClientVersion,
-                    Client.AegisVersion,
+                    AegisClient.ClientName,
+                    AegisClient.ClientVersion,
+                    AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     this.ClientInstance.BlackList.TimeStamp,

@@ -683,9 +683,9 @@ namespace Aegis.Pumps.SchedulerJobs
     public abstract class ClientJob : IJob, IRegisteredObject
     {
         protected readonly object LockObject = new object();
-        protected readonly Client ClientInstance;
+        protected readonly AegisClient ClientInstance;
 
-        protected ClientJob(Client client, string jobName)
+        protected ClientJob(AegisClient client, string jobName)
         {
             this.ClientInstance = client;
             this.JobName = jobName;
@@ -704,7 +704,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
-                if (!Client.IsInitialised)
+                if (!AegisClient.IsInitialised)
                 {
                     return;
                 }

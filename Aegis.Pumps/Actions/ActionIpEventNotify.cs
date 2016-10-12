@@ -690,7 +690,7 @@ namespace Aegis.Pumps.Actions
         private readonly string newRelicExceptionComponentName;
         private readonly bool isBlockingMechanismEnabled;
 
-        public ActionIpEventNotify(Client client, string newRelicExceptionComponentName) : base(client)
+        public ActionIpEventNotify(AegisClient client, string newRelicExceptionComponentName) : base(client)
         {
             this.newRelicExceptionComponentName = newRelicExceptionComponentName;
             this.isBlockingMechanismEnabled = true;
@@ -823,9 +823,9 @@ namespace Aegis.Pumps.Actions
         {
             // add IP address to data-pump
             var evnt = eventBuilder();
-            evnt.ApplicationName = Client.ClientName;
-            evnt.ApplicationVersion = Client.ClientVersion;
-            evnt.AegisVersion = Client.AegisVersion;
+            evnt.ApplicationName = AegisClient.ClientName;
+            evnt.ApplicationVersion = AegisClient.ClientVersion;
+            evnt.AegisVersion = AegisClient.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
@@ -916,9 +916,9 @@ namespace Aegis.Pumps.Actions
             // send blacklisted ip to the service
             var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
-                ApplicationName = Client.ClientName,
-                ApplicationVersion = Client.ClientVersion,
-                AegisVersion = Client.AegisVersion,
+                ApplicationName = AegisClient.ClientName,
+                ApplicationVersion = AegisClient.ClientVersion,
+                AegisVersion = AegisClient.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddressString,
                 GroupId = groupId,

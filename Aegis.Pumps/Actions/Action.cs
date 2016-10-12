@@ -687,9 +687,9 @@ namespace Aegis.Pumps.Actions
 {
     public abstract class Action
     {
-        protected readonly Client Client;
+        protected readonly AegisClient Client;
 
-        protected Action(Client client)
+        protected Action(AegisClient client)
         {
             this.Client = client;
         }

@@ -690,7 +690,7 @@ namespace Aegis.Pumps.Tests
         [TestCleanup]
         public void TearDown()
         {
-            Client.ShutDown();
+            AegisClient.ShutDown();
         }
 
         [TestMethod]
@@ -720,15 +720,15 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
 
-            Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.DoInitialise(newRelicClient, settings, false);
 
-            Assert.IsTrue(Client.IsInitialised);
-            Assert.IsNotNull(Client.Instance?.ActionsHub);
-            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
+            Assert.IsNotNull(AegisClient.GetActionsHub());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
@@ -744,13 +744,13 @@ namespace Aegis.Pumps.Tests
                 0,
                 1);
 
-            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+            Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
             // shutdown
-            Client.ShutDown();
+            AegisClient.ShutDown();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
         }
 
         [TestMethod]
@@ -760,15 +760,15 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
 
-            Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.DoInitialise(newRelicClient, settings, false);
 
-            Assert.IsTrue(Client.IsInitialised);
-            Assert.IsNotNull(Client.Instance?.ActionsHub);
-            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
+            Assert.IsNotNull(AegisClient.GetActionsHub());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
@@ -791,10 +791,10 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // shutdown
-            Client.ShutDown();
+            AegisClient.ShutDown();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
 
@@ -805,15 +805,15 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
 
-            Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.DoInitialise(newRelicClient, settings, false);
 
-            Assert.IsTrue(Client.IsInitialised);
-            Assert.IsNotNull(Client.Instance?.ActionsHub);
-            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
+            Assert.IsNotNull(AegisClient.GetActionsHub());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
@@ -833,13 +833,13 @@ namespace Aegis.Pumps.Tests
                 0,
                 1);
 
-            Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+            Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
             // shutdown
-            Client.ShutDown();
+            AegisClient.ShutDown();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
         }
 
         [TestMethod]
@@ -849,15 +849,15 @@ namespace Aegis.Pumps.Tests
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
 
-            Client.SetUp("UnitTests", "1.2.1");
-            Client.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.DoInitialise(newRelicClient, settings, false);
 
-            Assert.IsTrue(Client.IsInitialised);
-            Assert.IsNotNull(Client.Instance?.ActionsHub);
-            Assert.IsNotNull(Client.GetActionsHub());
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
+            Assert.IsNotNull(AegisClient.GetActionsHub());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
@@ -883,10 +883,10 @@ namespace Aegis.Pumps.Tests
                 1);
 
             // shutdown
-            Client.ShutDown();
+            AegisClient.ShutDown();
 
-            Assert.IsNull(Client.Instance);
-            Assert.IsFalse(Client.IsInitialised);
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
         }
 
         private void RunActions(
@@ -898,24 +898,24 @@ namespace Aegis.Pumps.Tests
         {
             Action[] testMethods = 
             {
-                () => Client.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
-                () => Client.GetActionsHub().GetBag(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, null),
-                () => Client.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
-                () => Client.GetActionsHub().GetExtras(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetFast(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetFees(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetRefresh(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetResource(requestHeaders, requestUri, null),
-                () => Client.GetActionsHub().GetSeat(requestHeaders, requestUri),
-                () => Client.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
-                () => Client.GetActionsHub().PostBooking(requestHeaders, requestUri),
-                () => Client.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
-                () => Client.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
-                () => Client.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
-                () => Client.GetActionsHub().PostPayment(requestHeaders, requestUri, 
+                () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
+                () => AegisClient.GetActionsHub().GetBag(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, null),
+                () => AegisClient.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
+                () => AegisClient.GetActionsHub().GetExtras(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetFast(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetFees(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetRefresh(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetResource(requestHeaders, requestUri, null),
+                () => AegisClient.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().PostBooking(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
+                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri, 
                                                 null, null, null, null,
                                                 null, null, null, null, null)
             };
@@ -926,7 +926,7 @@ namespace Aegis.Pumps.Tests
             foreach (var testMethod in testMethods)
             {
                 Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
-                Assert.AreEqual(0, Client.Instance.AegisEventCache.Count());
+                Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
                 testMethod();
                 errorsSum += errorsCount;
@@ -935,9 +935,9 @@ namespace Aegis.Pumps.Tests
                 Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
                 // new number of events
-                Assert.AreEqual(eventsCount, Client.Instance.AegisEventCache.Count());
+                Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
 
-                Client.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
+                AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
             }
         }
 

@@ -695,21 +695,21 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "applicationName")]
-        public string ApplicationName => Client.ClientName;
+        public string ApplicationName => AegisClient.ClientName;
 
         /// <summary>
         ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "applicationVersion")]
-        public string ApplicationVersion => Client.ClientVersion;
+        public string ApplicationVersion => AegisClient.ClientVersion;
 
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis in
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "aegisVersion")]
-        public string AegisVersion => Client.AegisVersion;
+        public string AegisVersion => AegisClient.AegisVersion;
 
         /// <summary>
         ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,

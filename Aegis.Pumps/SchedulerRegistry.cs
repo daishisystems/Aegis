@@ -690,7 +690,7 @@ namespace Aegis.Pumps
             this.scheduledItems = new List<Schedule>();
         }
 
-        public void Initialise(Client client, bool isSchedulingEnabled = true)
+        public void Initialise(AegisClient client, bool isSchedulingEnabled = true)
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
@@ -732,7 +732,7 @@ namespace Aegis.Pumps
         }
 
         protected void Add(
-            Client client,
+            AegisClient client,
             SchedulerJobs.ClientJob self,
             int startTimeDelay,
             int defaultInterval)
