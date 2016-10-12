@@ -691,10 +691,10 @@ namespace Aegis.Core.Data
         private string ipAddressString;
 
         [JilDirective(Name = "isB")]
-        public bool IsBlocked { get; set; }
+        public bool? IsBlocked { get; set; }
 
         [JilDirective(Name = "isS")]
-        public bool IsSimulated { get; set; }
+        public bool? IsSimulated { get; set; }
 
         [JilDirective(Name = "disB")]
         public HashSet<string> DisabledEventsBlocking { get; set; }

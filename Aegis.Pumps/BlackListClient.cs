@@ -728,8 +728,8 @@ namespace Aegis.Pumps
             out bool isSimulated)
         {
             // set default item values
-            isBlocked = blackItem.IsBlocked;
-            isSimulated = blackItem.IsSimulated;
+            isBlocked = blackItem.IsBlocked == true;
+            isSimulated = blackItem.IsSimulated == true;
 
             // check whether country is blocked or simulated
             if (blackListData?.IsCountryBlockingEnabled == true)
