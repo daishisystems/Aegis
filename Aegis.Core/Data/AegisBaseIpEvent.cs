@@ -697,15 +697,15 @@ namespace Aegis.Core.Data
         public string Path { get; set; }
 
         /// <summary>Accepted languages in HTTP request</summary>
-        [JilDirective(Name = "httpAcceptLang")]
+        [JilDirective(Name = "hpLang")]
         public string HttpAcceptLanguage { get; set; }
 
         /// <summary>User-agent in HTTP request</summary>
-        [JilDirective(Name = "httpUserAgent")]
+        [JilDirective(Name = "hpAgent")]
         public string HttpUserAgent { get; set; }
 
         /// <summary>Session token in HTTP request</summary>
-        [JilDirective(Name = "httpSessionToken")]
+        [JilDirective(Name = "hpSession")]
         public string HttpSessionToken { get; set; }
 
         public override string ToString()

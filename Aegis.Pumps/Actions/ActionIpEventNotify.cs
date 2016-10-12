@@ -825,6 +825,7 @@ namespace Aegis.Pumps.Actions
             var evnt = eventBuilder();
             evnt.ApplicationName = AegisClient.ClientName;
             evnt.ApplicationVersion = AegisClient.ClientVersion;
+            evnt.ApplicationMachineName = AegisClient.ClientMachineName;
             evnt.AegisVersion = AegisClient.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
@@ -918,6 +919,7 @@ namespace Aegis.Pumps.Actions
             {
                 ApplicationName = AegisClient.ClientName,
                 ApplicationVersion = AegisClient.ClientVersion,
+                ApplicationMachineName = AegisClient.ClientMachineName,
                 AegisVersion = AegisClient.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddressString,

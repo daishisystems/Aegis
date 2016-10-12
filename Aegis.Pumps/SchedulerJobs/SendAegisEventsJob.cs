@@ -746,6 +746,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance.AegisServiceClient.SendAegisEvents(
                     AegisClient.ClientName,
                     AegisClient.ClientVersion,
+                    AegisClient.ClientMachineName,
                     AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,

@@ -723,30 +723,6 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     the application is running.
         /// </summary>
         [JilDirective(Name = "machineName")]
-        public string MachineName => GetMachineName(() => Environment.MachineName);
-
-        /// <summary>
-        ///     <see cref="GetMachineName" /> returns the name of the underlying server,
-        ///     upon which the application is running.
-        /// </summary>
-        /// <param name="getMachineName">
-        ///     A function that returns the name of the underlying
-        ///     server, upon which the application is running.
-        /// </param>
-        /// <returns>
-        ///     The name of the underlying server, upon which the application is
-        ///     running.
-        /// </returns>
-        private static string GetMachineName(Func<string> getMachineName)
-        {
-            try
-            {
-                return getMachineName();
-            }
-            catch (Exception)
-            {
-                return "UNKNOWN";
-            }
-        }
+        public string MachineName => AegisClient.ClientMachineName;
     }
 }

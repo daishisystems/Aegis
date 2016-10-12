@@ -770,6 +770,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
                     AegisClient.ClientName,
                     AegisClient.ClientVersion,
+                    AegisClient.ClientMachineName,
                     AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,

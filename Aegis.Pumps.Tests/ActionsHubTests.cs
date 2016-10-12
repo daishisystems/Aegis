@@ -947,6 +947,7 @@ namespace Aegis.Pumps.Tests
             {
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationMachineName));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);

@@ -701,6 +701,7 @@ namespace Aegis.Pumps
         {
             public const string ClientName = "client";
             public const string ClientVersion = "clientVer";
+            public const string ClientMachineName = "clientMachine";
             public const string AegisVersion = "aegisVer";
             public const string SettingsKey = "key";
         }
@@ -708,6 +709,7 @@ namespace Aegis.Pumps
         public bool GetBlackListData(
             string clientName,
             string clientVersion,
+            string clientMachineName,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -725,6 +727,7 @@ namespace Aegis.Pumps
                     {
                         { ParameterNames.ClientName, clientName },
                         { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion },
                     });
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
@@ -753,6 +756,7 @@ namespace Aegis.Pumps
         public bool GetSettingsOnlineData(
             string clientName,
             string clientVersion,
+            string clientMachineName,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -774,6 +778,7 @@ namespace Aegis.Pumps
                         { ParameterNames.SettingsKey, keyValue },
                         { ParameterNames.ClientName, clientName },
                         { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion }
                     },
                 forcedAegisServiceUri);
@@ -807,6 +812,7 @@ namespace Aegis.Pumps
         public void SendAegisEvents(
             string clientName,
             string clientVersion,
+            string clientMachineName,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -820,6 +826,7 @@ namespace Aegis.Pumps
                     {
                         { ParameterNames.ClientName, clientName },
                         { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion }
                     });
 

@@ -687,6 +687,7 @@ namespace Aegis.Pumps
         public static AegisClient Instance { get; private set; }
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
+        public static string ClientMachineName { get; private set; }
         public static string AegisVersion { get; private set; }
         public static DateTimeOffset InitializationTime { get; private set; }
 
@@ -731,10 +732,30 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion)
         {
-            AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
-            ClientName = clientName?.ToLowerInvariant().Trim() ?? string.Empty;
-            ClientVersion = clientVersion?.ToLowerInvariant().Trim() ?? string.Empty;
             InitializationTime = DateTimeOffset.UtcNow;
+            AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
+            ClientName = string.Empty;
+            ClientVersion = string.Empty;
+            ClientMachineName = string.Empty;
+
+            // set safely names
+            try
+            {
+                ClientName = Uri.EscapeDataString(clientName?.ToLowerInvariant().Trim() ?? string.Empty);
+                ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
+                ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid()}");
+
+                // set machine name if available
+                var machineName = Environment.MachineName;
+                if (!string.IsNullOrWhiteSpace(machineName))
+                {
+                    ClientMachineName = Uri.EscapeDataString(machineName);
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         /// <summary>

@@ -688,6 +688,11 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class AegisServiceClientTests
     {
+        const string ClientName = "unit-test-client-name";
+        const string ClientVer = "111.0.333.41";
+        const string ClientMachine = "unit-test-machine";
+        const string AegisVer = "1.2.3.4.5";
+
         [TestMethod]
         public void GetBlackList()
         {
@@ -710,15 +715,13 @@ namespace Aegis.Pumps.Tests
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
-            const string ClientName = "unit-test-client-name";
-            const string ClientVer = "111.0.333.41";
-            const string AegisVer = "1.2.3.4.5";
 
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
             mock.GetBlackListData(
                 ClientName,
                 ClientVer,
+                ClientMachine,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -730,6 +733,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(data.Count, resultData.Count);
             StringAssert.Contains(mock.MockInUri.Query, ClientName);
             StringAssert.Contains(mock.MockInUri.Query, ClientVer);
+            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
             StringAssert.Contains(mock.MockInUri.Query, AegisVer);
         }
 
@@ -752,15 +756,13 @@ namespace Aegis.Pumps.Tests
 
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
-            const string ClientName = "unit-test-client-name";
-            const string ClientVer = "111.0.333.41";
-            const string AegisVer = "1.2.3.4.5";
 
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
             mock.GetSettingsOnlineData(
                 ClientName,
                 ClientVer,
+                ClientMachine,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -778,6 +780,7 @@ namespace Aegis.Pumps.Tests
 
             StringAssert.Contains(mock.MockInUri.Query, ClientName);
             StringAssert.Contains(mock.MockInUri.Query, ClientVer);
+            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
             StringAssert.Contains(mock.MockInUri.Query, AegisVer);
         }
 
@@ -812,9 +815,10 @@ namespace Aegis.Pumps.Tests
             }
 
             self.SendAegisEvents(
-                "unit-test-client",
-                "u-test-ver",
-                "u-test-aegis-ver",
+                ClientName,
+                ClientVer,
+                ClientMachine,
+                AegisVer,
                 settings,
                 settingsOnline,
                 new List<AegisBaseEvent>(events));
@@ -832,9 +836,10 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetBlackListData(
-                "unit-test-client",
-                "u-test-ver",
-                "u-test-aegis-ver",
+                ClientName,
+                ClientVer,
+                ClientMachine,
+                AegisVer,
                 settings,
                 settingsOnline,
                 null,
@@ -857,9 +862,10 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetSettingsOnlineData(
-                "unit-test-client",
-                "u-test-ver",
-                "u-test-aegis-ver",
+                ClientName,
+                ClientVer,
+                ClientMachine,
+                AegisVer,
                 settings,
                 settingsOnline,
                 null,

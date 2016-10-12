@@ -731,6 +731,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "appV")]
         public string ApplicationVersion { get; set; }
 
+        [JilDirective(Name = "appM")]
+        public string ApplicationMachineName { get; set; }
+
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis
         /// </summary>
