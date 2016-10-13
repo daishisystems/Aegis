@@ -693,7 +693,7 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "a")]
         public string AccountNumber { get; set; }
 
-        [JilDirective(Name = "p")]
+        [JilDirective(Name = "pmc")]
         public string PaymentMethodCode { get; set; }
 
         [JilDirective(Name = "aci")]

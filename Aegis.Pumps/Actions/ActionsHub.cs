@@ -1029,9 +1029,21 @@ namespace Aegis.Pumps.Actions
 
             if (!string.IsNullOrWhiteSpace(paramContactEmail))
             {
-                var mail = new MailAddress(paramContactEmail);
-                mailHost = mail.Host;
-                mailHash = this.client.Crypt.HashMail(mail.Address, mail.Host);
+                try
+                {
+                    // set default in case of parsing exception below
+                    mailHost = "unknown";
+                    mailHash = this.client.Crypt.HashMail(paramContactEmail, mailHost);
+
+                    // parse and hash
+                    var mail = new MailAddress(paramContactEmail);
+                    mailHost = mail.Host;
+                    mailHash = this.client.Crypt.HashMail(mail.Address, mail.Host);
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
             }
 
             return this.actionPayment.Run(

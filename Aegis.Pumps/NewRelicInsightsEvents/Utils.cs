@@ -682,6 +682,11 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     public class Utils
     {
+        private const int LastSentMessageLimitInMinutes = 5;
+
+        private static string lastSentMessage;
+        private static DateTime lastSentTimeStamp;
+
         public class ComponentNames
         {
             public const string ClientInitialisation = "Client initialisation";
@@ -768,10 +773,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             INewRelicInsightsClient newRelicInsightsClient,
             string componentName,
             Exception exception,
-            string customExceptionMessage = null)
+            string customExceptionMessage = null,
+            bool noDuplicateLastSent = false)
         {
             try
             {
+                // create event
                 var newRelicInsightsAegisEvent =
                     new AegisErrorEvent()
                     {
@@ -780,6 +787,26 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                         InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
                     };
 
+                // check if it is a duplicate to the last sent event
+                if (noDuplicateLastSent)
+                {
+                    var messageData = string.Format(
+                        "{0}${1}${2}",
+                        newRelicInsightsAegisEvent.ComponentName,
+                        newRelicInsightsAegisEvent.ErrorMessage,
+                        newRelicInsightsAegisEvent.InnerErrorMessage);
+
+                    // if match to last sent then ignore
+                    if (lastSentMessage == messageData && DateTime.UtcNow.Subtract(lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
+                    {
+                        return;
+                    }
+
+                    lastSentMessage = messageData;
+                    lastSentTimeStamp = DateTime.UtcNow;
+                }
+
+                // add to NewRelic
                 newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
             }
             catch (Exception)

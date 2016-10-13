@@ -743,5 +743,10 @@ namespace Aegis.Pumps.Tests.Mocks
         public NewRelicInsightsMetadata NewRelicInsightsMetadata { get; }
 
         public event NewRelicInsightsClient.NewRelicInsightsEventsUploadEventHandler NewRelicInsightsEventsUploadException;
+
+        internal void MockClearCache()
+        {
+            this.UploadNewRelicInsightsEvents.Clear();
+        }
     }
 }

@@ -709,7 +709,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // for each header name
-            var debugMessage = new StringBuilder("headers:");
+            var debugMessage = new StringBuilder($"headers ({headers.Count()} all):");
             var parsedIps = new List<IPAddress>();
             var unparsedIps = new List<string>();
 

@@ -688,10 +688,10 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class AegisServiceClientTests
     {
-        const string ClientName = "unit-test-client-name";
-        const string ClientVer = "111.0.333.41";
-        const string ClientMachine = "unit-test-machine";
-        const string AegisVer = "1.2.3.4.5";
+        private const string ClientName = "unit-test-client-name";
+        private const string ClientVer = "111.0.333.41";
+        private const string ClientMachine = "unit-test-machine";
+        private const string AegisVer = "1.2.3.4.5";
 
         [TestMethod]
         public void GetBlackList()
@@ -803,6 +803,7 @@ namespace Aegis.Pumps.Tests
             {
                 ev.ApplicationName = "test-appName";
                 ev.ApplicationVersion = "test-appVer";
+                ev.ApplicationMachineName = "test-appM";
                 ev.AegisVersion = "test-aegis-version";
                 ev.Time = DateTime.UtcNow.ToString("o");
                 ev.ExperimentId = 7;

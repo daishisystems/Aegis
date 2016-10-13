@@ -748,7 +748,8 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
-                    errorMessage);
+                    errorMessage,
+                    true);
             }
 
             // if no IPs to process

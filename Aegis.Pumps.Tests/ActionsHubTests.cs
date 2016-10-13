@@ -678,9 +678,10 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using Jil;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
 {
@@ -896,7 +897,7 @@ namespace Aegis.Pumps.Tests
             int eventsCount,
             int errorsCount)
         {
-            Action[] testMethods = 
+            Action[] testMethodsWithNullParameters = 
             {
                 () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().GetBag(requestHeaders, requestUri),
@@ -912,8 +913,8 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().GetSeat(requestHeaders, requestUri),
                 () => AegisClient.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
                 () => AegisClient.GetActionsHub().PostBooking(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 0, 0, 0, 0),
-                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 0, 0, 0, 0),
+                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, null, null, null, null),
+                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
                 () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri, 
                                                 null, null, null, null,
@@ -921,28 +922,61 @@ namespace Aegis.Pumps.Tests
             };
 
 
-            // run each test method
-            var errorsSum = 0;
-            foreach (var testMethod in testMethods)
+            Action[] testMethodsWithRealParameters =
             {
-                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
-                Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
+                () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, "orig", "dst", DateTime.UtcNow, DateTime.Today),
+                () => AegisClient.GetActionsHub().GetBag(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetCalendar(requestHeaders, requestUri, "orig", "dst", DateTime.UtcNow),
+                () => AegisClient.GetActionsHub().GetConfigurations(requestHeaders, requestUri, "orig", "dst"),
+                () => AegisClient.GetActionsHub().GetExtras(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetFast(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetFees(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetRefresh(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetResource(requestHeaders, requestUri, "res-name"),
+                () => AegisClient.GetActionsHub().GetSeat(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().PostBooking(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 1, 2, 3, 4),
+                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 1, 2, 3, 4),
+                () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, "123456", "p-method-code"),
+                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
+                                                "customer-id", "12345", "p-method-code", "city",
+                                                "country", "postal", "email", "info1", "info2")
+            };
 
-                testMethod();
-                errorsSum += errorsCount;
+            var testMethodsSets = new[] { testMethodsWithNullParameters, testMethodsWithRealParameters};
 
-                // no errors
-                Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+            // for each set
+            foreach (var testMethods in testMethodsSets)
+            {
+                newRelicClient.MockClearCache();
 
-                // new number of events
-                Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
+                // run each test method
+                var errorsSum = 0;
+                foreach (var testMethod in testMethods)
+                {
+                    Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                    Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
-                AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
+                    testMethod();
+                    errorsSum += errorsCount;
+
+                    // no errors
+                    Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+
+                    // new number of events
+                    Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
+
+                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
+                }
             }
         }
 
         private bool RunActionsCheckEvents(List<AegisBaseEvent> events)
         {
+            // test events fields
             foreach (var evnt in events)
             {
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
@@ -951,7 +985,7 @@ namespace Aegis.Pumps.Tests
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);
-
+                
                 var evntbaseIp = evnt as AegisBaseIpEvent;
                 if (evntbaseIp != null)
                 {
@@ -962,6 +996,13 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
                 }
             }
+
+            // test serialization
+            var evensJsonExcludeNull = JSON.SerializeDynamic(events, Options.ExcludeNullsIncludeInherited);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(evensJsonExcludeNull));
+
+            var evensJsonAll = JSON.SerializeDynamic(events, Options.IncludeInherited);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(evensJsonAll));
 
             return true;
         }
