@@ -737,6 +737,45 @@ namespace Aegis.Core
             }
         }
 
+        public void RemoveOldItems(int limitInHours, Func<T, string> selector)
+        {
+            lock (this.lockProcess)
+            {
+                var timeThreshold = DateTime.UtcNow.AddHours(-limitInHours).ToString("o");
+
+                // get fresher items from dataToProcess
+                var newData = this.dataToProcess.Where(e => string.CompareOrdinal(selector(e), timeThreshold) >= 0).ToList();
+                if (newData.Count == this.dataToProcess.Count)
+                {
+                    return;
+                }
+
+                // set new data
+                this.dataToProcess.Clear();
+                this.dataToProcess.AddRange(newData);
+
+                // check main queue
+                while (true)
+                {
+                    T item;
+                    if (!this.data.TryPeek(out item))
+                    {
+                        break;
+                    }
+
+                    // discard if too old
+                    if (string.CompareOrdinal(selector(item), timeThreshold) < 0)
+                    {
+                        this.data.TryDequeue(out item);
+                        continue;
+                    }
+
+                    // stop
+                    break;
+                }
+            }
+        }
+
         private int DoProcess(int batchSize, Func<List<T>, int, bool> processorFunc)
         {
             // add items to process
@@ -767,7 +806,7 @@ namespace Aegis.Core
             if (!processorFunc(batchItems, allEventsCount))
             {
                 // error in processing so do not remove items
-                return 0;
+                return -1;
             }
 
             // process succeeded so remove items from the queue

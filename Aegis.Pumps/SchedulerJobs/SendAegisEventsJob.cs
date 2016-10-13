@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Aegis.Core;
 using Aegis.Core.Data;
@@ -700,9 +701,24 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // execute sending data
-                this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisCacheBatchSize, 
+                var count = this.ClientInstance.AegisEventCache.RelayEvents(
+                    this.ClientInstance.Settings.AegisEventsCacheBatchSize, 
                     this.OnPublishEvents);
+
+                // if there was an error
+                if (count < 0)
+                {
+                    // remove old items
+                    this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
+
+                    // notify newrelic
+                    NewRelicInsightsEvents.Utils.AddException(
+                        this.ClientInstance.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                        null,
+                        "Removed too old events",
+                        true);
+                }
             }
             catch (TaskCanceledException exception)
             {
@@ -760,10 +776,11 @@ namespace Aegis.Pumps.SchedulerJobs
                 NewRelicInsightsEvents.Utils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception);
-
-                return false;
+                    exception,
+                    noDuplicateLastSent: true);
             }
+
+            return false;
         }
     }
 }

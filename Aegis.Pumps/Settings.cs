@@ -693,7 +693,8 @@ namespace Aegis.Pumps
         public readonly List<string> AegisServiceUriAll;
         public readonly int AegisServiceUnavailabilityLimitInHours = 6;
         public readonly List<string> HttpIpHeaderNames;
-        public readonly int AegisCacheBatchSize = 1000;
+        public readonly int AegisEventsTimeToLiveInHours = 12;
+        public readonly int AegisEventsCacheBatchSize = 1000;
         public readonly int GetBlackListJobIntervalInSeconds = 600;
         public readonly int GetSettingsOnlineJobIntervalInSeconds = 900;
         public readonly int SendAegisEventsJobIntervalInSeconds = 10;
