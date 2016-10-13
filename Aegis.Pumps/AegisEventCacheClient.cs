@@ -739,7 +739,7 @@ namespace Aegis.Pumps
         ///     <see cref="AegisEvent" /> instances to publish per batch.
         /// </param>
         /// <param name="processorFunc">Function to process items</param>
-        public void RelayEvents(int batchSize, Func<List<AegisBaseEvent>, bool> processorFunc)
+        public void RelayEvents(int batchSize, Func<List<AegisBaseEvent>, int, bool> processorFunc)
         {
             this.events.Process(batchSize, processorFunc);
         }

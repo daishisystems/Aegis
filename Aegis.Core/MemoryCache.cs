@@ -729,7 +729,7 @@ namespace Aegis.Core
         /// <param name="batchSize">Maximum number of items to process</param>
         /// <param name="processorFunc">Function to process data</param>
         /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, bool> processorFunc)
+        public int Process(int batchSize, Func<List<T>, int, bool> processorFunc)
         {
             lock (this.lockProcess)
             {
@@ -737,7 +737,7 @@ namespace Aegis.Core
             }
         }
 
-        private int DoProcess(int batchSize, Func<List<T>, bool> processorFunc)
+        private int DoProcess(int batchSize, Func<List<T>, int, bool> processorFunc)
         {
             // add items to process
             while (this.dataToProcess.Count < batchSize)
@@ -757,11 +757,14 @@ namespace Aegis.Core
                 return 0;
             }
 
+            // compute all available events
+            var allEventsCount = this.data.Count + this.dataToProcess.Count;
+
             // take only first batchSize number of items to process
             var batchItems = this.dataToProcess.Take(batchSize).ToList();
 
             // process data
-            if (!processorFunc(batchItems))
+            if (!processorFunc(batchItems, allEventsCount))
             {
                 // error in processing so do not remove items
                 return 0;

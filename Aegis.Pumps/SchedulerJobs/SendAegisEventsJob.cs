@@ -734,7 +734,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
         }
 
-        private bool OnPublishEvents(List<AegisBaseEvent> items)
+        private bool OnPublishEvents(List<AegisBaseEvent> items, int allEventsCount)
         {
             try
             {
@@ -750,7 +750,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
-                    items);
+                    items,
+                    allEventsCount);
 
                 return true;
             }

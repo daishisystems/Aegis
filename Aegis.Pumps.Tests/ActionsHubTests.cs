@@ -974,8 +974,10 @@ namespace Aegis.Pumps.Tests
             }
         }
 
-        private bool RunActionsCheckEvents(List<AegisBaseEvent> events)
+        private bool RunActionsCheckEvents(List<AegisBaseEvent> events, int allEventsCount)
         {
+            Assert.AreEqual(events.Count, allEventsCount);
+
             // test events fields
             foreach (var evnt in events)
             {

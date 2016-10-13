@@ -695,7 +695,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 5,
-                x =>
+                (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
                     return true;
@@ -717,7 +717,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 5,
-                x =>
+                (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
                     return true;
@@ -745,7 +745,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 10,
-                x =>
+                (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
                     return true;
@@ -769,7 +769,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 5,
-                x =>
+                (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
                     return true;
@@ -813,14 +813,20 @@ namespace Aegis.Core.Tests
             }
         }
 
-        private void TestListAux<T>(MemoryCache<T> self, int batchCount, IEnumerable<T> expected,
+        private void TestListAux<T>(
+            MemoryCache<T> self, 
+            int batchCount, 
+            IEnumerable<T> expected,
             bool result)
         {
+            var expectedLst = expected.ToList();
+
             self.Process(
                 batchCount,
-                x =>
+                (lst, allItemsCount) =>
                 {
-                    CollectionAssert.AreEqual(expected.ToList(), x);
+                    CollectionAssert.AreEqual(expectedLst, lst);
+                    Assert.AreEqual(self.Count(), allItemsCount);
                     return result;
                 });
         }

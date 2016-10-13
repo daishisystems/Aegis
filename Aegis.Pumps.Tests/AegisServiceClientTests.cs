@@ -822,7 +822,8 @@ namespace Aegis.Pumps.Tests
                 AegisVer,
                 settings,
                 settingsOnline,
-                new List<AegisBaseEvent>(events));
+                new List<AegisBaseEvent>(events),
+                events.Count);
         }
 
         [TestMethod]

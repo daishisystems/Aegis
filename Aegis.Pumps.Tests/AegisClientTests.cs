@@ -1048,8 +1048,10 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
 
-        private bool DoCheckAegisEvents(List<AegisBaseEvent> events)
+        private bool DoCheckAegisEvents(List<AegisBaseEvent> events, int allEventsCount)
         {
+            Assert.AreEqual(events.Count, allEventsCount);
+
             foreach (var evnt in events)
             {
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));

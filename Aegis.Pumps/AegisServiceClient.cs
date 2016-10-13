@@ -703,6 +703,7 @@ namespace Aegis.Pumps
             public const string ClientVersion = "clientVer";
             public const string ClientMachineName = "clientMachine";
             public const string AegisVersion = "aegisVer";
+            public const string AllItemsCount = "allItemsCount";
             public const string SettingsKey = "key";
         }
 
@@ -816,7 +817,8 @@ namespace Aegis.Pumps
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
-            List<AegisBaseEvent> items)
+            List<AegisBaseEvent> items,
+            int allItemsCount)
         {
             var uriService = this.CreateUri(
                 settings,
@@ -827,7 +829,8 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientName, clientName },
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
-                        { ParameterNames.AegisVersion, aegisVersion }
+                        { ParameterNames.AegisVersion, aegisVersion },
+                        { ParameterNames.AllItemsCount, allItemsCount.ToString() }
                     });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
