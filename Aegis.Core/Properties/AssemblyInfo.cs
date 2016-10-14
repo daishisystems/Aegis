@@ -682,11 +682,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Aegis Core")]
+[assembly: AssemblyTitle("Aegis.Core")]
 [assembly: AssemblyDescription("Core components used by all Aegis systems.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Paul Mooney")]
-[assembly: AssemblyProduct("Aegis Core")]
+[assembly: AssemblyProduct("Aegis.Core")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -712,5 +712,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("1.0.7.0")]
-[assembly: AssemblyFileVersion("1.0.7.0")]
+[assembly: AssemblyVersion("1.0.8.0")]
+[assembly: AssemblyFileVersion("1.0.8.0")]
