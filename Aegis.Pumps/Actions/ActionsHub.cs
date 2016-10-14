@@ -1043,6 +1043,7 @@ namespace Aegis.Pumps.Actions
                 catch (Exception)
                 {
                     // ignored
+                    // TODO report to newrelic, notification instead of error?
                 }
             }
 

@@ -737,7 +737,7 @@ namespace Aegis.Core
             }
         }
 
-        public void RemoveOldItems(int limitInHours, Func<T, string> selector)
+        public int RemoveOldItems(int limitInHours, Func<T, string> selector)
         {
             lock (this.lockProcess)
             {
@@ -747,10 +747,12 @@ namespace Aegis.Core
                 var newData = this.dataToProcess.Where(e => string.CompareOrdinal(selector(e), timeThreshold) >= 0).ToList();
                 if (newData.Count == this.dataToProcess.Count)
                 {
-                    return;
+                    return 0;
                 }
 
                 // set new data
+                var removedCount = newData.Count - this.dataToProcess.Count;
+
                 this.dataToProcess.Clear();
                 this.dataToProcess.AddRange(newData);
 
@@ -767,12 +769,16 @@ namespace Aegis.Core
                     if (string.CompareOrdinal(selector(item), timeThreshold) < 0)
                     {
                         this.data.TryDequeue(out item);
+                        removedCount++;
                         continue;
                     }
 
                     // stop
                     break;
                 }
+
+                // exit
+                return removedCount;
             }
         }
 

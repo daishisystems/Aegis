@@ -744,6 +744,8 @@ namespace Aegis.Pumps.Actions
             var ipAddresses = Action.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage);
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
+                // TODO change to notification instead of error?
+                // TODO improve not sending duplicates - ignore component name?
                 NewRelicInsightsEvents.Utils.AddException(
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,

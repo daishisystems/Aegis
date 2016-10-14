@@ -744,9 +744,9 @@ namespace Aegis.Pumps
             return this.events.Process(batchSize, processorFunc);
         }
 
-        public void RemoveOldItems(int limitInHours)
+        public int RemoveOldItems(int limitInHours)
         {
-            this.events.RemoveOldItems(limitInHours, e => e.Time);
+            return this.events.RemoveOldItems(limitInHours, e => e.Time);
         }
     }
 }

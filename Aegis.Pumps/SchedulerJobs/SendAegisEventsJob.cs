@@ -709,15 +709,18 @@ namespace Aegis.Pumps.SchedulerJobs
                 if (count < 0)
                 {
                     // remove old items
-                    this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
+                    var removedCount = this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
 
-                    // notify newrelic
-                    NewRelicInsightsEvents.Utils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        null,
-                        "Removed too old events",
-                        true);
+                    // notify newrelic if anything removed
+                    if (removedCount > 0)
+                    {
+                        NewRelicInsightsEvents.Utils.AddException( // TODO notify instead of error?
+                            this.ClientInstance.NewRelicInsightsClient,
+                            NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                            null,
+                            $"Removed too old events: {removedCount}",
+                            true);
+                    }
                 }
             }
             catch (TaskCanceledException exception)
