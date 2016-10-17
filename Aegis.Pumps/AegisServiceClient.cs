@@ -879,7 +879,7 @@ namespace Aegis.Pumps
             }
 
             // build string
-            var uriString = $"{settings.AegisServiceUri}/{uriServiceName}{parametersStr}";
+            var uriString = $"{settings.AegisServiceUri}/{serviceUri}{parametersStr}";
             return new Uri(uriString);
         }
 
