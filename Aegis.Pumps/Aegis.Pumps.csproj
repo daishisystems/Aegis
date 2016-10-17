@@ -71,8 +71,6 @@
     <Compile Include="SchedulerJobs\ClientJob.cs" />
     <Compile Include="SchedulerJobs\GetBlackListJob.cs" />
     <Compile Include="SchedulerJobs\GetSettingsOnlineJob.cs" />
-    <Compile Include="HTTPRequestMetadata.cs" />
-    <Compile Include="HttpRequestMetadataCache.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisErrorEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\ClientEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\IpAddressBlacklistedEvent.cs" />
@@ -83,9 +81,6 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsOnlineClient.cs" />
     <Compile Include="SettingsOnlineData.cs" />
-    <Compile Include="UploadNotification.cs" />
-    <Compile Include="UploadNotificationException.cs" />
-    <Compile Include="UploadNotifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Aegis.licenseheader" />
