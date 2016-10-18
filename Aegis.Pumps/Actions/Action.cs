@@ -743,6 +743,12 @@ namespace Aegis.Pumps.Actions
                 debugMessage.Append($" unparsedIps:{string.Join(";", unparsedIps)}");
                 debugMessage.Append($" parsedIpsNonDups:{string.Join(";", parsedIpsNonDups)}");
 
+                // if there are no ips then dump all headers names
+                if (parsedIpsNonDups.Count == 0)
+                {
+                    debugMessage.Append($" headersNames:{string.Join(";", headers.Select(x => x.Key).OrderBy(x => x))}");
+                }
+
                 errorMessage = $"ParseIpAddressesFromHeaders error: {debugMessage}";
             }
 
