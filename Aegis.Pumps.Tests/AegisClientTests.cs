@@ -702,7 +702,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -712,6 +712,38 @@ namespace Aegis.Pumps.Tests
             Assert.IsNotNull(AegisClient.Instance.BlackList);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
+
+            AegisClient.ShutDown();
+
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void DoubleInitialisationAndShutDown()
+        {
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
+
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
+            var instance1 = AegisClient.Instance;
+
+            AegisClient.Initialise(newRelicClient, settings);
+            var instance2 = AegisClient.Instance;
+
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance);
+            Assert.IsNotNull(AegisClient.Instance.NewRelicInsightsClient);
+            Assert.IsNotNull(AegisClient.Instance.Settings);
+            Assert.IsNotNull(AegisClient.Instance.BlackList);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+            Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
+            Assert.AreSame(instance1, instance2);
 
             AegisClient.ShutDown();
 
@@ -756,10 +788,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             // OnAvailabilityController
             var requestHeaders = new MockHttpHeaders();
@@ -790,10 +823,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             // OnAvailabilityController
             var requestHeaders = new MockHttpHeaders();
@@ -826,10 +860,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             var blackListData = new List<BlackListItem>()
                                     {
@@ -877,10 +912,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
             settingsData.AegisBlockingEnabled = new HashSet<string>(new[] { SettingsOnlineData.KeyAll });
@@ -934,10 +970,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
             settingsData.AegisBlockingEnabled = new HashSet<string>(new [] { SettingsOnlineData .KeyAll });
@@ -993,10 +1030,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
             settingsData.AegisBlockingEnabled = new HashSet<string>(new[] { SettingsOnlineData.KeyAll });

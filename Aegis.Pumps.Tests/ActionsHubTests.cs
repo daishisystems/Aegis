@@ -719,13 +719,14 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
@@ -759,13 +760,14 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
@@ -804,13 +806,14 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
@@ -848,13 +851,14 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance?.ActionsHub);

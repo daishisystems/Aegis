@@ -725,10 +725,11 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp("UnitTests", "1.2.1");
-            AegisClient.DoInitialise(newRelicClient, settings, false);
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.Initialise(newRelicClient, settings);
 
             // initialize classes
             var selfRegistry = new TestRegistry();

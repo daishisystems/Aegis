@@ -690,7 +690,7 @@ namespace Aegis.Pumps
             this.scheduledItems = new List<Schedule>();
         }
 
-        public void Initialise(AegisClient client, bool isSchedulingEnabled = true)
+        public void Initialise(AegisClient client, bool isSchedulingDisabled = false)
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
@@ -715,7 +715,7 @@ namespace Aegis.Pumps
                 client.Settings.SendAegisEventsJobIntervalInSeconds);
 
             // start schedulers
-            if (isSchedulingEnabled)
+            if (!isSchedulingDisabled)
             {
                 JobManager.Initialize(this);
             }

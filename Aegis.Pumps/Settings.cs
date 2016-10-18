@@ -699,6 +699,8 @@ namespace Aegis.Pumps
         public readonly int GetSettingsOnlineJobIntervalInSeconds = 900;
         public readonly int SendAegisEventsJobIntervalInSeconds = 10;
 
+        public bool IsJobSchedulingDisabled { get; set; }
+
         public Settings(
             string webProxy,
             string webNonDefaultTimeout,
@@ -736,10 +738,11 @@ namespace Aegis.Pumps
 
             // http headers names
             this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            this.IsJobSchedulingDisabled = false;
         }
 
         /// <summary>
-        /// Initialise settings class. Does not throw any standard exception.
+        /// Initialise settings class. Throws exceptions.
         /// </summary>
         public static Settings Initialise(
             INewRelicInsightsClient newRelicInsightsClient,
@@ -765,10 +768,8 @@ namespace Aegis.Pumps
                     newRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.SettingsInitialisation,
                     exception);
+                throw;
             }
-
-            // error
-            return null;
         }
     }
 }

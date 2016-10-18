@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
 using Daishi.NewRelic.Insights;
 using Aegis.Pumps.Actions;
 
@@ -684,7 +683,11 @@ namespace Aegis.Pumps
 {
     public class AegisClient
     {
-        public static AegisClient Instance { get; private set; }
+        private static readonly object lockInit = new object();
+        private static volatile bool isSetUpDone;
+        private static volatile AegisClient instanceClient;
+
+        public static AegisClient Instance => instanceClient;
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
         public static string ClientMachineName { get; private set; }
@@ -700,7 +703,7 @@ namespace Aegis.Pumps
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient;
-        public readonly Actions.ActionsHub ActionsHub;
+        public readonly ActionsHub ActionsHub;
         private SchedulerRegistry scheduler;
 
         private AegisClient(
@@ -724,42 +727,59 @@ namespace Aegis.Pumps
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();
-            this.ActionsHub = new Actions.ActionsHub(this, settings.HttpIpHeaderNames);
+            this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
             this.scheduler = new SchedulerRegistry();
         }
 
+        /// <summary>
+        /// Set basic Aegis information. Throws exceptions.
+        /// </summary>
         public static void SetUp(
+            INewRelicInsightsClient newRelicInsightsClient,
             string clientName,
             string clientVersion)
         {
-            InitializationTime = DateTimeOffset.UtcNow;
-            AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
-            ClientName = string.Empty;
-            ClientVersion = string.Empty;
-            ClientMachineName = string.Empty;
-
-            // set safely names
-            try
+            lock (lockInit)
             {
-                ClientName = Uri.EscapeDataString(clientName?.ToLowerInvariant().Trim() ?? string.Empty);
-                ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
-                ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid()}");
-
-                // set machine name if available
-                var machineName = Environment.MachineName;
-                if (!string.IsNullOrWhiteSpace(machineName))
+                if (isSetUpDone)
                 {
-                    ClientMachineName = Uri.EscapeDataString(machineName);
+                    return;
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
+
+                InitializationTime = DateTimeOffset.UtcNow;
+                AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
+                ClientName = string.Empty;
+                ClientVersion = string.Empty;
+                ClientMachineName = string.Empty;
+
+                // set safely names
+                try
+                {
+                    ClientName = Uri.EscapeDataString(clientName?.ToLowerInvariant().Trim() ?? Guid.NewGuid().ToString("N"));
+                    ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
+                    ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
+                    isSetUpDone = true;
+
+                    // set machine name if available
+                    var machineName = Environment.MachineName;
+                    if (!string.IsNullOrWhiteSpace(machineName))
+                    {
+                        ClientMachineName = Uri.EscapeDataString(machineName);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    // log but do not re-throw
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        newRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                        exception);
+                }
             }
         }
 
         /// <summary>
-        /// Initialise client. Does not throw any standard exception.
+        /// Initialise client. Throws exceptions.
         /// </summary>
         /// <returns></returns>
         public static bool Initialise(
@@ -769,10 +789,18 @@ namespace Aegis.Pumps
             // initialise and do proper cleanup in case of problems
             try
             {
-                DoInitialise(newRelicInsightsClient, settings, true);
+                lock (lockInit)
+                {
+                    if (IsInitialised)
+                    {
+                        return true;
+                    }
 
-                // success - class initialised
-                return true;
+                    DoInitialise(newRelicInsightsClient, settings);
+
+                    // success - class initialised
+                    return true;
+                }
             }
             catch (Exception exception)
             {
@@ -780,27 +808,32 @@ namespace Aegis.Pumps
                     newRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
                     exception);
-             }
-
-            // initialisation failed
-            return false;
+                throw;
+            }
         }
 
         public static void ShutDown()
         {
+            isSetUpDone = false;
+
             // do nothing if not initialised
             if (!IsInitialised)
             {
                 return;
             }
 
+            // TODO flush data (events)
+
             // set to non-initialised state
             var self = Instance;
-            Instance = null;
+            instanceClient = null;
 
             // stop schedulers and clean all data (final data release leave to the GC)
             self.scheduler?.ShutDown();
             self.BlackList?.CleanUp();
+
+            // flush NewRelic events
+            self.NewRelicInsightsClient?.UploadAllCachedEvents();
         }
 
         public static ActionsHub GetActionsHub()
@@ -829,20 +862,6 @@ namespace Aegis.Pumps
                 message);
         }
 
-        public static void DoInitialise(
-            INewRelicInsightsClient newRelicInsightsClient,
-            Settings settings,
-            bool isSchedulingEnabled)
-        {
-            var self = new AegisClient(newRelicInsightsClient, settings);
-
-            // assign object to the instance
-            Instance = self;
-
-            // start scheduled tasks
-            Instance.scheduler.Initialise(Instance, isSchedulingEnabled);
-        }
-
         public void SettingsChangeNotification()
         {
             // reload scheduler
@@ -850,6 +869,24 @@ namespace Aegis.Pumps
 
             this.scheduler = new SchedulerRegistry();
             this.scheduler.Initialise(Instance, true);
+        }
+
+        private static void DoInitialise(
+            INewRelicInsightsClient newRelicInsightsClient,
+            Settings settings)
+        {
+            var self = new AegisClient(newRelicInsightsClient, settings);
+
+            // update ClientName with an unique id to recognize many instances
+            var guidStr = Guid.NewGuid().ToString("N");
+            var uniqueId = guidStr.Substring(guidStr.Length - 4, 4);
+            ClientName = $"{ClientName}-{uniqueId}";
+
+            // assign object to the instance
+            instanceClient = self;
+
+            // start scheduled tasks
+            Instance.scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
         }
     }
 }
