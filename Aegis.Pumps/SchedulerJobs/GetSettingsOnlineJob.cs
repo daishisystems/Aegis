@@ -731,6 +731,11 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (TaskCanceledException exception)
             {
+                if (this.IsShuttingDown)
+                {
+                    return;
+                }
+
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(

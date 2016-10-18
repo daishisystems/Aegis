@@ -732,11 +732,13 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (TaskCanceledException exception)
             {
+                if (this.IsShuttingDown)
+                {
+                    return;
+                }
+
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
-                    // TODO check if system is not going down, happens with unit tests often
-                    // this.IsShuttingDown
-
                     this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,

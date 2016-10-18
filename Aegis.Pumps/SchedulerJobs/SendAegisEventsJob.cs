@@ -709,10 +709,10 @@ namespace Aegis.Pumps.SchedulerJobs
                     // remove old items
                     var removedCount = this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
 
-                    // notify NewRelic if anything removed
+                    // notify NewRelic if anything was removed
                     if (removedCount > 0)
                     {
-                        this.ClientInstance.NewRelicUtils.AddException( // TODO notify instead of error?
+                        this.ClientInstance.NewRelicUtils.AddException(
                             this.ClientInstance.NewRelicInsightsClient,
                             NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                             null,
@@ -723,6 +723,11 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (TaskCanceledException exception)
             {
+                if (this.IsShuttingDown)
+                {
+                    return;
+                }
+
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
@@ -774,6 +779,11 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (Exception exception)
             {
+                if (this.IsShuttingDown)
+                {
+                    return false;
+                }
+
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,

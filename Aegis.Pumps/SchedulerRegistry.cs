@@ -678,16 +678,17 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using FluentScheduler;
+using Aegis.Pumps.SchedulerJobs;
 
 namespace Aegis.Pumps
 {
     public class SchedulerRegistry : Registry
     {
-        private readonly List<Schedule> scheduledItems;
+        private readonly List<Tuple<ClientJob, Schedule>> scheduledItems;
 
         public SchedulerRegistry()
         {
-            this.scheduledItems = new List<Schedule>();
+            this.scheduledItems = new List<Tuple<ClientJob, Schedule>>();
         }
 
         public void Initialise(AegisClient client, bool isSchedulingDisabled = false)
@@ -698,19 +699,19 @@ namespace Aegis.Pumps
             // add jobs
             this.Add(
                 client,
-                new SchedulerJobs.GetSettingsOnlineJob(client),
+                new GetSettingsOnlineJob(client),
                 InitialStartDelay,
                 client.Settings.GetSettingsOnlineJobIntervalInSeconds);
 
             this.Add(
                 client,
-                new SchedulerJobs.GetBlackListJob(client),
+                new GetBlackListJob(client),
                 InitialStartDelay + JobStartDelay,
                 client.Settings.GetBlackListJobIntervalInSeconds);
 
             this.Add(
                 client,
-                new SchedulerJobs.SendAegisEventsJob(client),
+                new SendAegisEventsJob(client),
                 InitialStartDelay + JobStartDelay,
                 client.Settings.SendAegisEventsJobIntervalInSeconds);
 
@@ -725,7 +726,8 @@ namespace Aegis.Pumps
         {
             foreach (var sched in this.scheduledItems)
             {
-                JobManager.RemoveJob(sched.Name);
+                JobManager.RemoveJob(sched.Item2.Name);
+                sched.Item1.Stop(false);
             }
 
             this.scheduledItems.Clear();
@@ -733,7 +735,7 @@ namespace Aegis.Pumps
 
         protected void Add(
             AegisClient client,
-            SchedulerJobs.ClientJob self,
+            ClientJob self,
             int startTimeDelay,
             int defaultInterval)
         {
@@ -741,7 +743,7 @@ namespace Aegis.Pumps
             const int LimitInSecs = 3600; // an hour
 
             var sched = this.Schedule(self).WithName(self.JobName);
-            this.scheduledItems.Add(sched);
+            this.scheduledItems.Add(Tuple.Create(self, sched));
 
             sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
                 .AndEvery(
