@@ -725,6 +725,11 @@ namespace Aegis.Pumps.Tests.Mocks
             await Task.Yield();
         }
 
+        public void UploadAllCachedEvents()
+        {
+            throw new NotImplementedException();
+        }
+
         public void AddNewRelicInsightsEventsUploadException(Exception exception)
         {
             throw new NotImplementedException();
