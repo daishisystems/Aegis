@@ -714,7 +714,7 @@ namespace Aegis.Pumps.Actions
             }
             catch (Exception exception)
             {
-                NewRelicInsightsEvents.Utils.AddException(
+                this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     exception);
@@ -744,12 +744,9 @@ namespace Aegis.Pumps.Actions
             var ipAddresses = Action.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage);
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
-                // TODO change to notification instead of error?
-                // TODO improve not sending duplicates - ignore component name?
-                NewRelicInsightsEvents.Utils.AddException(
+                this.Client.NewRelicUtils.AddNotification(
                     this.Client.NewRelicInsightsClient,
-                    this.newRelicExceptionComponentName,
-                    null,
+                    string.Empty,
                     errorMessage,
                     true);
             }
@@ -842,7 +839,7 @@ namespace Aegis.Pumps.Actions
             var isCacheFull = this.Client.AegisEventCache.Add(evnt);
             if (isCacheFull)
             {
-                NewRelicInsightsEvents.Utils.AddException(
+                this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
@@ -937,7 +934,7 @@ namespace Aegis.Pumps.Actions
             var isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
             if (isCacheFull)
             {
-                NewRelicInsightsEvents.Utils.AddException(
+                this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,

@@ -1040,10 +1040,12 @@ namespace Aegis.Pumps.Actions
                     mailHost = mail.Host;
                     mailHash = this.client.Crypt.HashMail(mail.Address, mail.Host);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
-                    // ignored
-                    // TODO report to newrelic, notification instead of error?
+                    this.client.NewRelicUtils.AddException(
+                        this.client.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
+                        exception);
                 }
             }
 

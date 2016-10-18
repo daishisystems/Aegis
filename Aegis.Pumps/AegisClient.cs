@@ -697,6 +697,7 @@ namespace Aegis.Pumps
         public static bool IsInitialised => Instance != null;
 
         public readonly INewRelicInsightsClient NewRelicInsightsClient;
+        public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
         public readonly Settings Settings;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly CryptUtils Crypt;
@@ -721,6 +722,7 @@ namespace Aegis.Pumps
             }
 
             this.NewRelicInsightsClient = newRelicInsightsClient;
+            this.NewRelicUtils = new NewRelicInsightsEvents.Utils();
             this.Settings = settings;
             this.SettingsOnline = new SettingsOnlineClient();
             this.Crypt = new CryptUtils();
@@ -855,7 +857,7 @@ namespace Aegis.Pumps
                 return;
             }
 
-            NewRelicInsightsEvents.Utils.AddException(
+            Instance.NewRelicUtils.AddException(
                 Instance.NewRelicInsightsClient,
                 NewRelicInsightsEvents.Utils.ComponentNames.ClientReportError,
                 null,

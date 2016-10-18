@@ -708,7 +708,7 @@ namespace Aegis.Pumps.Tests
             headers.Add("BLABLA", "unparsed.ip.address.bl");
 
             string error;
-            var ips = Aegis.Pumps.Actions.Action.ParseIpAddressesFromHeaders(headerNames, headers, out error);
+            var ips = Actions.Action.ParseIpAddressesFromHeaders(headerNames, headers, out error);
 
             Assert.AreEqual(3, ips.Count);
             Assert.IsFalse(string.IsNullOrWhiteSpace(error));
@@ -947,7 +947,7 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, "123456", "p-method-code"),
                 () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                                 "customer-id", "12345", "p-method-code", "city",
-                                                "country", "postal", "email", "info1", "info2")
+                                                "country", "postal", "email@host.com", "info1", "info2")
             };
 
             var testMethodsSets = new[] { testMethodsWithNullParameters, testMethodsWithRealParameters};
@@ -958,22 +958,23 @@ namespace Aegis.Pumps.Tests
                 newRelicClient.MockClearCache();
 
                 // run each test method
-                var errorsSum = 0;
                 foreach (var testMethod in testMethods)
                 {
-                    Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                    Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
                     Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
                     testMethod();
-                    errorsSum += errorsCount;
 
-                    // no errors
-                    Assert.AreEqual(errorsSum, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                    // check errors
+                    Assert.AreEqual(errorsCount, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
                     // new number of events
                     Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
 
                     AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
+
+                    newRelicClient.MockClearCache();
+                    AegisClient.Instance.NewRelicUtils.ResetLastSent();
                 }
             }
         }

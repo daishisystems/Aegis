@@ -675,92 +675,35 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Aegis.Core.Data;
+using Jil;
 
-namespace Aegis.Pumps.SchedulerJobs
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     /// <summary>
-    ///     <see cref="GetBlackListJob" /> is a recurring task that continuously polls
-    ///     Aegis for the most up-to-date black-list, and retains a copy of this
-    ///     black-list in memory.
+    ///     <see cref="AegisNotificationEvent" /> is an error event that
+    ///     occurs during Aegis processing.
     /// </summary>
-    internal class GetBlackListJob : ClientJob
+    public class AegisNotificationEvent : ClientEvent
     {
-        public GetBlackListJob(AegisClient client) : base(client, "AegisGetBlackListJob")
-        {
-        }
+        [JilDirective(Name = "message")]
+        public string Message { get; set; }
 
         /// <summary>
-        ///     <see cref="DoExecute" /> invokes a process that returns the most up-to-date
-        ///     black-list from Aegis.
+        ///     <see cref="ComponentName" /> is the friendly name of the component, within
+        ///     the application, in which the error occurred.
         /// </summary>
-        protected override void DoExecute()
+        [JilDirective(Name = "componentName")]
+        public string ComponentName { get; set; }
+
+        /// <summary>
+        ///     <see cref="EventType" /> is the New Relic Insights to which this
+        ///     <see cref="AegisNotificationEvent" /> will be uploaded.
+        /// </summary>
+        [JilDirective(Name = "eventType")]
+        public override string EventType
         {
-            try
-            {
-                // if job is disabled
-                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
-                {
-                    return;
-                }
-
-                // get blacklist data
-                List<BlackListItem> blackListData;
-                DateTimeOffset? newTimeStamp;
-
-                var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
-                    AegisClient.ClientName,
-                    AegisClient.ClientVersion,
-                    AegisClient.ClientMachineName,
-                    AegisClient.AegisVersion,
-                    this.ClientInstance.Settings,
-                    this.ClientInstance.SettingsOnline,
-                    this.ClientInstance.BlackList.TimeStamp,
-                    out blackListData,
-                    out newTimeStamp);
-
-                if (!isUpdated)
-                {
-                    return;
-                }
-
-                // set new data
-                this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
-            }
-            catch (TaskCanceledException exception)
-            {
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    // TODO check if system is not going down, happens with unit tests often
-                    // this.IsShuttingDown
-
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
-                this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                    exception);
-            }
+            get { return Utils.EventTypes.AegisNotifications; }
+            set { }
         }
     }
 }

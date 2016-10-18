@@ -684,10 +684,10 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     {
         private const int LastSentMessageLimitInMinutes = 5;
 
-        private static string lastSentMessage;
-        private static DateTime lastSentTimeStamp;
+        private string lastSentMessage;
+        private DateTime lastSentTimeStamp;
 
-        public class ComponentNames
+        public static class ComponentNames
         {
             public const string ClientInitialisation = "Client initialisation";
             public const string ClientReportError = "Client report error";
@@ -719,10 +719,17 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string JobSendAegisEvents = "Job-SendAegisEvents";
         }
 
-        public class EventTypes
+        public static class EventTypes
         {
             public const string AegisErrors = "AegisErrors";
+            public const string AegisNotifications = "AegisNotifications";
             public const string AegisBlackListActivity = "AegisBlackListActivity";
+        }
+
+        public void ResetLastSent()
+        {
+            this.lastSentMessage = null;
+            this.lastSentTimeStamp = default(DateTime);
         }
 
         /// <summary>
@@ -761,7 +768,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 
                 newRelicInsightsClient.UploadEvents(
                     new[] { newRelicInsightsAegisEvent },
-                    new Daishi.NewRelic.Insights.HttpClientFactory());
+                    new HttpClientFactory());
             }
             catch (Exception)
             {
@@ -769,7 +776,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             }
         }
 
-        public static void AddException(
+        public void AddException(
             INewRelicInsightsClient newRelicInsightsClient,
             string componentName,
             Exception exception,
@@ -797,13 +804,56 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                         newRelicInsightsAegisEvent.InnerErrorMessage);
 
                     // if match to last sent then ignore
-                    if (lastSentMessage == messageData && DateTime.UtcNow.Subtract(lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
+                    if (this.lastSentMessage == messageData && DateTime.UtcNow.Subtract(this.lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
                     {
                         return;
                     }
 
-                    lastSentMessage = messageData;
-                    lastSentTimeStamp = DateTime.UtcNow;
+                    this.lastSentMessage = messageData;
+                    this.lastSentTimeStamp = DateTime.UtcNow;
+                }
+
+                // add to NewRelic
+                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+            }
+            catch (Exception)
+            {
+                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+            }
+        }
+
+        public void AddNotification(
+            INewRelicInsightsClient newRelicInsightsClient,
+            string componentName,
+            string message,
+            bool noDuplicateLastSent = false)
+        {
+            try
+            {
+                // create event
+                var newRelicInsightsAegisEvent =
+                    new AegisNotificationEvent()
+                    {
+                        ComponentName = componentName,
+                        Message = message
+                    };
+
+                // check if it is a duplicate to the last sent event
+                if (noDuplicateLastSent)
+                {
+                    var messageData = string.Format(
+                        "{0}${1}",
+                        newRelicInsightsAegisEvent.ComponentName,
+                        newRelicInsightsAegisEvent.Message);
+
+                    // if match to last sent then ignore
+                    if (this.lastSentMessage == messageData && DateTime.UtcNow.Subtract(this.lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
+                    {
+                        return;
+                    }
+
+                    this.lastSentMessage = messageData;
+                    this.lastSentTimeStamp = DateTime.UtcNow;
                 }
 
                 // add to NewRelic

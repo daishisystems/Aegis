@@ -677,9 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Aegis.Core;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.SchedulerJobs
@@ -711,10 +709,10 @@ namespace Aegis.Pumps.SchedulerJobs
                     // remove old items
                     var removedCount = this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
 
-                    // notify newrelic if anything removed
+                    // notify NewRelic if anything removed
                     if (removedCount > 0)
                     {
-                        NewRelicInsightsEvents.Utils.AddException( // TODO notify instead of error?
+                        this.ClientInstance.NewRelicUtils.AddException( // TODO notify instead of error?
                             this.ClientInstance.NewRelicInsightsClient,
                             NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                             null,
@@ -727,7 +725,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
-                    NewRelicInsightsEvents.Utils.AddException(
+                    this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception);
@@ -737,7 +735,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // If the exception.CancellationToken.IsCancellationRequested is false,
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
-                    NewRelicInsightsEvents.Utils.AddException(
+                    this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception,
@@ -746,7 +744,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (Exception exception)
             {
-                NewRelicInsightsEvents.Utils.AddException(
+                this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception);
@@ -776,7 +774,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (Exception exception)
             {
-                NewRelicInsightsEvents.Utils.AddException(
+                this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception,
