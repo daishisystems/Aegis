@@ -840,9 +840,9 @@ namespace Aegis.Pumps
             this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
         }
 
-        private Core.HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
+        private HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
         {
-            return new Core.HttpRequestMetadata
+            return new HttpRequestMetadata
                        {
                            URI = uriService,
                            UseWebProxy = settings.WebProxy != null,
@@ -884,7 +884,7 @@ namespace Aegis.Pumps
         }
 
         protected virtual bool DoGetStringData(
-            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
             DateTimeOffset? requestTimeStamp,
             out string data,
@@ -935,7 +935,7 @@ namespace Aegis.Pumps
         }
 
         public void DoSendAegisEvents(
-            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
             string itemsJson)
         {

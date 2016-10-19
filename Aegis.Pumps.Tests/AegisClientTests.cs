@@ -753,6 +753,36 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
+        public void ManyInitialisationAndShutDown()
+        {
+            for (var index = 0; index < 5; index++)
+            {
+                var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+                var newRelicClient = new MockNewRelicInsightsClient();
+
+                Assert.IsNull(AegisClient.Instance);
+                Assert.IsFalse(AegisClient.IsInitialised);
+
+                AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+                AegisClient.Initialise(newRelicClient, settings);
+
+                Assert.IsTrue(AegisClient.IsInitialised);
+                Assert.IsNotNull(AegisClient.Instance);
+                Assert.IsNotNull(AegisClient.Instance.NewRelicInsightsClient);
+                Assert.IsNotNull(AegisClient.Instance.Settings);
+                Assert.IsNotNull(AegisClient.Instance.BlackList);
+                Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
+
+                AegisClient.ShutDown();
+
+                Assert.IsNull(AegisClient.Instance);
+                Assert.IsFalse(AegisClient.IsInitialised);
+                Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+            }
+        }
+
+        [TestMethod]
         public void ShutDownWithoutInitialization()
         {
             Assert.IsNull(AegisClient.Instance);

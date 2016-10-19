@@ -683,9 +683,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     public class Utils
     {
         private const int LastSentMessageLimitInMinutes = 5;
-
-        private string lastSentMessage;
-        private DateTime lastSentTimeStamp;
+        private Tuple<string, DateTime> lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
+        private Tuple<string, DateTime> lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
 
         public static class ComponentNames
         {
@@ -728,8 +727,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 
         public void ResetLastSent()
         {
-            this.lastSentMessage = null;
-            this.lastSentTimeStamp = default(DateTime);
+            this.lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
+            this.lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
         }
 
         /// <summary>
@@ -797,20 +796,15 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 // check if it is a duplicate to the last sent event
                 if (noDuplicateLastSent)
                 {
-                    var messageData = string.Format(
-                        "{0}${1}${2}",
+                    // if message same like last one then ignore it
+                    if (!this.CheckAndUpdateLastSent(
+                        ref this.lastSentError, 
                         newRelicInsightsAegisEvent.ComponentName,
                         newRelicInsightsAegisEvent.ErrorMessage,
-                        newRelicInsightsAegisEvent.InnerErrorMessage);
-
-                    // if match to last sent then ignore
-                    if (this.lastSentMessage == messageData && DateTime.UtcNow.Subtract(this.lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
+                        newRelicInsightsAegisEvent.InnerErrorMessage))
                     {
                         return;
                     }
-
-                    this.lastSentMessage = messageData;
-                    this.lastSentTimeStamp = DateTime.UtcNow;
                 }
 
                 // add to NewRelic
@@ -841,19 +835,15 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 // check if it is a duplicate to the last sent event
                 if (noDuplicateLastSent)
                 {
-                    var messageData = string.Format(
-                        "{0}${1}",
+                    // if message same like last one then ignore it
+                    if (!this.CheckAndUpdateLastSent(
+                        ref this.lastSentNotification,
                         newRelicInsightsAegisEvent.ComponentName,
-                        newRelicInsightsAegisEvent.Message);
-
-                    // if match to last sent then ignore
-                    if (this.lastSentMessage == messageData && DateTime.UtcNow.Subtract(this.lastSentTimeStamp).Minutes < LastSentMessageLimitInMinutes)
+                        newRelicInsightsAegisEvent.Message,
+                        null))
                     {
                         return;
                     }
-
-                    this.lastSentMessage = messageData;
-                    this.lastSentTimeStamp = DateTime.UtcNow;
                 }
 
                 // add to NewRelic
@@ -863,6 +853,21 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             {
                 // ToDo: There is no fall-back solution if New Relic Insights is offline.          
             }
+        }
+
+        private bool CheckAndUpdateLastSent(ref Tuple<string, DateTime> lastSent, string msg1, string msg2, string msg3)
+        {
+            var messageData = $"{msg1}${msg2}${msg3}";
+
+            // if match to last sent then ignore
+            if (lastSent.Item1 == messageData && DateTime.UtcNow.Subtract(lastSent.Item2).Minutes < LastSentMessageLimitInMinutes)
+            {
+                return false;
+            }
+
+            // update
+            lastSent = Tuple.Create(messageData, DateTime.UtcNow);
+            return true;
         }
     }
 }
