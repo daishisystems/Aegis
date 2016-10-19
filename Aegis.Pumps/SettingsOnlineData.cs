@@ -720,6 +720,9 @@ namespace Aegis.Pumps
         [JilDirective(Name = "serviceEndpoints")]
         public Dictionary<string, string> ServiceEndpoints { get; set; }
 
+        [JilDirective(Name = "serviceTimeOuts")]
+        public Dictionary<string, int> ServiceTimeOuts { get; set; }
+
         [JilDirective(Name = "blacklist")]
         public BlackListData Blacklist { get; set; }
 

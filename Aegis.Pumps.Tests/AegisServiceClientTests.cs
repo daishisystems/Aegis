@@ -785,6 +785,57 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
+        public void GetSettingsOnlineWithOnlineSettings()
+        {
+            // create data
+            var data = new SettingsOnlineData();
+            data.Blacklist = new SettingsOnlineData.BlackListData();
+            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
+            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
+
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
+
+            // create mock object
+            var mock = new MockAegisServiceClient();
+            mock.MockResult = true;
+            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
+            mock.MockOutData = dataJson;
+
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+
+            var settingsData = new SettingsOnlineData();
+            settingsData.ServiceTimeOuts = new Dictionary<string, int>();
+            settingsData.ServiceTimeOuts.Add(AegisServiceClient.ServiceNames.SettingsOnline, 99);
+
+            SettingsOnlineData resultData;
+            DateTimeOffset? resultTimeStamp;
+            mock.GetSettingsOnlineData(
+                ClientName,
+                ClientVer,
+                ClientMachine,
+                AegisVer,
+                settings,
+                settingsOnline,
+                null,
+                out resultData,
+                out resultTimeStamp);
+
+            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
+            CollectionAssert.AreEqual(
+                data.Blacklist.CountriesBlock.ToList(),
+                resultData.Blacklist.CountriesBlock.ToList());
+            CollectionAssert.AreEqual(
+                data.Blacklist.CountriesSimulate.ToList(),
+                resultData.Blacklist.CountriesSimulate.ToList());
+
+            StringAssert.Contains(mock.MockInUri.Query, ClientName);
+            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
+            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
+            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
+        }
+
+        [TestMethod]
         [Ignore]
         public void SendEventsToTheRealCluster()
         {

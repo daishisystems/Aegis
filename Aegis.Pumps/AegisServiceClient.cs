@@ -731,7 +731,13 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion },
                     });
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
+
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(
+                settings,
+                settingsOnline,
+                ServiceNames.Blacklist,
+                uriService);
+
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
@@ -784,7 +790,12 @@ namespace Aegis.Pumps
                     },
                 forcedAegisServiceUri);
 
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(
+                settings,
+                settingsOnline,
+                ServiceNames.SettingsOnline,
+                uriService);
+
             var httpClientFactory = new HttpClientFactory();
 
             // get string data from service
@@ -833,22 +844,41 @@ namespace Aegis.Pumps
                         { ParameterNames.AllItemsCount, allItemsCount.ToString() }
                     });
 
-            var httpRequestMetadata = this.CreateHttpRequestMetadata(settings, uriService);
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(
+                settings, 
+                settingsOnline, 
+                ServiceNames.AegisEvents, 
+                uriService);
+
             var httpClientFactory = new HttpClientFactory();
 
             var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
             this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
         }
 
-        private HttpRequestMetadata CreateHttpRequestMetadata(Settings settings, Uri uriService)
+        private HttpRequestMetadata CreateHttpRequestMetadata(
+            Settings settings,
+            SettingsOnlineClient settingsOnline,
+            string uriServiceName,
+            Uri uriService)
         {
+            var timeOut = settings.WebNonDefaultTimeout;
+            if (settingsOnline.IsAvailable)
+            {
+                if (settingsOnline.Data?.ServiceTimeOuts?.ContainsKey(uriServiceName) == true)
+                {
+                    var timeOutNew = settingsOnline.Data?.ServiceTimeOuts?[uriServiceName];
+                    timeOut = new TimeSpan(0, 0, timeOutNew.Value);
+                }
+            }
+
             return new HttpRequestMetadata
                        {
                            URI = uriService,
                            UseWebProxy = settings.WebProxy != null,
                            WebProxy = settings.WebProxy,
-                           UseNonDefaultTimeout = settings.WebNonDefaultTimeout.HasValue,
-                           NonDefaultTimeout = settings.WebNonDefaultTimeout ?? TimeSpan.Zero
+                           UseNonDefaultTimeout = timeOut.HasValue,
+                           NonDefaultTimeout = timeOut ?? TimeSpan.Zero
                        };
         }
 
