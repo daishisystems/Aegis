@@ -682,6 +682,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
 using Jil;
 using Aegis.Pumps.Tests.Mocks;
+using System.Web;
 
 namespace Aegis.Pumps.Tests
 {
@@ -713,7 +714,8 @@ namespace Aegis.Pumps.Tests
             mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
             mock.MockOutData = dataJson;
 
-            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var testUri = "test.bla.com";
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
 
             List<BlackListItem> resultData;
@@ -731,10 +733,15 @@ namespace Aegis.Pumps.Tests
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
             Assert.AreEqual(data.Count, resultData.Count);
-            StringAssert.Contains(mock.MockInUri.Query, ClientName);
-            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
-            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
-            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+
+            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
+            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
+
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
         }
 
         [TestMethod]
@@ -754,7 +761,8 @@ namespace Aegis.Pumps.Tests
             mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
             mock.MockOutData = dataJson;
 
-            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var testUri = "test.bla.com";
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
 
             SettingsOnlineData resultData;
@@ -778,14 +786,20 @@ namespace Aegis.Pumps.Tests
                 data.Blacklist.CountriesSimulate.ToList(),
                 resultData.Blacklist.CountriesSimulate.ToList());
 
-            StringAssert.Contains(mock.MockInUri.Query, ClientName);
-            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
-            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
-            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+
+            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
+            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
+
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
 
         [TestMethod]
-        public void GetSettingsOnlineWithOnlineSettings()
+        public void GetSettingsOnlineWithOnlineSettings() // TODO implement SendEvents test
         {
             // create data
             var data = new SettingsOnlineData();
@@ -801,7 +815,8 @@ namespace Aegis.Pumps.Tests
             mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
             mock.MockOutData = dataJson;
 
-            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            var testUri = "test.bla.com";
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
 
             var settingsData = new SettingsOnlineData();
@@ -829,10 +844,16 @@ namespace Aegis.Pumps.Tests
                 data.Blacklist.CountriesSimulate.ToList(),
                 resultData.Blacklist.CountriesSimulate.ToList());
 
-            StringAssert.Contains(mock.MockInUri.Query, ClientName);
-            StringAssert.Contains(mock.MockInUri.Query, ClientVer);
-            StringAssert.Contains(mock.MockInUri.Query, ClientMachine);
-            StringAssert.Contains(mock.MockInUri.Query, AegisVer);
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+
+            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
+            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
+
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
 
         [TestMethod]

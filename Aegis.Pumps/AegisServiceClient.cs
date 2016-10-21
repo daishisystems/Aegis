@@ -697,13 +697,14 @@ namespace Aegis.Pumps
             public const string AegisEvents = "events";
         }
 
-        private static class ParameterNames
+        public static class ParameterNames
         {
-            public const string ClientName = "client";
-            public const string ClientVersion = "clientVer";
-            public const string ClientMachineName = "clientMachine";
-            public const string AegisVersion = "aegisVer";
-            public const string AllItemsCount = "allItemsCount";
+            public const string ClientName = "c";
+            public const string ClientVersion = "v";
+            public const string ClientMachineName = "m";
+            public const string AegisVersion = "a";
+            public const string RequestItemsCount = "cr";
+            public const string AllItemsCount = "ca";
             public const string SettingsKey = "key";
         }
 
@@ -841,6 +842,7 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion },
+                        { ParameterNames.RequestItemsCount, items.Count.ToString() },
                         { ParameterNames.AllItemsCount, allItemsCount.ToString() }
                     });
 
@@ -885,7 +887,7 @@ namespace Aegis.Pumps
         private Uri CreateUri(
             Settings settings,
             SettingsOnlineClient settingsOnline,
-            string uriServiceName, 
+            string serviceName, 
             IDictionary<string, string> parameters = null,
             string forcedAegisServiceUri = null)
         {
@@ -898,7 +900,7 @@ namespace Aegis.Pumps
             }
 
             // get right service url
-            var serviceUri = settingsOnline.GetServiceEndpoint(uriServiceName);
+            var serviceUri = settingsOnline.GetServiceEndpoint(serviceName);
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
                 serviceUri = settings.AegisServiceUri;
@@ -909,7 +911,7 @@ namespace Aegis.Pumps
             }
 
             // build string
-            var uriString = $"{settings.AegisServiceUri}/{serviceUri}{parametersStr}";
+            var uriString = $"{serviceUri}/{serviceName}{parametersStr}";
             return new Uri(uriString);
         }
 
