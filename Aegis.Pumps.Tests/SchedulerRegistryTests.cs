@@ -738,7 +738,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(0, selfJob.Events.Count);
 
             // add new job
-            int startTimeDelay = 10;
+            int startTimeDelay = 13;
             int interval = 5;
             var testStartTime = DateTime.Now;
 
@@ -749,23 +749,80 @@ namespace Aegis.Pumps.Tests
             JobManager.Initialize(selfRegistry);
 
             // sleep
-            Task.Delay((startTimeDelay + (2 * interval)) * 1000).Wait();
+            Task.Delay((startTimeDelay + (2 * interval) + 1) * 1000).Wait();
 
             // stop registry
             selfRegistry.ShutDown();
 
             var shutDownCount = selfJob.Events.Count;
 
-            Assert.IsTrue(shutDownCount >= 3);
-            Assert.IsTrue(shutDownCount <= 6);
-            Assert.IsTrue(((selfJob.Events[0] - testStartTime).Seconds - startTimeDelay) <= 2);
-            Assert.IsTrue(((selfJob.Events[1] - selfJob.Events[0]).Seconds - interval) <= 2);
-            Assert.IsTrue(((selfJob.Events[2] - selfJob.Events[1]).Seconds - interval) <= 2);
+            Assert.IsTrue(shutDownCount >= 3, $"shutDownCount is {shutDownCount}");
+            Assert.IsTrue(shutDownCount <= 4, $"shutDownCount is {shutDownCount}");
+            Assert.IsTrue(Math.Abs((selfJob.Events[0] - testStartTime).TotalSeconds - startTimeDelay) <= 1);
+            Assert.IsTrue(Math.Abs((selfJob.Events[1] - selfJob.Events[0]).TotalSeconds - interval) <= 1);
+            Assert.IsTrue(Math.Abs((selfJob.Events[2] - selfJob.Events[1]).TotalSeconds - interval) <= 1);
 
             // sleep
             Task.Delay((startTimeDelay + interval + 5) * 1000).Wait();
 
             Assert.AreEqual(shutDownCount, selfJob.Events.Count);
         }
+
+        //[TestMethod]
+        //public void ChangeSchedule()
+        //{
+        //    // initialize
+        //    var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+        //    settings.IsJobSchedulingDisabled = true;
+        //    var newRelicClient = new MockNewRelicInsightsClient();
+
+        //    AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+        //    AegisClient.Initialise(newRelicClient, settings);
+
+        //    // initialize classes
+        //    var selfRegistry = new TestRegistry();
+        //    var selfJob = new TestClientJob(AegisClient.Instance);
+
+        //    Assert.AreEqual(0, selfJob.Events.Count);
+
+        //    // add new job
+        //    int startTimeDelay = 10;
+        //    int interval1 = 5;
+        //    int interval2 = 7;
+        //    var testStartTime = DateTime.Now;
+
+        //    selfRegistry.PublicAdd(AegisClient.Instance, selfJob, startTimeDelay, interval1);
+        //    Assert.AreEqual(0, selfJob.Events.Count);
+
+        //    // start job manager
+        //    JobManager.Initialize(selfRegistry);
+
+        //    // sleep
+        //    Task.Delay((startTimeDelay + (1 * interval1)) * 1000).Wait();
+        //    Assert.IsTrue(selfJob.Events.Count >= 2);
+        //    Assert.IsTrue(selfJob.Events.Count <= 3);
+
+        //    selfRegistry.ChangeSchedule(AegisClient.Instance, selfJob.JobName, interval2, interval2);
+
+        //    Task.Delay((interval2 + (2 * interval2)) * 1000).Wait();
+
+        //    // stop registry
+        //    selfRegistry.ShutDown();
+
+        //    var shutDownCount = selfJob.Events.Count;
+
+        //    Assert.IsTrue(shutDownCount >= 5);
+        //    Assert.IsTrue(shutDownCount <= 8);
+        //    Assert.IsTrue(Math.Abs((selfJob.Events[0] - testStartTime).Seconds - startTimeDelay) <= 2);
+        //    Assert.IsTrue(Math.Abs((selfJob.Events[1] - selfJob.Events[0]).Seconds - interval1) <= 2);
+        //    Assert.IsTrue(Math.Abs((selfJob.Events[2] - selfJob.Events[1]).Seconds - interval2) <= 2);
+        //    Assert.IsTrue(Math.Abs((selfJob.Events[3] - selfJob.Events[2]).Seconds - interval2) <= 2);
+        //    Assert.IsTrue(Math.Abs((selfJob.Events[4] - selfJob.Events[3]).Seconds - interval2) <= 2);
+
+        //    // sleep
+        //    Task.Delay((startTimeDelay + interval2 + 5) * 1000).Wait();
+
+        //    Assert.AreEqual(shutDownCount, selfJob.Events.Count);
+        //}
     }
 }

@@ -788,7 +788,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception,
-                    noDuplicateLastSent: true);
+                    $"eventsToSend={items.Count} allEventsCount={allEventsCount}",
+                    true);
             }
 
             return false;

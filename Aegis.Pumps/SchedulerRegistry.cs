@@ -677,6 +677,8 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using FluentScheduler;
 using Aegis.Pumps.SchedulerJobs;
 
@@ -695,6 +697,9 @@ namespace Aegis.Pumps
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
+
+            // disable running same job in parallel
+            this.NonReentrantAsDefault();
 
             // add jobs
             this.Add(
@@ -753,6 +758,58 @@ namespace Aegis.Pumps
                         LimitInSecs))
             .Seconds();
         }
+
+        //public void ChangeSchedule(
+        //    AegisClient client, 
+        //    string jobName,
+        //    int startTimeDelay,
+        //    int defaultInterval)
+        //{
+        //    // remove job
+        //    JobManager.RemoveJob(jobName);
+
+        //    var item = this.scheduledItems.Single(x => x.Item1.JobName == jobName);
+        //    this.scheduledItems.Remove(item);
+
+        //    // add job
+        //    JobManager.AddJob(item.Item1, s => this.Add(s.NonReentrant(), client, item.Item1, startTimeDelay, defaultInterval));
+        //}
+
+        //protected void Add(
+        //    AegisClient client,
+        //    ClientJob self,
+        //    int startTimeDelay,
+        //    int defaultInterval)
+        //{
+        //    this.Add(
+        //        this.Schedule(self),
+        //        client,
+        //        self,
+        //        startTimeDelay,
+        //        defaultInterval);
+        //}
+
+        //protected void Add(
+        //    Schedule sched,
+        //    AegisClient client,
+        //    ClientJob self,
+        //    int startTimeDelay,
+        //    int defaultInterval)
+        //{
+        //    // for safety reason online settings value can't be higher than the following limit
+        //    const int LimitInSecs = 3600; // an hour
+
+        //    sched = sched.WithName(self.JobName);
+        //    this.scheduledItems.Add(Tuple.Create(self, sched));
+
+        //    sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
+        //        .AndEvery(
+        //            GetWithLimit(
+        //                client.SettingsOnline.GetJobInterval(self.JobName),
+        //                defaultInterval,
+        //                LimitInSecs))
+        //    .Seconds();
+        //}
 
         protected static int GetWithLimit(int? primaryValue, int secondaryValue, int limit)
         {
