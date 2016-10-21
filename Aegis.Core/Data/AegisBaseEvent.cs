@@ -734,10 +734,18 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "appM")]
         public string ApplicationMachineName { get; set; }
 
+        [JilDirective(Name = "appE")]
+        public string ApplicationEnvironment { get; set; }
+
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis
         /// </summary>
         [JilDirective(Name = "aegisV")]
         public string AegisVersion { get; set; }
+
+        public override string ToString()
+        {
+            return $"Event '{this.EventType}' from '{this.ApplicationMachineName}' in '{this.ApplicationEnvironment}'";
+        }
     }
 }

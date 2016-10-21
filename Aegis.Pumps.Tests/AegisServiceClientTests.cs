@@ -692,6 +692,7 @@ namespace Aegis.Pumps.Tests
         private const string ClientName = "unit-test-client-name";
         private const string ClientVer = "111.0.333.41";
         private const string ClientMachine = "unit-test-machine";
+        private const string ClientEnvironment = "unit-test-environment";
         private const string AegisVer = "1.2.3.4.5";
 
         [TestMethod]
@@ -724,6 +725,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -741,6 +743,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
         }
 
@@ -771,6 +774,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -794,6 +798,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
             Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
@@ -829,6 +834,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -852,6 +858,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
             Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
@@ -879,6 +886,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -893,6 +901,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountInRequest], testItems.Count.ToString());
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountAll], testAllItemsCount.ToString());
@@ -933,6 +942,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -955,6 +965,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -981,6 +992,7 @@ namespace Aegis.Pumps.Tests
                 ClientName,
                 ClientVer,
                 ClientMachine,
+                ClientEnvironment,
                 AegisVer,
                 settings,
                 settingsOnline,

@@ -731,7 +731,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (TaskCanceledException exception)
             {
-                // TODO if there is an error change cheduler to run this job faster
+                // TODO if there is an error change scheduler to run this job faster
                 // rather than waiting standard interval time
 
                 if (this.IsShuttingDown)
@@ -779,6 +779,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     AegisClient.ClientName,
                     AegisClient.ClientVersion,
                     AegisClient.ClientMachineName,
+                    AegisClient.ClientEnvironment,
                     AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,

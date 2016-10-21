@@ -705,6 +705,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public string ApplicationVersion => AegisClient.ClientVersion;
 
         /// <summary>
+        ///     <see cref="ApplicationEnvironment" /> is the friendly name of the deployment environment
+        /// </summary>
+        [JilDirective(Name = "applicationEnvironment")]
+        public string ApplicationEnvironment => AegisClient.ClientEnvironment;
+
+        /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis in
         ///     which the error occurred.
         /// </summary>

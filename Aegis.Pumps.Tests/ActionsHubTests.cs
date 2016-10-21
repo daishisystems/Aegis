@@ -725,7 +725,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -766,7 +766,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -812,7 +812,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -857,7 +857,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -989,6 +989,7 @@ namespace Aegis.Pumps.Tests
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationMachineName));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationEnvironment));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);

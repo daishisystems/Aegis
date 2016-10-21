@@ -715,6 +715,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     AegisClient.ClientName,
                     AegisClient.ClientVersion,
                     AegisClient.ClientMachineName,
+                    AegisClient.ClientEnvironment,
                     AegisClient.AegisVersion,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,

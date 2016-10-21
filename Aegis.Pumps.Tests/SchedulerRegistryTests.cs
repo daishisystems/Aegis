@@ -728,7 +728,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = true;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
             AegisClient.Initialise(newRelicClient, settings);
 
             // initialize classes

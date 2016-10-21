@@ -691,6 +691,7 @@ namespace Aegis.Pumps
         public static string ClientName { get; private set; }
         public static string ClientVersion { get; private set; }
         public static string ClientMachineName { get; private set; }
+        public static string ClientEnvironment { get; private set; }
         public static string AegisVersion { get; private set; }
         public static DateTimeOffset InitializationTime { get; private set; }
 
@@ -739,7 +740,8 @@ namespace Aegis.Pumps
         public static void SetUp(
             INewRelicInsightsClient newRelicInsightsClient,
             string clientName,
-            string clientVersion)
+            string clientVersion,
+            string clientEnvironment)
         {
             lock (lockInit)
             {
@@ -753,6 +755,7 @@ namespace Aegis.Pumps
                 ClientName = string.Empty;
                 ClientVersion = string.Empty;
                 ClientMachineName = string.Empty;
+                ClientEnvironment = string.Empty;
 
                 // set safely names
                 try
@@ -760,6 +763,7 @@ namespace Aegis.Pumps
                     ClientName = Uri.EscapeDataString(clientName?.ToLowerInvariant().Trim() ?? Guid.NewGuid().ToString("N"));
                     ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
                     ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
+                    ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
                     isSetUpDone = true;
 
                     // set machine name if available
