@@ -799,7 +799,7 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
-        public void GetSettingsOnlineWithOnlineSettings() // TODO implement SendEvents test
+        public void GetSettingsOnlineWithOnlineSettings()
         {
             // create data
             var data = new SettingsOnlineData();
@@ -854,6 +854,48 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
             Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
+        }
+
+        [TestMethod]
+        public void SendEvents()
+        {
+            // create data
+            var testItems = new List<AegisBaseEvent>()
+                                {
+                                    new AegisAvailabilityEvent(),
+                                    new AegisBagEvent(),
+                                    new AegisCalendarEvent()
+                                };
+
+            // create mock object
+            var mock = new MockAegisServiceClient();
+
+            var testUri = "test.bla.com";
+            var testAllItemsCount = 99;
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+
+            mock.SendAegisEvents(
+                ClientName,
+                ClientVer,
+                ClientMachine,
+                AegisVer,
+                settings,
+                settingsOnline,
+                testItems,
+                testAllItemsCount);
+
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+
+            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
+            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
+
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountInRequest], testItems.Count.ToString());
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountAll], testAllItemsCount.ToString());
         }
 
         [TestMethod]

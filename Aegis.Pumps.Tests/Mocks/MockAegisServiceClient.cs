@@ -690,6 +690,8 @@ namespace Aegis.Pumps.Tests.Mocks
 
         public Uri MockInUri { get; private set; }
 
+        public string MockInSendAegisEvents { get; private set; }
+
         protected override bool DoGetStringData(
             Core.HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
@@ -702,6 +704,15 @@ namespace Aegis.Pumps.Tests.Mocks
             data = this.MockOutData;
             timeStamp = this.MockOutTimeStamp;
             return this.MockResult;
+        }
+
+        protected override void DoSendAegisEvents(
+            HttpRequestMetadata httpRequestMetadata,
+            HttpClientFactory httpClientFactory,
+            string itemsJson)
+        {
+            this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());
+            this.MockInSendAegisEvents = itemsJson;
         }
     }
 }

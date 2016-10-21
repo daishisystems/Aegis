@@ -703,8 +703,8 @@ namespace Aegis.Pumps
             public const string ClientVersion = "v";
             public const string ClientMachineName = "m";
             public const string AegisVersion = "a";
-            public const string RequestItemsCount = "cr";
-            public const string AllItemsCount = "ca";
+            public const string CountInRequest = "cr";
+            public const string CountAll = "ca";
             public const string SettingsKey = "key";
         }
 
@@ -842,8 +842,8 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.AegisVersion, aegisVersion },
-                        { ParameterNames.RequestItemsCount, items.Count.ToString() },
-                        { ParameterNames.AllItemsCount, allItemsCount.ToString() }
+                        { ParameterNames.CountInRequest, items.Count.ToString() },
+                        { ParameterNames.CountAll, allItemsCount.ToString() }
                     });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(
@@ -966,7 +966,7 @@ namespace Aegis.Pumps
             }
         }
 
-        public void DoSendAegisEvents(
+        protected virtual void DoSendAegisEvents(
             HttpRequestMetadata httpRequestMetadata,
             HttpClientFactory httpClientFactory,
             string itemsJson)
