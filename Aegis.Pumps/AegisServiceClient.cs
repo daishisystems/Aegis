@@ -996,6 +996,8 @@ namespace Aegis.Pumps
                 httpClient.DefaultRequestHeaders.Accept.Clear();
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                // TODO StringContent is NOT doing any encoding, especially for ampersand character etc.
+                // try to use Uri.EscapeDataString or FormUrlEncodedContent
                 var content = new StringContent("=" + itemsJson, Encoding.UTF8, "application/x-www-form-urlencoded");
                 var response = httpClient.PostAsync(httpRequestMetadata.URI, content).Result;
 

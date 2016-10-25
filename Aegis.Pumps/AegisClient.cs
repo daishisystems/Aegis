@@ -886,7 +886,7 @@ namespace Aegis.Pumps
             // update ClientName with an unique id to recognize many instances
             var guidStr = Guid.NewGuid().ToString("N");
             var uniqueId = guidStr.Substring(guidStr.Length - 4, 4);
-            ClientName = $"{ClientName}-{uniqueId}";
+            ClientName = $"{ClientName}-{uniqueId}"; // TODO use other separator for uniqueId
 
             // assign object to the instance
             instanceClient = self;

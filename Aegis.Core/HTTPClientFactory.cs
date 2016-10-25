@@ -709,6 +709,7 @@ namespace Aegis.Core
             HttpRequestMetadata httpRequestMetadata, 
             out HttpClientHandler httpClientHandler)
         {
+            // TODO follow new pattern and initialize HttpClient once only
             HttpClient httpClient;
 
             if (httpRequestMetadata.UseWebProxy)
