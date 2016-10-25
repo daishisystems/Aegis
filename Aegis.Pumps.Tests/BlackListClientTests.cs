@@ -676,8 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Aegis.Core;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Tests
@@ -702,10 +702,60 @@ namespace Aegis.Pumps.Tests
 
             Assert.AreEqual(dataTimeStamp, self.TimeStamp);
             Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.4", out blackItem));
 
             self.CleanUp();
             Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
             Assert.IsNull(self.TimeStamp);
         }
+
+        [TestMethod]
+        public void DuplicatedIps()
+        {
+            BlackListItem blackItem;
+            var self = new BlackListClient();
+
+            var data = new []
+                           {
+                               new BlackListItem() { IpAddressRaw = "10.1.2.3" },
+                               new BlackListItem() { IpAddressRaw = "10.1.2.4" },
+                               new BlackListItem() { IpAddressRaw = "10.1.2.3" },
+                               new BlackListItem() { IpAddressRaw = "10.1.2.4" },
+                               new BlackListItem() { IpAddressRaw = "10.1.2.5" },
+                               new BlackListItem() { IpAddressRaw = "10.1.2.6" },
+                           };
+            var dataTimeStamp = DateTimeOffset.Now;
+            self.SetNewData(data, dataTimeStamp);
+
+            Assert.AreEqual(dataTimeStamp, self.TimeStamp);
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.4", out blackItem));
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.5", out blackItem));
+            Assert.IsTrue(self.TryGetBlacklistedItem("10.1.2.6", out blackItem));
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.7", out blackItem));
+
+            self.CleanUp();
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
+            Assert.IsNull(self.TimeStamp);
+        }
+
+        [TestMethod]
+        public void EmptyList()
+        {
+            BlackListItem blackItem;
+            var self = new BlackListClient();
+
+            var data = new List<BlackListItem>();
+            var dataTimeStamp = DateTimeOffset.Now;
+            self.SetNewData(data, dataTimeStamp);
+
+            Assert.AreEqual(dataTimeStamp, self.TimeStamp);
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
+
+            self.CleanUp();
+            Assert.IsFalse(self.TryGetBlacklistedItem("10.1.2.3", out blackItem));
+            Assert.IsNull(self.TimeStamp);
+        }
+
     }
 }
