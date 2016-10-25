@@ -824,6 +824,7 @@ namespace Aegis.Pumps.Actions
             // add IP address to data-pump
             var evnt = eventBuilder();
             evnt.ApplicationName = AegisClient.ClientName;
+            evnt.ApplicationId = AegisClient.ClientId;
             evnt.ApplicationVersion = AegisClient.ClientVersion;
             evnt.ApplicationMachineName = AegisClient.ClientMachineName;
             evnt.ApplicationEnvironment = AegisClient.ClientEnvironment;
@@ -919,6 +920,7 @@ namespace Aegis.Pumps.Actions
             var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
                 ApplicationName = AegisClient.ClientName,
+                ApplicationId = AegisClient.ClientId,
                 ApplicationVersion = AegisClient.ClientVersion,
                 ApplicationMachineName = AegisClient.ClientMachineName,
                 ApplicationEnvironment = AegisClient.ClientEnvironment,

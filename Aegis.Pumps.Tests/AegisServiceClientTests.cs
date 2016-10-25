@@ -690,6 +690,7 @@ namespace Aegis.Pumps.Tests
     public class AegisServiceClientTests
     {
         private const string ClientName = "unit-test-client-name";
+        private const string ClientId = "unit-test-client-id";
         private const string ClientVer = "111.0.333.41";
         private const string ClientMachine = "unit-test-machine";
         private const string ClientEnvironment = "unit-test-environment";
@@ -723,6 +724,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? resultTimeStamp;
             mock.GetBlackListData(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -741,6 +743,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
 
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
@@ -772,6 +775,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? resultTimeStamp;
             mock.GetSettingsOnlineData(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -796,6 +800,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
 
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
@@ -832,6 +837,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? resultTimeStamp;
             mock.GetSettingsOnlineData(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -856,6 +862,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
 
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
@@ -884,6 +891,7 @@ namespace Aegis.Pumps.Tests
 
             mock.SendAegisEvents(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -899,6 +907,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
 
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
@@ -940,6 +949,7 @@ namespace Aegis.Pumps.Tests
 
             self.SendAegisEvents(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -963,6 +973,7 @@ namespace Aegis.Pumps.Tests
 
             var result = self.GetBlackListData(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
@@ -990,6 +1001,7 @@ namespace Aegis.Pumps.Tests
 
             var result = self.GetSettingsOnlineData(
                 ClientName,
+                ClientId,
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,

@@ -697,6 +697,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "applicationName")]
         public string ApplicationName => AegisClient.ClientName;
 
+        [JilDirective(Name = "applicationId")]
+        public string ApplicationId => AegisClient.ClientId;
+
         /// <summary>
         ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
         ///     which the error occurred.

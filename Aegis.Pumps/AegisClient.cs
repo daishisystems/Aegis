@@ -689,6 +689,7 @@ namespace Aegis.Pumps
 
         public static AegisClient Instance => instanceClient;
         public static string ClientName { get; private set; }
+        public static string ClientId { get; private set; }
         public static string ClientVersion { get; private set; }
         public static string ClientMachineName { get; private set; }
         public static string ClientEnvironment { get; private set; }
@@ -753,6 +754,7 @@ namespace Aegis.Pumps
                 InitializationTime = DateTimeOffset.UtcNow;
                 AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
                 ClientName = string.Empty;
+                ClientId = string.Empty;
                 ClientVersion = string.Empty;
                 ClientMachineName = string.Empty;
                 ClientEnvironment = string.Empty;
@@ -764,6 +766,12 @@ namespace Aegis.Pumps
                     ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
                     ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
                     ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
+
+                    // set ClientUniqueId with an unique id to recognize many instances
+                    var guidStr = Guid.NewGuid().ToString("N");
+                    ClientId = guidStr.Substring(guidStr.Length - 4, 4);
+
+                    // set flag
                     isSetUpDone = true;
 
                     // set machine name if available
@@ -882,11 +890,6 @@ namespace Aegis.Pumps
             Settings settings)
         {
             var self = new AegisClient(newRelicInsightsClient, settings);
-
-            // update ClientName with an unique id to recognize many instances
-            var guidStr = Guid.NewGuid().ToString("N");
-            var uniqueId = guidStr.Substring(guidStr.Length - 4, 4);
-            ClientName = $"{ClientName}-{uniqueId}"; // TODO use other separator for uniqueId
 
             // assign object to the instance
             instanceClient = self;

@@ -724,6 +724,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "appN")]
         public string ApplicationName { get; set; }
 
+        [JilDirective(Name = "appI")]
+        public string ApplicationId { get; set; }
+
         /// <summary>
         ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
         ///     which the error occurred.

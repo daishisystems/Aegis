@@ -700,6 +700,7 @@ namespace Aegis.Pumps
         public static class ParameterNames
         {
             public const string ClientName = "c";
+            public const string ClientId = "i";
             public const string ClientVersion = "v";
             public const string ClientMachineName = "m";
             public const string ClientEnvironment = "e";
@@ -711,6 +712,7 @@ namespace Aegis.Pumps
 
         public bool GetBlackListData(
             string clientName,
+            string clientId,
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
@@ -730,6 +732,7 @@ namespace Aegis.Pumps
                 new Dictionary<string, string>()
                     {
                         { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientId, clientId },
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
@@ -766,6 +769,7 @@ namespace Aegis.Pumps
 
         public bool GetSettingsOnlineData(
             string clientName,
+            string clientId,
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
@@ -789,6 +793,7 @@ namespace Aegis.Pumps
                     {
                         { ParameterNames.SettingsKey, keyValue },
                         { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientId, clientId },
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
@@ -829,6 +834,7 @@ namespace Aegis.Pumps
 
         public void SendAegisEvents(
             string clientName,
+            string clientId,
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
@@ -845,6 +851,7 @@ namespace Aegis.Pumps
                 new Dictionary<string, string>()
                     {
                         { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientId, clientId },
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },

@@ -713,6 +713,7 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
                     AegisClient.ClientName,
+                    AegisClient.ClientId,
                     AegisClient.ClientVersion,
                     AegisClient.ClientMachineName,
                     AegisClient.ClientEnvironment,

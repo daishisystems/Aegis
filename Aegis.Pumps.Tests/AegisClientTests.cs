@@ -1123,6 +1123,7 @@ namespace Aegis.Pumps.Tests
             foreach (var evnt in events)
             {
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationName));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationId));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.ApplicationMachineName));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
