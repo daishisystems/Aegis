@@ -769,7 +769,7 @@ namespace Aegis.Pumps
 
                     // set ClientUniqueId with an unique id to recognize many instances
                     var guidStr = Guid.NewGuid().ToString("N");
-                    ClientId = guidStr.Substring(guidStr.Length - 4, 4);
+                    ClientId = Uri.EscapeDataString(guidStr.Substring(guidStr.Length - 4, 4));
 
                     // set flag
                     isSetUpDone = true;

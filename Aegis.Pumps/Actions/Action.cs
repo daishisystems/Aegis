@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net.Http.Headers;
@@ -768,16 +769,23 @@ namespace Aegis.Pumps.Actions
             return string.Join(";", values);
         }
 
-        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers)
+        protected string GetHttpHeaderValue(string headerName, HttpHeaders headers, int lengthLimit = 0)
         {
-            IEnumerable<string> values;
+            const string CutPostfix = "[CUT]";
 
+            IEnumerable<string> values;
             if (!headers.TryGetValues(headerName, out values))
             {
                 return null;
             }
 
-            return string.Join(";", values);
+            var result = string.Join(";", values);
+            if (lengthLimit > 0 && result.Length > lengthLimit)
+            {
+                return result.Substring(0, Math.Max(lengthLimit - CutPostfix.Length, 0)) + CutPostfix;
+            }
+
+            return result;
         }
     }
 }

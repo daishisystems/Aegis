@@ -760,9 +760,9 @@ namespace Aegis.Pumps.Actions
             // get common data
             var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
-            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders);
-            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders);
-            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders);
+            var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
+            var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
+            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
 
             // process each IP
             var isBlocked = false;
@@ -900,7 +900,7 @@ namespace Aegis.Pumps.Actions
                 return isBlocked;
             }
 
-            // log the malicious event
+            // log the malicious event to NewRelic
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
                 SourceEventType = eventTypeName,
@@ -928,6 +928,10 @@ namespace Aegis.Pumps.Actions
                 ExperimentId = expId,
                 IpAddress = ipAddressString,
                 GroupId = groupId,
+                IsBlocked = isBlocked,
+                IsSimulated = isSimulated,
+                SourceEventType = eventTypeName,
+                Country = blackItem.Country,
                 HttpUserAgent = httpUserAgent,
                 HttpAcceptLanguage = httpAcceptLanguage,
                 HttpSessionToken = httpSessionToken,
