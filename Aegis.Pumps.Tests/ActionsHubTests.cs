@@ -719,7 +719,7 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = true;
+            settings.IsJobSchedulingDisabled = "test_schedule_disabled";
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
@@ -760,7 +760,7 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = true;
+            settings.IsJobSchedulingDisabled = "test_schedule_disabled";
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
@@ -806,7 +806,7 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = true;
+            settings.IsJobSchedulingDisabled = "test_schedule_disabled";
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
@@ -851,7 +851,7 @@ namespace Aegis.Pumps.Tests
         {
             // client setup
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = true;
+            settings.IsJobSchedulingDisabled = "test_schedule_disabled";
             var newRelicClient = new MockNewRelicInsightsClient();
 
             Assert.IsNull(AegisClient.Instance);
@@ -920,9 +920,15 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
-                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri, 
+                () => AegisClient.GetActionsHub().PostPayment(0, requestHeaders, requestUri, 
                                                 null, null, null, null,
-                                                null, null, null, null, null)
+                                                null, null, null, null, null),
+                () => AegisClient.GetActionsHub().PostPayment(2, requestHeaders, requestUri,
+                                                null, null, null, null,
+                                                null, null, null, null, null),
+                () => AegisClient.GetActionsHub().PostPayment(3, requestHeaders, requestUri,
+                                                null, null, null, null,
+                                                null, null, null, null, null),
             };
 
 
@@ -945,9 +951,15 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 1, 2, 3, 4),
                 () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 1, 2, 3, 4),
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, "123456", "p-method-code"),
-                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment(0, requestHeaders, requestUri,
                                                 "customer-id", "12345", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2")
+                                                "country", "postal", "email@host.com", "info1", "info2"),
+                () => AegisClient.GetActionsHub().PostPayment(2, requestHeaders, requestUri,
+                                                "customer-id", "12345", "p-method-code", "city",
+                                                "country", "postal", "email@host.com", "info1", "info2"),
+                () => AegisClient.GetActionsHub().PostPayment(3, requestHeaders, requestUri,
+                                                "customer-id", "12345", "p-method-code", "city",
+                                                "country", "postal", "email@host.com", "info1", "info2"),
             };
 
             var testMethodsSets = new[] { testMethodsWithNullParameters, testMethodsWithRealParameters};

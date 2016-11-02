@@ -700,6 +700,8 @@ namespace Aegis.Core.Data
             public const string Fees = "fees";
             public const string Flight = "flight";
             public const string Payment = "payment";
+            public const string Payment2 = "payment2";
+            public const string Payment3 = "payment3";
             public const string PaymentMethods = "paymentMethods";
             public const string Price = "price";
             public const string QuickAdd = "quickAdd";

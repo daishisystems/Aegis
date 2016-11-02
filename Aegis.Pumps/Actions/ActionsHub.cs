@@ -706,6 +706,8 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisPaymentMethodsEvent> actionPaymentMethods;
         private readonly ActionIpEventNotify<AegisDccEvent> actionDcc;
         private readonly ActionIpEventNotify<AegisPaymentEvent> actionPayment;
+        private readonly ActionIpEventNotify<AegisPayment2Event> actionPayment2;
+        private readonly ActionIpEventNotify<AegisPayment3Event> actionPayment3;
         private readonly ActionIpEventNotify<AegisPromoCodesEvent> actionPromoCodes;
 
         public ActionsHub(AegisClient client, IEnumerable<string> httpIpHeaderNames)
@@ -730,6 +732,8 @@ namespace Aegis.Pumps.Actions
             this.actionPaymentMethods = new ActionIpEventNotify<AegisPaymentMethodsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPaymentMethods);
             this.actionDcc = new ActionIpEventNotify<AegisDccEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionDcc);
             this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
+            this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
+            this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
         }
 
@@ -1012,6 +1016,7 @@ namespace Aegis.Pumps.Actions
         }
 
         public bool PostPayment(
+            int subType,
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramCustomerId,
@@ -1024,6 +1029,7 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2)
         {
+            // TODO extend payment event with additional id, to distint few sub-events
             string mailHost = null;
             string mailHash = null;
 
@@ -1049,24 +1055,74 @@ namespace Aegis.Pumps.Actions
                 }
             }
 
-            return this.actionPayment.Run(
-                    AegisBaseEvent.EventTypes.Payment,
-                    this.ipHeaderNames,
-                    requestHeaders,
-                    requestUri,
-                    () => new AegisPaymentEvent()
-                    {
-                        CustomerId = paramCustomerId,
-                        AccountNumber = this.client.Crypt.HashAccountNumber(paramAccountNumber),
-                        PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                        AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                        AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                        AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
-                        ContactMailDomain = mailHost,
-                        ContactMail = mailHash,
-                        PaymentInfo1 = paymentInfo1,
-                        PaymentInfo2 = paymentInfo2
-                    });
+            switch (subType)
+            {
+                case 2:
+                    return this.actionPayment2.Run(
+                        AegisBaseEvent.EventTypes.Payment2,
+                        this.ipHeaderNames,
+                        requestHeaders,
+                        requestUri,
+                        () =>
+                        new AegisPayment2Event()
+                        {
+                            CustomerId = paramCustomerId,
+                            AccountNumber =
+                                    this.client.Crypt.HashAccountNumber(paramAccountNumber),
+                            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                            AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
+                            ContactMailDomain = mailHost,
+                            ContactMail = mailHash,
+                            PaymentInfo1 = paymentInfo1,
+                            PaymentInfo2 = paymentInfo2
+                        });
+
+                case 3:
+                    return this.actionPayment3.Run(
+                        AegisBaseEvent.EventTypes.Payment3,
+                        this.ipHeaderNames,
+                        requestHeaders,
+                        requestUri,
+                        () =>
+                        new AegisPayment3Event()
+                        {
+                            CustomerId = paramCustomerId,
+                            AccountNumber =
+                                    this.client.Crypt.HashAccountNumber(paramAccountNumber),
+                            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                            AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
+                            ContactMailDomain = mailHost,
+                            ContactMail = mailHash,
+                            PaymentInfo1 = paymentInfo1,
+                            PaymentInfo2 = paymentInfo2
+                        });
+
+                default:
+                    return this.actionPayment.Run(
+                        AegisBaseEvent.EventTypes.Payment,
+                        this.ipHeaderNames,
+                        requestHeaders,
+                        requestUri,
+                        () =>
+                        new AegisPaymentEvent()
+                        {
+                            CustomerId = paramCustomerId,
+                            AccountNumber =
+                                this.client.Crypt.HashAccountNumber(paramAccountNumber),
+                            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                            AddressPostal = this.client.Crypt.HashSimple(paramAddressPostal),
+                            ContactMailDomain = mailHost,
+                            ContactMail = mailHash,
+                            PaymentInfo1 = paymentInfo1,
+                            PaymentInfo2 = paymentInfo2
+                        });
+            }
         }
     }
 }

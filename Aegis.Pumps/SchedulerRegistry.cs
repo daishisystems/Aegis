@@ -693,7 +693,7 @@ namespace Aegis.Pumps
             this.scheduledItems = new List<Tuple<ClientJob, Schedule>>();
         }
 
-        public void Initialise(AegisClient client, bool isSchedulingDisabled = false)
+        public void Initialise(AegisClient client, string isSchedulingDisabled)
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
@@ -720,8 +720,12 @@ namespace Aegis.Pumps
                 InitialStartDelay + JobStartDelay,
                 client.Settings.SendAegisEventsJobIntervalInSeconds);
 
+            // TODO add new scheduled job - status:
+            // Runs every 30 minutes, sends basic information to NewRelic/Service (?)
+            // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
+
             // start schedulers
-            if (!isSchedulingDisabled)
+            if (isSchedulingDisabled != "test_schedule_disabled")
             {
                 JobManager.Initialize(this);
             }

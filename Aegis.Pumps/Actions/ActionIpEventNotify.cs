@@ -763,7 +763,7 @@ namespace Aegis.Pumps.Actions
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
             var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
-
+            // TODO start logging proxy headers:
             // process each IP
             var isBlocked = false;
 
@@ -861,8 +861,7 @@ namespace Aegis.Pumps.Actions
             string httpSessionToken)
         {
             // are online settings available
-            if (!this.Client.SettingsOnline.IsAvailable ||
-                this.Client.SettingsOnline.Data.Blacklist == null)
+            if (!this.Client.SettingsOnline.IsAvailable)
             {
                 // do not block
                 return false;

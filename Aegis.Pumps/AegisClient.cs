@@ -684,7 +684,7 @@ namespace Aegis.Pumps
     public class AegisClient
     {
         private static readonly object lockInit = new object();
-        private static volatile bool isSetUpDone;
+        //private static volatile bool isSetUpDone;
         private static volatile AegisClient instanceClient;
 
         public static AegisClient Instance => instanceClient;
@@ -698,15 +698,16 @@ namespace Aegis.Pumps
 
         public static bool IsInitialised => Instance != null;
 
-        public readonly INewRelicInsightsClient NewRelicInsightsClient;
+        public INewRelicInsightsClient NewRelicInsightsClient { get; private set; }
+        public Settings Settings { get; private set; }
+        public ActionsHub ActionsHub { get; private set; }
+
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
-        public readonly Settings Settings;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly CryptUtils Crypt;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient;
-        public readonly ActionsHub ActionsHub;
         private SchedulerRegistry scheduler;
 
         private AegisClient(
@@ -735,6 +736,25 @@ namespace Aegis.Pumps
             this.scheduler = new SchedulerRegistry();
         }
 
+        private void Reload(
+            INewRelicInsightsClient newRelicInsightsClient,
+            Settings settings)
+        {
+            if (newRelicInsightsClient == null)
+            {
+                throw new ArgumentNullException(nameof(newRelicInsightsClient));
+            }
+
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            this.NewRelicInsightsClient = newRelicInsightsClient;
+            this.Settings = settings;
+            this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
+        }
+
         /// <summary>
         /// Set basic Aegis information. Throws exceptions.
         /// </summary>
@@ -746,10 +766,11 @@ namespace Aegis.Pumps
         {
             lock (lockInit)
             {
-                if (isSetUpDone)
-                {
-                    return;
-                }
+                // TODO fix later
+                //if (isSetUpDone)
+                //{
+                //    return;
+                //}
 
                 InitializationTime = DateTimeOffset.UtcNow;
                 AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
@@ -772,7 +793,7 @@ namespace Aegis.Pumps
                     ClientId = Uri.EscapeDataString(guidStr.Substring(guidStr.Length - 4, 4));
 
                     // set flag
-                    isSetUpDone = true;
+                    //isSetUpDone = true;
 
                     // set machine name if available
                     var machineName = Environment.MachineName;
@@ -807,12 +828,14 @@ namespace Aegis.Pumps
                 {
                     if (IsInitialised)
                     {
+                        Instance.Reload(newRelicInsightsClient, settings);
                         return true;
                     }
 
                     DoInitialise(newRelicInsightsClient, settings);
 
                     // success - class initialised
+                    // TODO report
                     return true;
                 }
             }
@@ -828,7 +851,7 @@ namespace Aegis.Pumps
 
         public static void ShutDown()
         {
-            isSetUpDone = false;
+            //isSetUpDone = false;
 
             // do nothing if not initialised
             if (!IsInitialised)
@@ -878,11 +901,12 @@ namespace Aegis.Pumps
 
         public void SettingsChangeNotification()
         {
+            // TODO reload scheduler only if right settings has changed, not always
             // reload scheduler
             this.scheduler?.ShutDown();
 
             this.scheduler = new SchedulerRegistry();
-            this.scheduler.Initialise(Instance, true);
+            this.scheduler.Initialise(Instance, null);
         }
 
         private static void DoInitialise(

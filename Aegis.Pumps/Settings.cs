@@ -696,10 +696,10 @@ namespace Aegis.Pumps
         public readonly int AegisEventsTimeToLiveInHours = 12;
         public readonly int AegisEventsCacheBatchSize = 1000;
         public readonly int GetBlackListJobIntervalInSeconds = 60;
-        public readonly int GetSettingsOnlineJobIntervalInSeconds = 900;
+        public readonly int GetSettingsOnlineJobIntervalInSeconds = 600;
         public readonly int SendAegisEventsJobIntervalInSeconds = 10;
 
-        public bool IsJobSchedulingDisabled { get; set; }
+        public string IsJobSchedulingDisabled { get; set; }
 
         public Settings(
             string webProxy,
@@ -738,7 +738,7 @@ namespace Aegis.Pumps
 
             // http headers names
             this.HttpIpHeaderNames = httpIpHeaderNames.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-            this.IsJobSchedulingDisabled = false;
+            this.IsJobSchedulingDisabled = null;
         }
 
         /// <summary>

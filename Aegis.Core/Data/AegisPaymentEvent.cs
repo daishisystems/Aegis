@@ -679,13 +679,13 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisPaymentEvent : AegisBaseIpEvent
+    public abstract class AegisPaymentBaseEvent : AegisBaseIpEvent
     {
-        public override string EventType
-        {
-            get { return EventTypes.Payment; }
-            set { }
-        }
+        //public override string EventType
+        //{
+        //    get { return EventTypes.Payment; }
+        //    set { }
+        //}
 
         [JilDirective(Name = "cid")]
         public string CustomerId { get; set; }
@@ -716,5 +716,32 @@ namespace Aegis.Core.Data
 
         [JilDirective(Name = "pi2")]
         public string PaymentInfo2 { get; set; }
+    }
+
+    public class AegisPaymentEvent : AegisPaymentBaseEvent
+    {
+        public override string EventType
+        {
+            get { return EventTypes.Payment; }
+            set { }
+        }
+    }
+
+    public class AegisPayment2Event : AegisPaymentBaseEvent
+    {
+        public override string EventType
+        {
+            get { return EventTypes.Payment2; }
+            set { }
+        }
+    }
+
+    public class AegisPayment3Event : AegisPaymentBaseEvent
+    {
+        public override string EventType
+        {
+            get { return EventTypes.Payment3; }
+            set { }
+        }
     }
 }

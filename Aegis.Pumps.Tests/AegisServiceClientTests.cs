@@ -989,10 +989,11 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
-        [Ignore]
+        //[Ignore]
         public void GetSettingsFromTheRealCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            //var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://aegisserviceclusterpoc.northeurope.cloudapp.azure.com:8467", new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
@@ -1000,7 +1001,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetSettingsOnlineData(
-                ClientName,
+                "dotrez", //ClientName,
                 ClientId,
                 ClientVer,
                 ClientMachine,
