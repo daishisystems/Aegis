@@ -873,9 +873,9 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
             requestHeaders.Add("NS_CLIENT_IP", "206.168.1.1");
 
-            requestHeaders.Add("User-Agent", "testUserAgent");
-            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
-            requestHeaders.Add("X-Session-Token", "testSessionToken");
+            requestHeaders.Add("User-Agent", "testUserAgent żźłćłóęś€$http://dad/&*()");
+            requestHeaders.Add("Accept-Language", "testAcceptLanguage żźłćłóęś€$http://dad/&*()");
+            requestHeaders.Add("X-Session-Token", "testSessionToken żźłćłóęś€$http://dad/&*()");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 

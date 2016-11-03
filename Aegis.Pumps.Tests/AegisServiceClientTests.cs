@@ -941,9 +941,9 @@ namespace Aegis.Pumps.Tests
                 ev.ExperimentId = 7;
                 ev.GroupId = "test-groupId";
                 ev.Path = "test-path";
-                ev.HttpAcceptLanguage = "test-httpAcceptLang";
-                ev.HttpUserAgent = "test-httpUserAgent";
-                ev.HttpSessionToken = "test-httpSessionToken";
+                ev.HttpAcceptLanguage = "test-httpAcceptLang żźłćłóęś€$http://dad/&*()";
+                ev.HttpUserAgent = "test-httpUserAgent żźłćłóęś€$http://dad/&*()";
+                ev.HttpSessionToken = "test-httpSessionToken żźłćłóęś€$http://dad/&*()";
                 ev.IpAddress = "192.168.0.1";
             }
 
@@ -989,11 +989,10 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
-        //[Ignore]
+        [Ignore]
         public void GetSettingsFromTheRealCluster()
         {
-            //var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settings = new Settings(null, null, "http://aegisserviceclusterpoc.northeurope.cloudapp.azure.com:8467", new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
@@ -1001,7 +1000,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetSettingsOnlineData(
-                "dotrez", //ClientName,
+                ClientName,
                 ClientId,
                 ClientVer,
                 ClientMachine,
