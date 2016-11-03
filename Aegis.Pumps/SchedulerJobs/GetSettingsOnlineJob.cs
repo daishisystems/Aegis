@@ -801,12 +801,11 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance.NewRelicUtils.AddNotification(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
-                    "New settings applied");
+                    $"New settings applying newTimeStamp={newTimeStamp?.ToString("o")}");
 
                 // set new data
                 this.ClientInstance.SettingsOnline.SetNewData(settingsOnlineData, newTimeStamp);
 
-                // TODO notification to NewRelic about new settings applied?
                 // notify about settings change
                 this.ClientInstance.SettingsChangeNotification();
                 return true;

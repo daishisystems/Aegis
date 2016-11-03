@@ -682,9 +682,9 @@ using Aegis.Core.Data;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
-    internal class SendAegisEventsJob : ClientJob
+    internal class SendStatusJob : ClientJob
     {
-        public SendAegisEventsJob(AegisClient client) : base(client, "AegisSendAegisEventsJob")
+        public SendStatusJob(AegisClient client) : base(client, "AegisSendStatusJob")
         {
         }
 
@@ -698,28 +698,13 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
-                // execute sending data
-                var count = this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisEventsCacheBatchSize, 
-                    this.OnPublishEvents);
+                // TODO sends basic information to NewRelic/Service (?)
+                // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
 
-                // if there was an error
-                if (count < 0)
-                {
-                    // remove old items
-                    var removedCount = this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
-
-                    // notify NewRelic if anything was removed
-                    if (removedCount > 0)
-                    {
-                        this.ClientInstance.NewRelicUtils.AddException(
-                            this.ClientInstance.NewRelicInsightsClient,
-                            NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                            null,
-                            $"Removed too old events: {removedCount}",
-                            true);
-                    }
-                }
+                this.ClientInstance.NewRelicUtils.AddNotification(
+                    this.ClientInstance.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
+                    $"Status: {DateTime.UtcNow.ToString("o")}");
             }
             catch (TaskCanceledException exception)
             {
@@ -732,7 +717,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                         exception);
                 }
                 else
@@ -742,7 +727,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // Add a custom message in order to ensure that tasks are not canceled.
                     this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                         exception,
                         "Request timeout.");
                 }
@@ -751,50 +736,9 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                     exception);
             }
-        }
-
-        private bool OnPublishEvents(List<AegisBaseEvent> items, int allEventsCount)
-        {
-            try
-            {
-                if (items.Count == 0)
-                {
-                    return true;
-                }
-
-                this.ClientInstance.AegisServiceClient.SendAegisEvents(
-                    AegisClient.ClientName,
-                    AegisClient.ClientId,
-                    AegisClient.ClientVersion,
-                    AegisClient.ClientMachineName,
-                    AegisClient.ClientEnvironment,
-                    AegisClient.AegisVersion,
-                    this.ClientInstance.Settings,
-                    this.ClientInstance.SettingsOnline,
-                    items,
-                    allEventsCount);
-
-                return true;
-            }
-            catch (Exception exception)
-            {
-                if (this.IsShuttingDown)
-                {
-                    return false;
-                }
-
-                this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                    exception,
-                    $"eventsToSend={items.Count} allEventsCount={allEventsCount}",
-                    true);
-            }
-
-            return false;
         }
     }
 }

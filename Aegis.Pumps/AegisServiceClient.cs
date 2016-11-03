@@ -1003,6 +1003,7 @@ namespace Aegis.Pumps
                 httpClient.DefaultRequestHeaders.Accept.Clear();
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                // TODO send data as JSON
                 var itemsJsonEscaped = Uri.EscapeDataString(itemsJson);
                 var content = new StringContent("=" + itemsJsonEscaped, Encoding.UTF8, "application/x-www-form-urlencoded");
                 var response = httpClient.PostAsync(httpRequestMetadata.URI, content).Result;

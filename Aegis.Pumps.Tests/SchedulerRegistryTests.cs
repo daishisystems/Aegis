@@ -725,7 +725,7 @@ namespace Aegis.Pumps.Tests
         {
             // initialize
             var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = "test_schedule_disabled";
+            settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
             AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");

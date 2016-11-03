@@ -826,6 +826,7 @@ namespace Aegis.Pumps
             {
                 lock (lockInit)
                 {
+                    // TODO report initialization
                     if (IsInitialised)
                     {
                         Instance.Reload(newRelicInsightsClient, settings);
@@ -835,7 +836,6 @@ namespace Aegis.Pumps
                     DoInitialise(newRelicInsightsClient, settings);
 
                     // success - class initialised
-                    // TODO report
                     return true;
                 }
             }

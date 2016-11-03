@@ -686,6 +686,7 @@ namespace Aegis.Pumps
 {
     public class SchedulerRegistry : Registry
     {
+        public const string TestDisableSchedulerKey = "test_schedule_disabled";
         private readonly List<Tuple<ClientJob, Schedule>> scheduledItems;
 
         public SchedulerRegistry()
@@ -720,12 +721,14 @@ namespace Aegis.Pumps
                 InitialStartDelay + JobStartDelay,
                 client.Settings.SendAegisEventsJobIntervalInSeconds);
 
-            // TODO add new scheduled job - status:
-            // Runs every 30 minutes, sends basic information to NewRelic/Service (?)
-            // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
+            this.Add(
+                client,
+                new SendStatusJob(client),
+                InitialStartDelay + JobStartDelay,
+                client.Settings.SendStatusJobIntervalInSeconds);
 
             // start schedulers
-            if (isSchedulingDisabled != "test_schedule_disabled")
+            if (isSchedulingDisabled != TestDisableSchedulerKey)
             {
                 JobManager.Initialize(this);
             }

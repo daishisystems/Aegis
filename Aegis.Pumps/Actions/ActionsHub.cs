@@ -1029,7 +1029,6 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2)
         {
-            // TODO extend payment event with additional id, to distint few sub-events
             string mailHost = null;
             string mailHash = null;
 
