@@ -786,6 +786,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     return false;
                 }
 
+                // TODO add last successful timestamp sent
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,

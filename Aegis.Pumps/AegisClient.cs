@@ -707,7 +707,7 @@ namespace Aegis.Pumps
         public readonly CryptUtils Crypt;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
-        public readonly AegisServiceClient AegisServiceClient;
+        public readonly AegisServiceClient AegisServiceClient; // TODO made this instance owned by the Job and follow new httpclient pattern
         private SchedulerRegistry scheduler;
 
         private AegisClient(
@@ -902,6 +902,7 @@ namespace Aegis.Pumps
         public void SettingsChangeNotification()
         {
             // TODO reload scheduler only if right settings has changed, not always
+            // TODO made reload scheduler safe to exceptions etc.
             // reload scheduler
             this.scheduler?.ShutDown();
 

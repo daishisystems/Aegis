@@ -1047,6 +1047,7 @@ namespace Aegis.Pumps.Actions
                 }
                 catch (Exception exception)
                 {
+                    // TODO log paramContactEmail
                     this.client.NewRelicUtils.AddException(
                         this.client.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,

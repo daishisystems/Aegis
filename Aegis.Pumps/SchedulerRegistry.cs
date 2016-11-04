@@ -702,6 +702,7 @@ namespace Aegis.Pumps
             // disable running same job in parallel
             this.NonReentrantAsDefault();
 
+            // TODO use ClientId in job name, to make it unique?
             // add jobs
             this.Add(
                 client,

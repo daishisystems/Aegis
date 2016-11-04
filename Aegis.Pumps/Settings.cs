@@ -721,7 +721,7 @@ namespace Aegis.Pumps
             }
 
             // web non-default time-out
-            this.WebNonDefaultTimeout = null;
+            this.WebNonDefaultTimeout = null; // TODO change to 10 seconds in dotREZ?
 
             if (!string.IsNullOrEmpty(webNonDefaultTimeout))
             {

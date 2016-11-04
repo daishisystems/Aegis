@@ -845,7 +845,7 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
-                    "AegisEventCache is full!");
+                    "AegisEventCache is full!"); // TODO send amount of data in cache
             }
         }
 
@@ -945,7 +945,7 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
-                    "AegisEventCache is full!");
+                    "AegisEventCache is full!"); // TODO send amount of data in cache
             }
 
             // return info whether to block or not
