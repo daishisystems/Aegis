@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AegisHelper.cs" />
+    <Compile Include="CryptUtils.cs" />
     <Compile Include="Data\AegisBagEvent.cs" />
     <Compile Include="Data\AegisBaseEvent.cs" />
     <Compile Include="Data\AegisBaseIpEvent.cs" />

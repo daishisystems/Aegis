@@ -65,6 +65,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CryptUtilsTests.cs" />
     <Compile Include="ExperimentsUtilsTests.cs" />
     <Compile Include="HttpClientFactoryTests.cs" />
     <Compile Include="HttpRequestMetadataTests.cs" />

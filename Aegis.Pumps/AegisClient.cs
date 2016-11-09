@@ -704,7 +704,6 @@ namespace Aegis.Pumps
 
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
         public readonly SettingsOnlineClient SettingsOnline;
-        public readonly CryptUtils Crypt;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient; // TODO made this instance owned by the Job and follow new httpclient pattern
@@ -728,7 +727,6 @@ namespace Aegis.Pumps
             this.NewRelicUtils = new NewRelicInsightsEvents.Utils();
             this.Settings = settings;
             this.SettingsOnline = new SettingsOnlineClient();
-            this.Crypt = new CryptUtils();
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();

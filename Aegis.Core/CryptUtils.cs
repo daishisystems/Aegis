@@ -681,20 +681,14 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Aegis.Core;
 
-namespace Aegis.Pumps
+namespace Aegis.Core
 {
-    public class CryptUtils
+    public static class CryptUtils
     {
-        private readonly SHA256 sha;
+        private static readonly SHA256 sha = new SHA256Managed();
 
-        public CryptUtils()
-        {
-            this.sha = new SHA256Managed();
-        }
-
-        public string ComputeGroupId(List<IPAddress> ipAddresses)
+        public static string ComputeGroupId(List<IPAddress> ipAddresses)
         {
             if (ipAddresses.Count == 0)
             {
@@ -703,13 +697,13 @@ namespace Aegis.Pumps
 
             var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
 
-            var hashRaw = this.sha.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var hashRaw = sha.ComputeHash(Encoding.UTF8.GetBytes(data));
             var hashStr = Convert.ToBase64String(hashRaw);
 
             return $"g${ipAddresses.Count}${data.Length}${hashStr}";
         }
 
-        public string HashSimple(string text)
+        public static string HashSimple(string text)
         {
             var txt = text?.Trim().ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(txt))
@@ -717,12 +711,12 @@ namespace Aegis.Pumps
                 return null;
             }
 
-            var txtHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(txt));
+            var txtHashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(txt));
 
             return Convert.ToBase64String(txtHashBytes);
         }
 
-        public string HashAccountNumber(string accountNumber)
+        public static string HashAccountNumber(string accountNumber)
         {
             var account = accountNumber?.Trim();
             if (string.IsNullOrWhiteSpace(account) || account.Length < 8)
@@ -731,12 +725,12 @@ namespace Aegis.Pumps
             }
 
             var last4Digits = account.Substring(account.Length - 4, 4);
-            var hash = this.Hash(account, last4Digits);
+            var hash = Hash(account, last4Digits);
 
             return $"{last4Digits}${hash}";
         }
 
-        public string HashMail(string address, string domain)
+        public static string HashMail(string address, string domain)
         {
             var addr = address?.Trim().ToLowerInvariant();
             var dom = domain?.Trim().ToLowerInvariant();
@@ -745,15 +739,15 @@ namespace Aegis.Pumps
                 return null;
             }
 
-            var hash = this.HashSimple(addr);
+            var hash = HashSimple(addr);
             return $"{dom}${hash}";
         }
 
-        private string Hash(string text, string salt)
+        private static string Hash(string text, string salt)
         {
             const int AdditionalSaltLength = 8;
 
-            var textHashBytes = this.sha.ComputeHash(Encoding.UTF8.GetBytes(text));
+            var textHashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(text));
             var saltBytes = Encoding.UTF8.GetBytes(salt);
 
             // final input = text-hash-except-first-X-bytes

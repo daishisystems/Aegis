@@ -681,7 +681,7 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Core.Tests
 {
     [TestClass]
     public class CryptUtilsTests
@@ -703,48 +703,40 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void ComputeGroupId()
         {
-            var self = new CryptUtils();
-
-            Assert.IsNull(self.ComputeGroupId(new List<IPAddress>()));
+            Assert.IsNull(CryptUtils.ComputeGroupId(new List<IPAddress>()));
 
             Assert.AreEqual(
                 "g$1$11$N9eoBgSHHleYUKZYx63SrnVX0MarzJsx7N3EQkIH66M=",
-                self.ComputeGroupId(new List<IPAddress>() { IPAddress.Parse("192.168.0.1") }));
+                CryptUtils.ComputeGroupId(new List<IPAddress>() { IPAddress.Parse("192.168.0.1") }));
 
             Assert.AreEqual(
                 "g$2$23$h7Lx27zlnaHLSAlsB1fUrPE27Jw1JRw1vT1tuxhUMZM=",
-                self.ComputeGroupId(
+                CryptUtils.ComputeGroupId(
                     new List<IPAddress>() { IPAddress.Parse("192.168.0.3"), IPAddress.Parse("192.168.0.1") }));
         }
 
         [TestMethod]
         public void HashAccountNumber()
         {
-            var self = new CryptUtils();
-
-            Assert.IsNull(self.HashAccountNumber(string.Empty));
-            Assert.AreEqual("7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=", self.HashAccountNumber("1234567890"));
+            Assert.IsNull(CryptUtils.HashAccountNumber(string.Empty));
+            Assert.AreEqual("7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=", CryptUtils.HashAccountNumber("1234567890"));
         }
 
         [TestMethod]
         public void HashMail()
         {
-            var self = new CryptUtils();
-
-            Assert.IsNull(self.HashMail(null, null));
-            Assert.IsNull(self.HashMail(string.Empty, string.Empty));
-            Assert.AreEqual("domain.com$BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps=", self.HashMail("user", "domain.com"));
-            Assert.AreEqual("b$ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=", self.HashMail("a", "b"));
+            Assert.IsNull(CryptUtils.HashMail(null, null));
+            Assert.IsNull(CryptUtils.HashMail(string.Empty, string.Empty));
+            Assert.AreEqual("domain.com$BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps=", CryptUtils.HashMail("user", "domain.com"));
+            Assert.AreEqual("b$ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=", CryptUtils.HashMail("a", "b"));
         }
 
         [TestMethod]
         public void HashSimple()
         {
-            var self = new CryptUtils();
-
-            Assert.IsNull(self.HashSimple(null));
-            Assert.IsNull(self.HashSimple(string.Empty));
-            Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", self.HashSimple("welcome hash text"));
+            Assert.IsNull(CryptUtils.HashSimple(null));
+            Assert.IsNull(CryptUtils.HashSimple(string.Empty));
+            Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", CryptUtils.HashSimple("welcome hash text"));
         }
     }
 }
