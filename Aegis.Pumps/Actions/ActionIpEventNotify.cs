@@ -747,7 +747,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.Client.NewRelicUtils.AddNotification(
                     this.Client.NewRelicInsightsClient,
-                    string.Empty, // TODO set ComponentName to ParseIp
+                    NewRelicInsightsEvents.Utils.ComponentNames.ParseIpAddress,
                     errorMessage,
                     true);
             }
@@ -846,7 +846,7 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
-                    "AegisEventCache is full!"); // TODO send amount of data in cache
+                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
             }
         }
 
@@ -946,7 +946,7 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicInsightsClient,
                     this.newRelicExceptionComponentName,
                     null,
-                    "AegisEventCache is full!"); // TODO send amount of data in cache
+                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
             }
 
             // return info whether to block or not

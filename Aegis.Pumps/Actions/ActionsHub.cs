@@ -733,7 +733,7 @@ namespace Aegis.Pumps.Actions
             this.actionPaymentMethods = new ActionIpEventNotify<AegisPaymentMethodsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPaymentMethods);
             this.actionDcc = new ActionIpEventNotify<AegisDccEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionDcc);
             this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
-            // TODO payment2 and payment3 disable blocking mechanism
+            // TODO payment2 and payment3 disable blocking mechanism?
             this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);

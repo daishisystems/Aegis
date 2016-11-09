@@ -684,6 +684,8 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendAegisEventsJob : ClientJob
     {
+        private DateTimeOffset lastSucessfulSent;
+
         public SendAegisEventsJob(AegisClient client) : base(client, "AegisSendAegisEventsJob")
         {
         }
@@ -719,7 +721,12 @@ namespace Aegis.Pumps.SchedulerJobs
                             $"Removed too old events: {removedCount}",
                             true);
                     }
+
+                    return;
                 }
+
+                // update successful timestamp
+                this.lastSucessfulSent = DateTimeOffset.UtcNow;
             }
             catch (TaskCanceledException exception)
             {
@@ -786,12 +793,11 @@ namespace Aegis.Pumps.SchedulerJobs
                     return false;
                 }
 
-                // TODO add last successful timestamp sent
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception,
-                    $"eventsToSend={items.Count} allEventsCount={allEventsCount}",
+                    $"eventsToSend={items.Count} allEventsCount={allEventsCount} lastSucessfulSent={this.lastSucessfulSent.ToString("O")}",
                     true);
             }
 

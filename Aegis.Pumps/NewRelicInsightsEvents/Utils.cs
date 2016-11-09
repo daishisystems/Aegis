@@ -691,6 +691,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string ClientInitialisation = "Client initialisation";
             public const string ClientReportError = "Client report error";
             public const string SettingsInitialisation = "Settings initialisation";
+            public const string ParseIpAddress = "ParseIpAddress";
 
             // Actions
             public const string ActionAvailability = "Action-Availability";

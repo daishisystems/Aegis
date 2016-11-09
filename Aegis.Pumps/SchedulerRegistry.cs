@@ -698,35 +698,47 @@ namespace Aegis.Pumps
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
+            const int MaxRandomDelay = 20; // in seconds
+
+            // generate random start delay values
+            var rnd = new Random();
+
+            var delaysSet = new HashSet<int>();
+            while (delaysSet.Count < 4)
+            {
+                delaysSet.Add(rnd.Next(0, MaxRandomDelay));
+            }
+
+            var delays = delaysSet.OrderBy(x => x).ToList();
 
             // disable running same job in parallel
             this.NonReentrantAsDefault();
 
             // TODO use ClientId in job name, to make it unique? or general use random ID
-            // TODO use random value to start jobs, to not make them starts at the same time for many instances?
+
             // add jobs
             this.Add(
                 client,
                 new GetSettingsOnlineJob(client),
-                InitialStartDelay,
+                InitialStartDelay + delays[0],
                 client.Settings.GetSettingsOnlineJobIntervalInSeconds);
 
             this.Add(
                 client,
                 new GetBlackListJob(client),
-                InitialStartDelay + JobStartDelay,
+                InitialStartDelay + JobStartDelay + delays[1],
                 client.Settings.GetBlackListJobIntervalInSeconds);
 
             this.Add(
                 client,
                 new SendAegisEventsJob(client),
-                InitialStartDelay + JobStartDelay,
+                InitialStartDelay + JobStartDelay + delays[2],
                 client.Settings.SendAegisEventsJobIntervalInSeconds);
 
             this.Add(
                 client,
                 new SendStatusJob(client),
-                InitialStartDelay + JobStartDelay,
+                InitialStartDelay + JobStartDelay + delays[3],
                 client.Settings.SendStatusJobIntervalInSeconds);
 
             // start schedulers

@@ -689,6 +689,8 @@ namespace Aegis.Pumps.SchedulerJobs
     /// </summary>
     internal class GetBlackListJob : ClientJob
     {
+        private DateTimeOffset lastSucessfulCheck;
+
         public GetBlackListJob(AegisClient client) : base(client, "AegisGetBlackListJob")
         {
         }
@@ -724,6 +726,10 @@ namespace Aegis.Pumps.SchedulerJobs
                     out blackListData,
                     out newTimeStamp);
 
+                // update successful timestamp
+                this.lastSucessfulCheck = DateTimeOffset.UtcNow;
+
+                // if data hasn't changed
                 if (!isUpdated)
                 {
                     return;
@@ -739,13 +745,14 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
-                // TODO log last sucesful blacklist time-stamp check?
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                        exception);
+                        exception,
+                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
+                        $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
                 }
                 else
                 {
@@ -756,7 +763,9 @@ namespace Aegis.Pumps.SchedulerJobs
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception,
-                        "Request timeout.");
+                        "Request timeout. " +
+                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
+                        $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
                 }
             }
             catch (Exception exception)
@@ -764,7 +773,9 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                    exception);
+                    exception,
+                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
+                    $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
             }
         }
     }

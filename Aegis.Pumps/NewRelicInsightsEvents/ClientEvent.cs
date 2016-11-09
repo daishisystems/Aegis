@@ -683,6 +683,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     public abstract class ClientEvent : NewRelicInsightsEvent
     {
+        private static readonly DateTime UnixStartTime = new DateTime(1970, 1, 1);
+
         /// <summary>
         ///     <see cref="EventType" /> is the New Relic Insights to which this
         ///     event will be uploaded.
@@ -725,7 +727,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     expressed in Unix ticks.
         /// </summary>
         [JilDirective(Name = "unixTimeStamp")]
-        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds; // TODO made unixTimeStart static, not create each time?
+        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(UnixStartTime).TotalSeconds;
 
         /// <summary>
         ///     <see cref="MachineName" /> is the name of the underlying server, upon which
