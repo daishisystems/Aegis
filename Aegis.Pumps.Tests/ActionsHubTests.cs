@@ -678,6 +678,7 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http.Headers;
 using Jil;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -925,19 +926,19 @@ namespace Aegis.Pumps.Tests
             {
                 () => 
                 {
-                    AegisClient.GetActionsHub().PostPayment(0, requestHeaders, requestUri,
+                    AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
-                    AegisClient.GetActionsHub().PostPayment(2, requestHeaders, requestUri,
+                    AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
-                    AegisClient.GetActionsHub().PostPayment(3, requestHeaders, requestUri,
+                    AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
                 }
             };
 
-            var testMethodsSet = new[] { testMethodsWithRealParameters };
+            var testMethodsSet = new[] { testMethodsWithRealParameters.Select(x => Tuple.Create(false, x)).ToArray() };
 
             // run actions
             this.RunActions(
@@ -957,7 +958,7 @@ namespace Aegis.Pumps.Tests
         }
 
         private void RunActions(
-            Action[][] testMethodsSets,
+            Tuple<bool, Action>[][] testMethodsSets,
             MockNewRelicInsightsClient newRelicClient,
             int eventsCount,
             int errorsCount)
@@ -970,14 +971,16 @@ namespace Aegis.Pumps.Tests
 
                 // run each test method
                 index = (index / 100) * 100;
-                foreach (var testMethod in testMethods)
+                foreach (var methodInfo in testMethods)
                 {
+                    var isTestParamsNull = methodInfo.Item1;
+
                     Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
                     Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
                     var stopWatch = Stopwatch.StartNew();
 
-                    testMethod();
+                    methodInfo.Item2();
 
                     stopWatch.Stop();
 
@@ -987,11 +990,11 @@ namespace Aegis.Pumps.Tests
                     // new number of events
                     Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
 
-                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.RunActionsCheckEvents);
+                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, (e, a) => this.RunActionsCheckEvents(e, a, isTestParamsNull));
 
                     Debug.WriteLine($"index: {index} test method time: {stopWatch.ElapsedMilliseconds} ms");
 
-                    Assert.IsTrue(stopWatch.ElapsedMilliseconds < 500,
+                    Assert.IsTrue(stopWatch.ElapsedMilliseconds < 50,
                                     $"index: {index} test method time: {stopWatch.ElapsedMilliseconds} ms");
 
                     newRelicClient.MockClearCache();
@@ -1003,7 +1006,7 @@ namespace Aegis.Pumps.Tests
             }
         }
 
-        private bool RunActionsCheckEvents(List<AegisBaseEvent> events, int allEventsCount)
+        private bool RunActionsCheckEvents(List<AegisBaseEvent> events, int allEventsCount, bool isTestParamsNull)
         {
             Assert.AreEqual(events.Count, allEventsCount);
 
@@ -1018,7 +1021,7 @@ namespace Aegis.Pumps.Tests
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.AegisVersion));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.Time), evnt.EventType);
-                
+
                 var evntbaseIp = evnt as AegisBaseIpEvent;
                 if (evntbaseIp != null)
                 {
@@ -1027,6 +1030,39 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpUserAgent), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
+                }
+
+                var paymentEvents = new[] 
+                {
+                    AegisBaseEvent.EventTypes.Payment,
+                    AegisBaseEvent.EventTypes.Payment2,
+                    AegisBaseEvent.EventTypes.Payment3
+                };
+
+                if (paymentEvents.Contains(evnt.EventType))
+                {
+                    var evntbasePayment = (AegisPaymentBaseEvent)evnt;
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.AccountNumber), evntbasePayment.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.PaymentMethodCode), evntbasePayment.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.ContactMail), evntbasePayment.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.ContactMailDomain), evntbasePayment.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.AddressPostal), evntbasePayment.EventType);
+                }
+
+                if (evnt.EventType == AegisBaseEvent.EventTypes.Dcc)
+                {
+                    var evntDcc = (AegisDccEvent)evnt;
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntDcc.AccountNumber), evntDcc.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntDcc.PaymentMethodCode), evntDcc.EventType);
+                }
+
+                if (evnt.EventType == AegisBaseEvent.EventTypes.Availability)
+                {
+                    var evntAvailability = (AegisAvailabilityEvent)evnt;
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.Origin), evntAvailability.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.Destination), evntAvailability.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.DateIn), evntAvailability.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.DateOut), evntAvailability.EventType);
                 }
             }
 
@@ -1040,7 +1076,7 @@ namespace Aegis.Pumps.Tests
             return true;
         }
 
-        private Action[][] GetTestMethodsSet(
+        private Tuple<bool, Action>[][] GetTestMethodsSet(
                HttpHeaders requestHeaders,
                Uri requestUri)
         {
@@ -1063,13 +1099,13 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, null, null, null, null),
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
-                () => AegisClient.GetActionsHub().PostPayment(0, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPayment(2, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPayment(3, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
             };
@@ -1094,18 +1130,22 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 1, 2, 3, 4),
                 () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 1, 2, 3, 4),
                 () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, "1234567890", "p-method-code"),
-                () => AegisClient.GetActionsHub().PostPayment(0, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPayment(2, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPayment(3, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
             };
 
-            return new[] { testMethodsWithNullParameters, testMethodsWithRealParameters };
+            return new[]
+            {
+                testMethodsWithNullParameters.Select(x => Tuple.Create(true, x)).ToArray(),
+                testMethodsWithRealParameters.Select(x => Tuple.Create(false, x)).ToArray()
+            };
         }
     }
 }

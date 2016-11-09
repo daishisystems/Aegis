@@ -681,17 +681,33 @@ namespace Aegis.Core.Data
 {
     public abstract class AegisPaymentBaseEvent : AegisBaseIpEvent
     {
-        //public override string EventType
-        //{
-        //    get { return EventTypes.Payment; }
-        //    set { }
-        //}
+        private string accountNumberRawValue;
+        private string accountNumberValue;
 
         [JilDirective(Name = "cid")]
         public string CustomerId { get; set; }
 
         [JilDirective(Name = "a")]
-        public string AccountNumber { get; set; }
+        public string AccountNumber
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(this.accountNumberValue) && !string.IsNullOrWhiteSpace(this.accountNumberRawValue))
+                {
+                    this.accountNumberValue = CryptUtils.HashAccountNumber(this.accountNumberRawValue);
+                }
+
+                return this.accountNumberValue;
+            }
+
+            set { this.accountNumberValue = value; }
+        }
+
+        [JilDirective(Ignore = true)]
+        public string AccountNumberRaw
+        {
+            set { this.accountNumberRawValue = value; }
+        }
 
         [JilDirective(Name = "pmc")]
         public string PaymentMethodCode { get; set; }

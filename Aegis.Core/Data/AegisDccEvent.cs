@@ -681,6 +681,9 @@ namespace Aegis.Core.Data
 {
     public class AegisDccEvent : AegisBaseIpEvent
     {
+        private string accountNumberRawValue;
+        private string accountNumberValue;
+
         public override string EventType
         {
             get { return EventTypes.Dcc; }
@@ -688,7 +691,26 @@ namespace Aegis.Core.Data
         }
 
         [JilDirective(Name = "a")]
-        public string AccountNumber { get; set; }
+        public string AccountNumber
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(this.accountNumberValue) && !string.IsNullOrWhiteSpace(this.accountNumberRawValue))
+                {
+                    this.accountNumberValue = CryptUtils.HashAccountNumber(this.accountNumberRawValue);
+                }
+
+                return this.accountNumberValue;
+            }
+
+            set { this.accountNumberValue = value; }
+        }
+
+        [JilDirective(Ignore = true)]
+        public string AccountNumberRaw
+        {
+            set { this.accountNumberRawValue = value; }
+        }
 
         [JilDirective(Name = "pmc")]
         public string PaymentMethodCode { get; set; }

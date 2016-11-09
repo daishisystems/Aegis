@@ -680,6 +680,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Headers;
+using Aegis.Core;
 using Aegis.Core.Data;
 
 namespace Aegis.Pumps.Actions
@@ -758,7 +759,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
-            var groupId = this.Client.Crypt.ComputeGroupId(ipAddresses);
+            var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
