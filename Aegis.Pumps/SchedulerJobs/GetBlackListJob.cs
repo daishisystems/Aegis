@@ -739,6 +739,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
+                // TODO log last sucesful blacklist time-stamp check?
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(

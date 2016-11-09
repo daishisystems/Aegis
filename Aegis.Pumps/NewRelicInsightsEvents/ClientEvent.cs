@@ -725,7 +725,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     expressed in Unix ticks.
         /// </summary>
         [JilDirective(Name = "unixTimeStamp")]
-        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds; // TODO made unixTimeStart static, not create each time?
 
         /// <summary>
         ///     <see cref="MachineName" /> is the name of the underlying server, upon which

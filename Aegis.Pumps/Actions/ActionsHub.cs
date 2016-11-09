@@ -732,6 +732,7 @@ namespace Aegis.Pumps.Actions
             this.actionPaymentMethods = new ActionIpEventNotify<AegisPaymentMethodsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPaymentMethods);
             this.actionDcc = new ActionIpEventNotify<AegisDccEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionDcc);
             this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
+            // TODO payment2 and payment3 disable blocking mechanism
             this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
@@ -1032,10 +1033,12 @@ namespace Aegis.Pumps.Actions
             string mailHost = null;
             string mailHash = null;
 
+            // TODO in payment2 and payment3 not compute hash stuff as it's time consuming
             if (!string.IsNullOrWhiteSpace(paramContactEmail))
             {
                 try
                 {
+                    // TODO do not hash 2 times, set default and try parse mail
                     // set default in case of parsing exception below
                     mailHost = "unknown";
                     mailHash = this.client.Crypt.HashMail(paramContactEmail, mailHost);

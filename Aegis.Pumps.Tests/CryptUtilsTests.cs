@@ -677,18 +677,29 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
-using Aegis.Core.Data;
-using Aegis.Pumps.Tests.Mocks;
+using System.Diagnostics;
+using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Pumps.Tests
 {
-    using System.Net;
-
     [TestClass]
     public class CryptUtilsTests
     {
+        private Stopwatch testStopWatch;
+
+        [TestInitialize]
+        public void TestInitializeBase()
+        {
+            this.testStopWatch = Stopwatch.StartNew();
+        }
+
+        [TestCleanup]
+        public void TestCleanupBase()
+        {
+            Debug.WriteLine($"Total test time is {this.testStopWatch.ElapsedMilliseconds} ms");
+        }
+
         [TestMethod]
         public void ComputeGroupId()
         {
@@ -722,8 +733,8 @@ namespace Aegis.Pumps.Tests
 
             Assert.IsNull(self.HashMail(null, null));
             Assert.IsNull(self.HashMail(string.Empty, string.Empty));
-            Assert.AreEqual("domain.com$GGToPF7ZJiAHgnhz4ciXkSINJfJjeEaVr44YDdhQEPM=", self.HashMail("user", "domain.com"));
-            Assert.AreEqual("b$ibZ+u9S+gb8XD+RBjuMBvDow6RTQB9No/1QTGS6/4gw=", self.HashMail("a", "b"));
+            Assert.AreEqual("domain.com$BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps=", self.HashMail("user", "domain.com"));
+            Assert.AreEqual("b$ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=", self.HashMail("a", "b"));
         }
 
         [TestMethod]

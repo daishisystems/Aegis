@@ -702,7 +702,8 @@ namespace Aegis.Pumps
             // disable running same job in parallel
             this.NonReentrantAsDefault();
 
-            // TODO use ClientId in job name, to make it unique?
+            // TODO use ClientId in job name, to make it unique? or general use random ID
+            // TODO use random value to start jobs, to not make them starts at the same time for many instances?
             // add jobs
             this.Add(
                 client,

@@ -746,7 +746,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.Client.NewRelicUtils.AddNotification(
                     this.Client.NewRelicInsightsClient,
-                    string.Empty,
+                    string.Empty, // TODO set ComponentName to ParseIp
                     errorMessage,
                     true);
             }
