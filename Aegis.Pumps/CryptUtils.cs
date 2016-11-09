@@ -745,7 +745,7 @@ namespace Aegis.Pumps
                 return null;
             }
 
-            var hash = this.Hash(addr, dom);
+            var hash = this.HashSimple(addr);
             return $"{dom}${hash}";
         }
 
