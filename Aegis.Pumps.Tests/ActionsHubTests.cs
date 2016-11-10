@@ -930,10 +930,10 @@ namespace Aegis.Pumps.Tests
                     AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
-                    AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
+                    AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
-                    AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
+                    AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
                                             "customer-id", "1234567890", "p-method-code", "city",
                                             "country", "postal", "email@host.com", "info1", "info2");
                 }
@@ -1103,10 +1103,10 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
             };
@@ -1134,10 +1134,10 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPaymentOther(2, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPaymentOther(3, requestHeaders, requestUri,
+                () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
             };

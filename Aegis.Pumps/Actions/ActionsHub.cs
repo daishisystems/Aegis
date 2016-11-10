@@ -1012,7 +1012,7 @@ namespace Aegis.Pumps.Actions
                     requestUri,
                     () => new AegisDccEvent()
                     {
-                        AccountNumberRaw = paramAccountNumber,
+                        AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
                         PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim()
                     });
         }
@@ -1068,7 +1068,7 @@ namespace Aegis.Pumps.Actions
                 new AegisPaymentEvent()
                 {
                     CustomerId = paramCustomerId,
-                    AccountNumberRaw = paramAccountNumber,
+                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
                     PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
                     AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
                     AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
@@ -1080,8 +1080,7 @@ namespace Aegis.Pumps.Actions
                 });
         }
 
-        public bool PostPaymentOther(
-            int subType,
+        public bool PostPayment2(
             HttpHeaders requestHeaders,
             Uri requestUri,
             string paramCustomerId,
@@ -1123,55 +1122,103 @@ namespace Aegis.Pumps.Actions
                 mailHash = CryptUtils.HashMail(mailAddr, mailHost);
             }
 
-            switch (subType)
+            return this.actionPayment2.Run(
+                AegisBaseEvent.EventTypes.Payment2,
+                this.ipHeaderNames,
+                requestHeaders,
+                requestUri,
+                () =>
+                new AegisPayment2Event()
+                {
+                    CustomerId = paramCustomerId,
+                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                    PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                    AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                    AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                    AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
+                    ContactMailDomain = mailHost,
+                    ContactMail = mailHash,
+                    PaymentInfo1 = paymentInfo1,
+                    PaymentInfo2 = paymentInfo2
+                });
+        }
+
+        public bool PostPayment3(
+            HttpHeaders requestHeaders,
+            Uri requestUri,
+            string paramCustomerId,
+            string paramAccountNumber,
+            string paramPaymentMethodCode,
+            string paramAddressCity,
+            string paramAddressCountry,
+            string paramAddressPostal,
+            string paramContactEmail,
+            string paymentInfo1,
+            string paymentInfo2)
+        {
+            string mailHost = null;
+            string mailHash = null;
+
+            if (!string.IsNullOrWhiteSpace(paramContactEmail))
             {
-                case 2:
-                    return this.actionPayment2.Run(
-                        AegisBaseEvent.EventTypes.Payment2,
-                        this.ipHeaderNames,
-                        requestHeaders,
-                        requestUri,
-                        () =>
-                        new AegisPayment2Event()
-                        {
-                            CustomerId = paramCustomerId,
-                            AccountNumberRaw = paramAccountNumber,
-                            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                            AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
-                            ContactMailDomain = mailHost,
-                            ContactMail = mailHash,
-                            PaymentInfo1 = paymentInfo1,
-                            PaymentInfo2 = paymentInfo2
-                        });
+                // set default values
+                mailHost = "unknown";
+                var mailAddr = paramContactEmail;
 
-                case 3:
-                    return this.actionPayment3.Run(
-                        AegisBaseEvent.EventTypes.Payment3,
-                        this.ipHeaderNames,
-                        requestHeaders,
-                        requestUri,
-                        () =>
-                        new AegisPayment3Event()
-                        {
-                            CustomerId = paramCustomerId,
-                            AccountNumberRaw = paramAccountNumber,
-                            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                            AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
-                            ContactMailDomain = mailHost,
-                            ContactMail = mailHash,
-                            PaymentInfo1 = paymentInfo1,
-                            PaymentInfo2 = paymentInfo2
-                        });
+                // parse mail
+                try
+                {
+                    var mail = new MailAddress(paramContactEmail);
+                    mailHost = mail.Host;
+                    mailAddr = mail.Address;
+                }
+                catch (Exception exception)
+                {
+                    this.client.NewRelicUtils.AddException(
+                        this.client.NewRelicInsightsClient,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
+                        exception,
+                        $"paramContactEmail={paramContactEmail}=");
+                }
 
-                default:
-                    break;
+                // hash mail
+                mailHash = CryptUtils.HashMail(mailAddr, mailHost);
             }
 
-            return false;
+            return this.actionPayment3.Run(
+                AegisBaseEvent.EventTypes.Payment2,
+                this.ipHeaderNames,
+                requestHeaders,
+                requestUri,
+                () =>
+                new AegisPayment3Event()
+                {
+                    CustomerId = paramCustomerId,
+                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                    PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+                    AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+                    AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+                    AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
+                    ContactMailDomain = mailHost,
+                    ContactMail = mailHash,
+                    PaymentInfo1 = paymentInfo1,
+                    PaymentInfo2 = paymentInfo2
+                });
+        }
+
+        private static string TruncateCardAccountNumber(string account)
+        {
+            if (string.IsNullOrWhiteSpace(account))
+            {
+                return null;
+            }
+
+            if (account.Length <= 10)
+            {
+                return account;
+            }
+
+            return account.Substring(0, 6) + "".PadLeft(account.Length - 10, 'x') + account.Substring(account.Length - 4, 4);
         }
     }
 }

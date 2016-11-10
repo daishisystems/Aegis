@@ -706,10 +706,10 @@ namespace Aegis.Pumps
             var delaysSet = new HashSet<int>();
             while (delaysSet.Count < 4)
             {
-                delaysSet.Add(rnd.Next(0, MaxRandomDelay));
+                delaysSet.Add(rnd.Next(0, MaxRandomDelay / 2));
             }
 
-            var delays = delaysSet.OrderBy(x => x).ToList();
+            var delays = delaysSet.OrderBy(x => 2 * x).ToList();
 
             // disable running same job in parallel
             this.NonReentrantAsDefault();
