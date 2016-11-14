@@ -990,6 +990,56 @@ namespace Aegis.Pumps.Tests
 
         [TestMethod]
         [Ignore]
+        public void GetBlackList2xTimesFromTheRealCluster()
+        {
+            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+            var self = new AegisServiceClient();
+
+            // request 1
+            List<BlackListItem> blackListItems;
+            DateTimeOffset? timeStamp;
+
+            var result = self.GetBlackListData(
+                ClientName,
+                ClientId,
+                ClientVer,
+                ClientMachine,
+                ClientEnvironment,
+                AegisVer,
+                settings,
+                settingsOnline,
+                null,
+                out blackListItems,
+                out timeStamp);
+
+            Assert.IsTrue(result);
+            Assert.IsNotNull(timeStamp);
+
+            // request 2
+            List<BlackListItem> blackListItems2;
+            DateTimeOffset? timeStamp2;
+
+            var result2 = self.GetBlackListData(
+                ClientName,
+                ClientId,
+                ClientVer,
+                ClientMachine,
+                ClientEnvironment,
+                AegisVer,
+                settings,
+                settingsOnline,
+                timeStamp,
+                out blackListItems2,
+                out timeStamp2);
+
+            Assert.IsFalse(result2);
+            Assert.IsNull(blackListItems2);
+            Assert.IsNull(timeStamp2);
+        }
+
+        [TestMethod]
+        [Ignore]
         public void GetSettingsFromTheRealCluster()
         {
             var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });

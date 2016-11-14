@@ -918,6 +918,7 @@ namespace Aegis.Pumps
             instanceClient = self;
 
             // start scheduled tasks
+            // TODO remove all old "Aegis*" jobs?
             Instance.scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
         }
     }

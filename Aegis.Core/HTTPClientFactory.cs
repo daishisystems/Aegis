@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Net;
 using System.Net.Http;
 
 namespace Aegis.Core
@@ -710,22 +711,24 @@ namespace Aegis.Core
             out HttpClientHandler httpClientHandler)
         {
             // TODO follow new pattern and initialize HttpClient once only
-            HttpClient httpClient;
+
+            httpClientHandler = new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip,
+                UseProxy = false
+            };
 
             if (httpRequestMetadata.UseWebProxy)
             {
                 httpClientHandler = new HttpClientHandler
                 {
+                    AutomaticDecompression = DecompressionMethods.GZip,
                     UseProxy = true,
                     Proxy = httpRequestMetadata.WebProxy
                 };
-                httpClient = new HttpClient(httpClientHandler);
             }
-            else
-            {
-                httpClientHandler = null;
-                httpClient = new HttpClient();
-            }
+
+            var httpClient = new HttpClient(httpClientHandler);
 
             if (httpRequestMetadata.UseNonDefaultTimeout)
             {

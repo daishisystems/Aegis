@@ -727,7 +727,9 @@ namespace Aegis.Core.Tests
             var httpClientFactory = new HttpClientFactory();
             httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
-            Assert.IsNull(httpClientHandler);
+            Assert.IsNotNull(httpClientHandler);
+            Assert.IsFalse(httpClientHandler.UseProxy);
+            Assert.IsNull(httpClientHandler.Proxy);
             Assert.IsNotNull(httpRequestMetadata);
         }
 
@@ -750,6 +752,8 @@ namespace Aegis.Core.Tests
             var httpClient = httpClientFactory.Create(httpRequestMetadata, out httpClientHandler);
 
             Assert.AreEqual((object) httpRequestMetadata.NonDefaultTimeout, httpClient.Timeout);
+            Assert.IsFalse(httpClientHandler.UseProxy);
+            Assert.IsNull(httpClientHandler.Proxy);
         }
     }
 }
