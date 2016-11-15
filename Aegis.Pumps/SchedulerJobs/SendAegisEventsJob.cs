@@ -686,7 +686,7 @@ namespace Aegis.Pumps.SchedulerJobs
     {
         private DateTimeOffset lastSucessfulSent;
 
-        public SendAegisEventsJob(AegisClient client) : base(client, "AegisSendAegisEventsJob")
+        public SendAegisEventsJob(AegisClient client) : base(client, "SendAegisEventsJob")
         {
         }
 

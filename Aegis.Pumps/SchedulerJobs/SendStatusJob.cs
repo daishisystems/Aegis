@@ -684,7 +684,7 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendStatusJob : ClientJob
     {
-        public SendStatusJob(AegisClient client) : base(client, "AegisSendStatusJob")
+        public SendStatusJob(AegisClient client) : base(client, "SendStatusJob")
         {
         }
 

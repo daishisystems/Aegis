@@ -682,13 +682,14 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     public abstract class ClientJob : IJob, IRegisteredObject
     {
+        public const string JobPrefix = "Aegis";
         protected readonly object LockObject = new object();
         protected readonly AegisClient ClientInstance;
 
         protected ClientJob(AegisClient client, string jobName)
         {
             this.ClientInstance = client;
-            this.JobName = jobName;
+            this.JobName = JobPrefix + jobName;
         }
 
         public string JobName { get; private set; }

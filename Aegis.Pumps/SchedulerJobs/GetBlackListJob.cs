@@ -691,7 +691,7 @@ namespace Aegis.Pumps.SchedulerJobs
     {
         private DateTimeOffset lastSucessfulCheck;
 
-        public GetBlackListJob(AegisClient client) : base(client, "AegisGetBlackListJob")
+        public GetBlackListJob(AegisClient client) : base(client, "GetBlackListJob")
         {
         }
 

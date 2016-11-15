@@ -694,6 +694,16 @@ namespace Aegis.Pumps
             this.scheduledItems = new List<Tuple<ClientJob, Schedule>>();
         }
 
+        public static void RemoveAllAegisJobs()
+        {
+            var jobNames = JobManager.AllSchedules.Where(s => s.Name.StartsWith(ClientJob.JobPrefix)).Select(s => s.Name);
+
+            foreach (var name in jobNames)
+            {
+                JobManager.RemoveJob(name);
+            }
+        }
+
         public void Initialise(AegisClient client, string isSchedulingDisabled)
         {
             const int InitialStartDelay = 180; // in seconds
@@ -757,6 +767,7 @@ namespace Aegis.Pumps
             }
 
             this.scheduledItems.Clear();
+            RemoveAllAegisJobs();
         }
 
         protected void Add(
@@ -771,13 +782,13 @@ namespace Aegis.Pumps
             var sched = this.Schedule(self).WithName(self.JobName);
             this.scheduledItems.Add(Tuple.Create(self, sched));
 
+            var interval = GetWithLimit(
+                client.SettingsOnline.GetJobInterval(self.JobName),
+                defaultInterval,
+                LimitInSecs);
+
             sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-                .AndEvery(
-                    GetWithLimit(
-                        client.SettingsOnline.GetJobInterval(self.JobName),
-                        defaultInterval,
-                        LimitInSecs))
-            .Seconds();
+                .AndEvery(interval).Seconds();
         }
 
         //public void ChangeSchedule(

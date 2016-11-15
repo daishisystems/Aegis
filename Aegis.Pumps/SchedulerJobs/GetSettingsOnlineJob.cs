@@ -684,7 +684,7 @@ namespace Aegis.Pumps.SchedulerJobs
     internal class GetSettingsOnlineJob : ClientJob
     {
         public GetSettingsOnlineJob(AegisClient client)
-            : base(client, "AegisGetSettingsOnlineJob")
+            : base(client, "GetSettingsOnlineJob")
         {
         }
 

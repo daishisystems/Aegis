@@ -902,9 +902,14 @@ namespace Aegis.Pumps
         {
             // TODO reload scheduler only if right settings has changed, not always
             // TODO made reload scheduler safe to exceptions etc.
-            // reload scheduler
+
+            // shutdown scheduler
             this.scheduler?.ShutDown();
 
+            // remove all old Aegis jobs
+            SchedulerRegistry.RemoveAllAegisJobs();
+
+            // start new scheduler
             this.scheduler = new SchedulerRegistry();
             this.scheduler.Initialise(Instance, null);
         }
@@ -915,11 +920,13 @@ namespace Aegis.Pumps
         {
             var self = new AegisClient(newRelicInsightsClient, settings);
 
+            // remove all old Aegis jobs
+            SchedulerRegistry.RemoveAllAegisJobs();
+
             // assign object to the instance
             instanceClient = self;
 
             // start scheduled tasks
-            // TODO remove all old "Aegis*" jobs?
             Instance.scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
         }
 
