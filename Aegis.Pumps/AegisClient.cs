@@ -676,6 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Diagnostics;
+using System.Threading;
 using Daishi.NewRelic.Insights;
 using Aegis.Pumps.Actions;
 
@@ -787,8 +789,7 @@ namespace Aegis.Pumps
                     ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
 
                     // set ClientUniqueId with an unique id to recognize many instances
-                    var guidStr = Guid.NewGuid().ToString("N");
-                    ClientId = Uri.EscapeDataString(guidStr.Substring(guidStr.Length - 4, 4));
+                    ClientId = GenerateClientId();
 
                     // set flag
                     //isSetUpDone = true;
@@ -920,6 +921,23 @@ namespace Aegis.Pumps
             // start scheduled tasks
             // TODO remove all old "Aegis*" jobs?
             Instance.scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
+        }
+
+        private static string GenerateClientId()
+        {
+            Thread.Sleep(1);
+
+            var guidStr = Guid.NewGuid().ToString("N");
+            var processStr = Process.GetCurrentProcess().Id.ToString("x6");
+            var threadStr = Thread.CurrentThread.ManagedThreadId.ToString("x4");
+            var timeStr = DateTime.UtcNow.Ticks.ToString("x4");
+
+            var finalStr = guidStr.Substring(guidStr.Length - 4, 4) + "-" +
+                           processStr.Substring(processStr.Length - 4, 4) + "-" +
+                           threadStr.Substring(threadStr.Length - 2, 2) + "-" +
+                           timeStr.Substring(timeStr.Length - 2, 2);
+
+            return Uri.EscapeDataString(finalStr);
         }
     }
 }
