@@ -675,78 +675,22 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Aegis.Core.Data;
-using Aegis.Pumps.NewRelicInsightsEvents;
+using Jil;
 
-namespace Aegis.Pumps.SchedulerJobs
+namespace Aegis.Pumps.NewRelicInsightsEvents
 {
-    internal class SendStatusJob : ClientJob
+    public class AegisStatusEvent : AegisNotificationEvent
     {
-        public SendStatusJob(AegisClient client) : base(client, "SendStatusJob")
-        {
-        }
+        [JilDirective(Name = "blackListItemsCount")]
+        public int? BlackListItemsCount { get; set; }
 
-        protected override void DoExecute()
-        {
-            try
-            {
-                // if job is disabled
-                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
-                {
-                    return;
-                }
+        [JilDirective(Name = "blackListTimeStamp")]
+        public string BlackListTimeStamp { get; set; }
 
-                // TODO sends basic information to NewRelic/Service (?)
-                // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
+        [JilDirective(Name = "aegisEventsCacheCount")]
+        public int? AegisEventsCacheCount { get; set; }
 
-                var statusEvent = new AegisStatusEvent();
-                statusEvent.BlackListItemsCount = this.ClientInstance.BlackList.GetItemsCount();
-                statusEvent.BlackListTimeStamp = this.ClientInstance.BlackList.TimeStamp?.ToString("o");
-                statusEvent.AegisEventsCacheCount = this.ClientInstance.AegisEventCache.Count();
-                statusEvent.SettingsOnlineTimeStamp = this.ClientInstance.SettingsOnline.TimeStamp?.ToString("o");
-
-                this.ClientInstance.NewRelicUtils.AddNotification(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                    $"Status: {DateTime.UtcNow.ToString("o")}",
-                    customEvent: statusEvent);
-            }
-            catch (TaskCanceledException exception)
-            {
-                if (this.IsShuttingDown)
-                {
-                    return;
-                }
-
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
-                this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                    exception);
-            }
-        }
+        [JilDirective(Name = "settingsOnlineTimeStamp")]
+        public string SettingsOnlineTimeStamp { get; set; }
     }
 }

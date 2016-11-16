@@ -846,17 +846,15 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             INewRelicInsightsClient newRelicInsightsClient,
             string componentName,
             string message,
-            bool noDuplicateLastSent = false)
+            bool noDuplicateLastSent = false,
+            AegisNotificationEvent customEvent = null)
         {
             try
             {
-                // create event
-                var newRelicInsightsAegisEvent =
-                    new AegisNotificationEvent()
-                    {
-                        ComponentName = componentName,
-                        Message = message
-                    };
+                // set event
+                var newRelicInsightsAegisEvent = customEvent ?? new AegisNotificationEvent();
+                newRelicInsightsAegisEvent.ComponentName = componentName;
+                newRelicInsightsAegisEvent.Message = message;
 
                 // check if it is a duplicate to the last sent event
                 if (noDuplicateLastSent)

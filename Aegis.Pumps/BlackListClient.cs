@@ -709,6 +709,11 @@ namespace Aegis.Pumps
             this.blacklist = blacklistNew;
         }
 
+        public int GetItemsCount()
+        {
+            return this.blacklist.Count;
+        }
+
         public void CleanUp()
         {
             this.blacklist.Clear();
