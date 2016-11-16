@@ -688,7 +688,7 @@ namespace Aegis.Pumps.Actions
     public class ActionsHub
     {
         private readonly AegisClient client;
-        private readonly List<string> ipHeaderNames;
+        private List<string> ipHeaderNames;
 
         private readonly ActionIpEventNotify<AegisAvailabilityEvent> actionAvailability;
         private readonly ActionIpEventNotify<AegisResourceEvent> actionResource;
@@ -737,6 +737,11 @@ namespace Aegis.Pumps.Actions
             this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
+        }
+
+        public void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames)
+        {
+            this.ipHeaderNames = httpIpHeaderNames.ToList();
         }
 
         public bool GetAvailability(

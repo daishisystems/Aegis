@@ -702,14 +702,14 @@ namespace Aegis.Pumps
 
         public INewRelicInsightsClient NewRelicInsightsClient { get; private set; }
         public Settings Settings { get; private set; }
-        public ActionsHub ActionsHub { get; private set; }
-        public ActionsHubMdot ActionsHubMdot { get; private set; }
 
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly AegisServiceClient AegisServiceClient; // TODO made this instance owned by the Job and follow new httpclient pattern
+        public readonly ActionsHub ActionsHub;
+        public readonly ActionsHubMdot ActionsHubMdot;
         private SchedulerRegistry scheduler;
 
         private AegisClient(
@@ -734,6 +734,7 @@ namespace Aegis.Pumps
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
+            this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
             this.scheduler = new SchedulerRegistry();
         }
 
@@ -753,7 +754,8 @@ namespace Aegis.Pumps
 
             this.NewRelicInsightsClient = newRelicInsightsClient;
             this.Settings = settings;
-            this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
+            this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
+            this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
         }
 
         /// <summary>

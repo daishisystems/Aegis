@@ -687,7 +687,7 @@ namespace Aegis.Pumps.Actions
     public class ActionsHubMdot
     {
         private readonly AegisClient client;
-        private readonly List<string> ipHeaderNames;
+        private List<string> ipHeaderNames;
 
         private readonly ActionIpEventNotify<AegisMdotAccountEvent> actionAccount;
         private readonly ActionIpEventNotify<AegisMdotAccountLogInEvent> actionAccountLogIn;
@@ -704,6 +704,11 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisMdotPaymentPayInEvent> actionPaymentPayIn;
         private readonly ActionIpEventNotify<AegisMdotPriceBreakdownEvent> actionPriceBreakdown;
         private readonly ActionIpEventNotify<AegisMdotSeatEvent> actionSeat;
+
+        public void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames)
+        {
+            this.ipHeaderNames = httpIpHeaderNames.ToList();
+        }
 
         public ActionsHubMdot(AegisClient client, IEnumerable<string> httpIpHeaderNames)
         {
