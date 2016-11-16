@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -688,32 +689,12 @@ using Aegis.Pumps.Tests.Mocks;
 namespace Aegis.Pumps.Tests
 {
     [TestClass]
-    public class ActionsHubTests
+    public class ActionsHubMdotTests
     {
         [TestCleanup]
         public void TearDown()
         {
             AegisClient.ShutDown();
-        }
-
-        [TestMethod]
-        public void ParseIpAddressesFromHeaders()
-        {
-            var headerNames = new[] { "NS_CLIENT_IP", "BLABLA" };
-            var headers = new MockHttpHeaders();
-            headers.Add("header1", "value1");
-            headers.Add("header1", "value1");
-            headers.Add("header2", "value2");
-            headers.Add("NS_CLIENT_IP", "200.200.200.200");
-            headers.Add("NS_CLIENT_IP", "201.201.201.201");
-            headers.Add("BLABLA", "23.23.23.23");
-            headers.Add("BLABLA", "unparsed.ip.address.bl");
-
-            string error;
-            var ips = Actions.Action.ParseIpAddressesFromHeaders(headerNames, headers, out error);
-
-            Assert.AreEqual(3, ips.Count);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(error));
         }
 
         [TestMethod]
@@ -731,12 +712,12 @@ namespace Aegis.Pumps.Tests
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHubMdot);
+            Assert.IsNotNull(AegisClient.GetActionsHubMdot());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
 
@@ -745,8 +726,7 @@ namespace Aegis.Pumps.Tests
                 this.GetTestMethodsSet(requestHeaders, requestUri),
                 newRelicClient,
                 0,
-                1,
-                false);
+                1);
 
             Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
@@ -772,12 +752,12 @@ namespace Aegis.Pumps.Tests
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHubMdot);
+            Assert.IsNotNull(AegisClient.GetActionsHubMdot());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("User-Agent", "testUserAgent");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage");
@@ -790,8 +770,7 @@ namespace Aegis.Pumps.Tests
                 this.GetTestMethodsSet(requestHeaders, requestUri),
                 newRelicClient,
                 1,
-                0,
-                false);
+                0);
 
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
@@ -818,12 +797,12 @@ namespace Aegis.Pumps.Tests
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHubMdot);
+            Assert.IsNotNull(AegisClient.GetActionsHubMdot());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
             requestHeaders.Add("User-Agent", "testUserAgent");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage");
@@ -836,8 +815,7 @@ namespace Aegis.Pumps.Tests
                 this.GetTestMethodsSet(requestHeaders, requestUri),
                 newRelicClient,
                 0,
-                1,
-                false);
+                1);
 
             Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
 
@@ -863,77 +841,12 @@ namespace Aegis.Pumps.Tests
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
+            Assert.IsNotNull(AegisClient.Instance?.ActionsHubMdot);
+            Assert.IsNotNull(AegisClient.GetActionsHubMdot());
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
 
             // parameters
-            var requestHeaders = new MockHttpHeaders();
-            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
-            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
-            requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
-            requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla.bla");
-            requestHeaders.Add("NS_CLIENT_IP", "206.168.1.1");
-            requestHeaders.Add("NS_CLIENT_IP", "207.168.1.1");
-            requestHeaders.Add("NS_CLIENT_IP", "208.168.1.1");
-
-            requestHeaders.Add("User-Agent", "testUserAgent żźłćłóęś€$http://dad/&*()");
-            requestHeaders.Add("Accept-Language", "testAcceptLanguage żźłćłóęś€$http://dad/&*()");
-            requestHeaders.Add("X-Session-Token", "testSessionToken żźłćłóęś€$http://dad/&*()");
-
-            var requestUri = new Uri("http://www.bla.com/unit/tests");
-
-            // run actions
-            this.RunActions(
-                this.GetTestMethodsSet(requestHeaders, requestUri),
-                newRelicClient,
-                5,
-                1,
-                false);
-
-            // shutdown
-            AegisClient.ShutDown();
-
-            Assert.IsNull(AegisClient.Instance);
-            Assert.IsFalse(AegisClient.IsInitialised);
-        }
-
-        [TestMethod]
-        public void RunAllWithMultipleHeaderIpAndBlocked()
-        {
-            // client setup
-            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
-            var newRelicClient = new MockNewRelicInsightsClient();
-
-            Assert.IsNull(AegisClient.Instance);
-            Assert.IsFalse(AegisClient.IsInitialised);
-
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
-            AegisClient.Initialise(newRelicClient, settings);
-
-            Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
-            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
-
-            // enable blacklist
-            var settingsData = new SettingsOnlineData();
-            settingsData.AegisBlockingEnabled = new HashSet<string>(new[] { SettingsOnlineData.KeyAll });
-            AegisClient.Instance.SettingsOnline.SetNewData(settingsData, null);
-
-            var blackListData = new List<BlackListItem>()
-            {
-                new BlackListItem() { IpAddressRaw = "204.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "206.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "207.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "208.168.1.1", IsBlocked = true },
-            };
-            AegisClient.Instance.BlackList.SetNewData(blackListData, null);
-
-
-            // parameters
-            var requestHeaders = new MockHttpHeaders();
+            var requestHeaders = new NameValueCollection();
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("NS_CLIENT_IP", "205.168.1.1");
@@ -953,89 +866,21 @@ namespace Aegis.Pumps.Tests
             this.RunActions(
                 this.GetTestMethodsSet(requestHeaders, requestUri),
                 newRelicClient,
-                9,
                 5,
-                true);
+                1);
 
             // shutdown
             AegisClient.ShutDown();
 
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
-        }
-
-        [TestMethod]
-        public void RunPaymentMethods()
-        {
-            // client setup
-            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
-            settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
-            var newRelicClient = new MockNewRelicInsightsClient();
-
-            Assert.IsNull(AegisClient.Instance);
-            Assert.IsFalse(AegisClient.IsInitialised);
-
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
-            AegisClient.Initialise(newRelicClient, settings);
-
-            Assert.IsTrue(AegisClient.IsInitialised);
-            Assert.IsNotNull(AegisClient.Instance?.ActionsHub);
-            Assert.IsNotNull(AegisClient.GetActionsHub());
-            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
-
-            // parameters
-            var requestHeaders = new MockHttpHeaders();
-            requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
-            requestHeaders.Add("User-Agent", "testUserAgent");
-            requestHeaders.Add("Accept-Language", "testAcceptLanguage");
-            requestHeaders.Add("X-Session-Token", "testSessionToken");
-
-            var requestUri = new Uri("http://www.bla.com/unit/tests");
-
-            Func<bool>[] testMethodsWithRealParameters =
-            {
-                () =>
-                    {
-                        bool result = false;
-                        result |= AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2");
-                        result |= AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2");
-                        result |= AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2");
-                        return result;
-                    }
-            };
-
-            var testMethodsSet = new[] { testMethodsWithRealParameters.Select(x => Tuple.Create(false, x)).ToArray() };
-
-            // run actions
-            this.RunActions(
-                testMethodsSet,
-                newRelicClient,
-                3,
-                0,
-                false);
-
-            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
-
-            // shutdown
-            AegisClient.ShutDown();
-
-            Assert.IsNull(AegisClient.Instance);
-            Assert.IsFalse(AegisClient.IsInitialised);
-            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
 
         private void RunActions(
-            Tuple<bool, Func<bool>>[][] testMethodsSets,
+            Tuple<bool, Action>[][] testMethodsSets,
             MockNewRelicInsightsClient newRelicClient,
             int eventsCount,
-            int errorsCount,
-            bool methodResult)
+            int errorsCount)
         {
             // for each set
             var index = 0;
@@ -1054,12 +899,9 @@ namespace Aegis.Pumps.Tests
 
                     var stopWatch = Stopwatch.StartNew();
 
-                    var result = methodInfo.Item2();
+                    methodInfo.Item2();
 
                     stopWatch.Stop();
-                    
-                    // check test method result
-                    Assert.AreEqual(methodResult, result);
 
                     // check errors
                     Assert.AreEqual(errorsCount, newRelicClient.UploadNewRelicInsightsEvents.Count);
@@ -1109,11 +951,11 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
                 }
 
-                var paymentEvents = new[] 
+                var paymentEvents = new[]
                 {
-                    AegisBaseEvent.EventTypes.Payment,
-                    AegisBaseEvent.EventTypes.Payment2,
-                    AegisBaseEvent.EventTypes.Payment3
+                    AegisBaseEvent.EventTypes.MdotPaymentPay,
+                    AegisBaseEvent.EventTypes.MdotPaymentPayIn,
+                    AegisBaseEvent.EventTypes.MdotPaymentPrepareForPay
                 };
 
                 if (paymentEvents.Contains(evnt.EventType))
@@ -1126,27 +968,13 @@ namespace Aegis.Pumps.Tests
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntbasePayment.AddressPostal), evntbasePayment.EventType);
                 }
 
-                if (evnt.EventType == AegisBaseEvent.EventTypes.Dcc)
+                if (evnt.EventType == AegisBaseEvent.EventTypes.MdotAvailability)
                 {
-                    var evntDcc = (AegisDccEvent)evnt;
-                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntDcc.AccountNumber), evntDcc.EventType);
-                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntDcc.PaymentMethodCode), evntDcc.EventType);
-                }
-
-                if (evnt.EventType == AegisBaseEvent.EventTypes.Availability)
-                {
-                    var evntAvailability = (AegisAvailabilityEvent)evnt;
+                    var evntAvailability = (AegisMdotAvailabilityEvent)evnt;
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.Origin), evntAvailability.EventType);
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.Destination), evntAvailability.EventType);
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.DateIn), evntAvailability.EventType);
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntAvailability.DateOut), evntAvailability.EventType);
-                }
-
-                if (evnt.EventType == AegisBaseEvent.EventTypes.Blacklist)
-                {
-                    var evntBlacklist = (AegisBlackListEvent)evnt;
-                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.SourceEventType), evntBlacklist.EventType);
-                    Assert.IsTrue(evntBlacklist.IsBlocked, evntBlacklist.EventType);
                 }
             }
 
@@ -1160,69 +988,59 @@ namespace Aegis.Pumps.Tests
             return true;
         }
 
-        private Tuple<bool, Func<bool>>[][] GetTestMethodsSet(
-               HttpHeaders requestHeaders,
+        private Tuple<bool, Action>[][] GetTestMethodsSet(
+               NameValueCollection requestHeaders,
                Uri requestUri)
         {
-            Func<bool>[] testMethodsWithNullParameters =
+            Action[] testMethodsWithNullParameters =
             {
-                () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
-                () => AegisClient.GetActionsHub().GetBag(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetCalendar(requestHeaders, requestUri, null, null, null),
-                () => AegisClient.GetActionsHub().GetConfigurations(requestHeaders, requestUri, null, null),
-                () => AegisClient.GetActionsHub().GetExtras(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetFast(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetFees(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetRefresh(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetResource(requestHeaders, requestUri, null),
-                () => AegisClient.GetActionsHub().GetSeat(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().PostBooking(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, null, null),
-                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
+                () => AegisClient.GetActionsHubMdot().GetAccount(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, null),
+                () => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, null),
+                () => AegisClient.GetActionsHubMdot().GetAvailability(requestHeaders, requestUri, null, null, null, null),
+                () => AegisClient.GetActionsHubMdot().GetBag(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetBooking(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetCheckout(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetFast(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().PostFlight(requestHeaders, requestUri, null, null, null, null),
+                () => AegisClient.GetActionsHubMdot().GetPayment(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri,
+                                                null, null, null, null,
+                                                null, null),
+                () => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri,
+                                                null, null, null, null,
+                                                null, null),
+                () => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
-                                                null, null, null, null,
-                                                null, null, null, null, null),
-                () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
-                                                null, null, null, null,
-                                                null, null, null, null, null),
+                () => AegisClient.GetActionsHubMdot().PostPriceBreakdown(requestHeaders, requestUri, null, null, null, null),
+                () => AegisClient.GetActionsHubMdot().GetSeat(requestHeaders, requestUri)
             };
 
 
-            Func<bool>[] testMethodsWithRealParameters =
+            Action[] testMethodsWithRealParameters =
             {
-                () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, "orig", "dst", DateTime.UtcNow, DateTime.Today),
-                () => AegisClient.GetActionsHub().GetBag(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetCalendar(requestHeaders, requestUri, "orig", "dst", DateTime.UtcNow),
-                () => AegisClient.GetActionsHub().GetConfigurations(requestHeaders, requestUri, "orig", "dst"),
-                () => AegisClient.GetActionsHub().GetExtras(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetFast(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetFees(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetPaymentMethods(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetQuickAdd(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetRefresh(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetResource(requestHeaders, requestUri, "res-name"),
-                () => AegisClient.GetActionsHub().GetSeat(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().GetPromoCodes(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().PostBooking(requestHeaders, requestUri),
-                () => AegisClient.GetActionsHub().PostFlight(requestHeaders, requestUri, 1, 2, 3, 4),
-                () => AegisClient.GetActionsHub().PostPrice(requestHeaders, requestUri, 1, 2, 3, 4),
-                () => AegisClient.GetActionsHub().PostDcc(requestHeaders, requestUri, "1234567890", "p-method-code"),
-                () => AegisClient.GetActionsHub().PostPayment(requestHeaders, requestUri,
+                () => AegisClient.GetActionsHubMdot().GetAccount(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, "email@host.com"),
+                () => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, "email@host.com"),
+                () => AegisClient.GetActionsHubMdot().GetAvailability(requestHeaders, requestUri, "orig", "dst", DateTime.UtcNow, DateTime.Today),
+                () => AegisClient.GetActionsHubMdot().GetBag(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetBooking(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetCheckout(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetFast(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().PostFlight(requestHeaders, requestUri, 1, 2, 3, 4),
+                () => AegisClient.GetActionsHubMdot().GetPayment(requestHeaders, requestUri),
+                () => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri,
+                                                "1234567890", "p-method-code", "city",
+                                                "country", "postal", "email@host.com"),
+                () => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri,
+                                                "1234567890", "p-method-code", "city",
+                                                "country", "postal", "email@host.com"),
+                () => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPayment2(requestHeaders, requestUri,
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2"),
-                () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2"),
+                () => AegisClient.GetActionsHubMdot().PostPriceBreakdown(requestHeaders, requestUri, 1, 2, 3, 4),
+                () => AegisClient.GetActionsHubMdot().GetSeat(requestHeaders, requestUri)
             };
 
             return new[]
