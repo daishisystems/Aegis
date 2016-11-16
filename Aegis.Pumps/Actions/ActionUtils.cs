@@ -676,224 +676,83 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using Daishi.NewRelic.Insights;
+using System.Collections.Specialized;
+using System.Net.Http.Headers;
+using System.Net.Mail;
+using Aegis.Core;
 
-namespace Aegis.Pumps.NewRelicInsightsEvents
+namespace Aegis.Pumps.Actions
 {
-    public class Utils
+    public static class ActionsUtils
     {
-        private const int LastSentMessageLimitInMinutes = 5;
-        private Tuple<string, DateTime> lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
-        private Tuple<string, DateTime> lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
-
-        public static class ComponentNames
+        private class MyHttpHeaders : HttpHeaders
         {
-            public const string ClientInitialisation = "Client initialisation";
-            public const string ClientReportError = "Client report error";
-            public const string SettingsInitialisation = "Settings initialisation";
-            public const string ParseIpAddress = "ParseIpAddress";
-
-            // Actions
-            public const string ActionAvailability = "Action-Availability";
-            public const string ActionConfigurations = "Action-Configurations";
-            public const string ActionResource = "Action-Resource";
-            public const string ActionCalendar = "Action-Calendar";
-            public const string ActionPrice = "Action-Price";
-            public const string ActionFlight = "Action-Flight";
-            public const string ActionFast = "Action-Fast";
-            public const string ActionExtras = "Action-Extras";
-            public const string ActionQuickAdd = "Action-QuickAdd";
-            public const string ActionBag = "Action-Bag";
-            public const string ActionBooking = "Action-Booking";
-            public const string ActionRefresh = "Action-Refresh";
-            public const string ActionSeat = "Action-Seat";
-            public const string ActionFees = "Action-Fees";
-            public const string ActionPaymentMethods = "Action-PaymentMethods";
-            public const string ActionDcc = "Action-Dcc";
-            public const string ActionPayment = "Action-Payment";
-            public const string ActionPromoCodes = "Action-PromoCodes";
-
-            // Actions-Mdot
-            public const string ActionMdotAccount = "Action-Mdot-Account";
-            public const string ActionMdotAccountLogIn = "Action-Mdot-AccountLogIn";
-            public const string ActionMdotAccountSignUp = "Action-Mdot-AccountSignUp";
-            public const string ActionMdotAvailability = "Action-Mdot-Availability";
-            public const string ActionMdotBag = "Action-Mdot-Bag";
-            public const string ActionMdotBooking = "Action-Mdot-Booking";
-            public const string ActionMdotCheckout = "Action-Mdot-Checkout";
-            public const string ActionMdotFast = "Action-Mdot-Fast";
-            public const string ActionMdotFlight = "Action-Mdot-Flight";
-            public const string ActionMdotPayment = "Action-Mdot-Payment";
-            public const string ActionMdotPaymentPrepareForPay = "Action-Mdot-PaymentPrepareForPay";
-            public const string ActionMdotPaymentPay = "Action-Mdot-PaymentPay";
-            public const string ActionMdotPaymentPayIn = "Action-Mdot-PaymentPayIn";
-            public const string ActionMdotPriceBreakdown = "Action-Mdot-PriceBreakdown";
-            public const string ActionMdotSeat = "Action-Mdot-Seat";
-
-            // Jobs
-            public const string JobGetBlackList = "Job-GetBlackList";
-            public const string JobGetSettingsOnline = "Job-GetSettingsOnline";
-            public const string JobSendAegisEvents = "Job-SendAegisEvents";
-            public const string JobSendStatus = "Job-SendStatus";
         }
 
-        public static class EventTypes
+        public static void ParseEmail(
+            AegisClient client, 
+            string componentName, 
+            string email, 
+            out string mailHost, 
+            out string mailHash)
         {
-            public const string AegisErrors = "AegisErrors";
-            public const string AegisNotifications = "AegisNotifications";
-            public const string AegisBlackListActivity = "AegisBlackListActivity";
-        }
+            mailHost = null;
+            mailHash = null;
 
-        public void ResetLastSent()
-        {
-            this.lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
-            this.lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
-        }
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return;
+            }
 
-        /// <summary>
-        ///     <see cref="UploadException" /> uploads
-        ///     <see cref="Exception" /> metadata to New Relic Insights.
-        /// </summary>
-        /// <param name="componentName"></param>
-        /// <param name="exception">
-        ///     The <see cref="Exception" /> to upload to New Relic
-        ///     Insights.
-        /// </param>
-        /// <param name="newRelicInsightsClient">
-        ///     The <see cref="NewRelicInsightsClient" />
-        ///     instance that facilitates the <see cref="Exception" />-upload.
-        /// </param>
-        /// <param name="customExceptionMessage">
-        ///     A custom message, generally used in place
-        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
-        ///     isolate the specific underlying issue.
-        /// </param>
-        public static void UploadException(
-            INewRelicInsightsClient newRelicInsightsClient,
-            string componentName,
-            Exception exception,
-            string customExceptionMessage = null)
-        {
+            // set default values
+            mailHost = "unknown";
+            var mailAddr = email;
+
+            // parse mail
             try
             {
-                var newRelicInsightsAegisEvent =
-                    new AegisErrorEvent()
-                    {
-                        ComponentName = componentName,
-                        ErrorMessage = customExceptionMessage ?? exception?.ToString(),
-                        InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
-                    };
-
-                newRelicInsightsClient.UploadEvents(
-                    new[] { newRelicInsightsAegisEvent },
-                    new HttpClientFactory());
+                var mail = new MailAddress(email);
+                mailHost = mail.Host;
+                mailAddr = mail.Address;
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                client.NewRelicUtils.AddException(
+                    client.NewRelicInsightsClient,
+                    componentName,
+                    exception,
+                    $"paramContactEmail={email}=");
             }
+
+            // hash mail
+            mailHash = CryptUtils.HashMail(mailAddr, mailHost);
         }
 
-        // TODO log the caller?
-        public void AddException(
-            INewRelicInsightsClient newRelicInsightsClient,
-            string componentName,
-            Exception exception,
-            string customExceptionMessage = null,
-            bool noDuplicateLastSent = false)
+        public static string TruncateCardAccountNumber(string account)
         {
-            try
+            if (string.IsNullOrWhiteSpace(account))
             {
-                // create event
-                var errMessage = customExceptionMessage ?? exception?.ToString();
-                if (customExceptionMessage != null && exception != null)
-                {
-                    errMessage = $"{customExceptionMessage}\n{exception}";
-                }
-
-                var newRelicInsightsAegisEvent =
-                    new AegisErrorEvent()
-                    {
-                        ComponentName = componentName,
-                        ErrorMessage = errMessage,
-                        InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
-                    };
-
-                // check if it is a duplicate to the last sent event
-                if (noDuplicateLastSent)
-                {
-                    // if message same like last one then ignore it
-                    if (!this.CheckAndUpdateLastSent(
-                        ref this.lastSentError, 
-                        newRelicInsightsAegisEvent.ComponentName,
-                        newRelicInsightsAegisEvent.ErrorMessage,
-                        newRelicInsightsAegisEvent.InnerErrorMessage))
-                    {
-                        return;
-                    }
-                }
-
-                // add to NewRelic
-                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                return null;
             }
-            catch (Exception)
+
+            if (account.Length <= 10)
             {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                return account;
             }
+
+            return account.Substring(0, 6) + "".PadLeft(account.Length - 10, 'x') + account.Substring(account.Length - 4, 4);
         }
 
-        public void AddNotification(
-            INewRelicInsightsClient newRelicInsightsClient,
-            string componentName,
-            string message,
-            bool noDuplicateLastSent = false)
+        public static HttpHeaders GetAsHttpHeaders(NameValueCollection headersCollection)
         {
-            try
+            var headers = new MyHttpHeaders();
+
+            foreach (var key in headersCollection.AllKeys)
             {
-                // create event
-                var newRelicInsightsAegisEvent =
-                    new AegisNotificationEvent()
-                    {
-                        ComponentName = componentName,
-                        Message = message
-                    };
-
-                // check if it is a duplicate to the last sent event
-                if (noDuplicateLastSent)
-                {
-                    // if message same like last one then ignore it
-                    if (!this.CheckAndUpdateLastSent(
-                        ref this.lastSentNotification,
-                        newRelicInsightsAegisEvent.ComponentName,
-                        newRelicInsightsAegisEvent.Message,
-                        null))
-                    {
-                        return;
-                    }
-                }
-
-                // add to NewRelic
-                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
-            }
-            catch (Exception)
-            {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
-            }
-        }
-
-        private bool CheckAndUpdateLastSent(ref Tuple<string, DateTime> lastSent, string msg1, string msg2, string msg3)
-        {
-            var messageData = $"{msg1}${msg2}${msg3}";
-
-            // if match to last sent then ignore
-            if (lastSent.Item1 == messageData && DateTime.UtcNow.Subtract(lastSent.Item2).Minutes < LastSentMessageLimitInMinutes)
-            {
-                return false;
+                headers.Add(key, headersCollection.GetValues(key));
             }
 
-            // update
-            lastSent = Tuple.Create(messageData, DateTime.UtcNow);
-            return true;
+            return headers;
         }
     }
 }

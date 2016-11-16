@@ -1012,7 +1012,7 @@ namespace Aegis.Pumps.Actions
                     requestUri,
                     () => new AegisDccEvent()
                     {
-                        AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                        AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
                         PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim()
                     });
         }
@@ -1030,34 +1030,14 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2)
         {
-            string mailHost = null;
-            string mailHash = null;
+            string mailHost, mailHash;
 
-            if (!string.IsNullOrWhiteSpace(paramContactEmail))
-            {
-                // set default values
-                mailHost = "unknown";
-                var mailAddr = paramContactEmail;
-
-                // parse mail
-                try
-                {
-                    var mail = new MailAddress(paramContactEmail);
-                    mailHost = mail.Host;
-                    mailAddr = mail.Address;
-                }
-                catch (Exception exception)
-                {
-                    this.client.NewRelicUtils.AddException(
-                        this.client.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
-                        exception,
-                        $"paramContactEmail={paramContactEmail}=");
-                }
-
-                // hash mail
-                mailHash = CryptUtils.HashMail(mailAddr, mailHost);
-            }
+            ActionsUtils.ParseEmail(
+                this.client,
+                NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
+                paramContactEmail,
+                out mailHost,
+                out mailHash);
 
             return this.actionPayment.Run(
                 AegisBaseEvent.EventTypes.Payment,
@@ -1068,7 +1048,7 @@ namespace Aegis.Pumps.Actions
                 new AegisPaymentEvent()
                 {
                     CustomerId = paramCustomerId,
-                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
                     PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
                     AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
                     AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
@@ -1093,34 +1073,14 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2)
         {
-            string mailHost = null;
-            string mailHash = null;
+            string mailHost, mailHash;
 
-            if (!string.IsNullOrWhiteSpace(paramContactEmail))
-            {
-                // set default values
-                mailHost = "unknown";
-                var mailAddr = paramContactEmail;
-
-                // parse mail
-                try
-                {
-                    var mail = new MailAddress(paramContactEmail);
-                    mailHost = mail.Host;
-                    mailAddr = mail.Address;
-                }
-                catch (Exception exception)
-                {
-                    this.client.NewRelicUtils.AddException(
-                        this.client.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
-                        exception,
-                        $"paramContactEmail={paramContactEmail}=");
-                }
-
-                // hash mail
-                mailHash = CryptUtils.HashMail(mailAddr, mailHost);
-            }
+            ActionsUtils.ParseEmail(
+                this.client,
+                NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
+                paramContactEmail,
+                out mailHost,
+                out mailHash);
 
             return this.actionPayment2.Run(
                 AegisBaseEvent.EventTypes.Payment2,
@@ -1131,7 +1091,7 @@ namespace Aegis.Pumps.Actions
                 new AegisPayment2Event()
                 {
                     CustomerId = paramCustomerId,
-                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
                     PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
                     AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
                     AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
@@ -1156,34 +1116,14 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2)
         {
-            string mailHost = null;
-            string mailHash = null;
+            string mailHost, mailHash;
 
-            if (!string.IsNullOrWhiteSpace(paramContactEmail))
-            {
-                // set default values
-                mailHost = "unknown";
-                var mailAddr = paramContactEmail;
-
-                // parse mail
-                try
-                {
-                    var mail = new MailAddress(paramContactEmail);
-                    mailHost = mail.Host;
-                    mailAddr = mail.Address;
-                }
-                catch (Exception exception)
-                {
-                    this.client.NewRelicUtils.AddException(
-                        this.client.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
-                        exception,
-                        $"paramContactEmail={paramContactEmail}=");
-                }
-
-                // hash mail
-                mailHash = CryptUtils.HashMail(mailAddr, mailHost);
-            }
+            ActionsUtils.ParseEmail(
+                this.client,
+                NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment,
+                paramContactEmail,
+                out mailHost,
+                out mailHash);
 
             return this.actionPayment3.Run(
                 AegisBaseEvent.EventTypes.Payment2,
@@ -1194,7 +1134,7 @@ namespace Aegis.Pumps.Actions
                 new AegisPayment3Event()
                 {
                     CustomerId = paramCustomerId,
-                    AccountNumberRaw = TruncateCardAccountNumber(paramAccountNumber),
+                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
                     PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
                     AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
                     AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
@@ -1204,21 +1144,6 @@ namespace Aegis.Pumps.Actions
                     PaymentInfo1 = paymentInfo1,
                     PaymentInfo2 = paymentInfo2
                 });
-        }
-
-        private static string TruncateCardAccountNumber(string account)
-        {
-            if (string.IsNullOrWhiteSpace(account))
-            {
-                return null;
-            }
-
-            if (account.Length <= 10)
-            {
-                return account;
-            }
-
-            return account.Substring(0, 6) + "".PadLeft(account.Length - 10, 'x') + account.Substring(account.Length - 4, 4);
         }
     }
 }

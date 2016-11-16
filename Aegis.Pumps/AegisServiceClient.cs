@@ -869,6 +869,8 @@ namespace Aegis.Pumps
             var httpClientFactory = new HttpClientFactory();
 
             var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
+
+            // TODO online settings to enable sending data compressed
             this.DoSendAegisEvents(httpRequestMetadata, httpClientFactory, itemsJson);
         }
 

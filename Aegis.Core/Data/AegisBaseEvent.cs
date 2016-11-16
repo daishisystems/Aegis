@@ -709,6 +709,23 @@ namespace Aegis.Core.Data
             public const string Resource = "resource";
             public const string Seat = "seat";
             public const string PromoCodes = "promoCodes";
+
+            // Mdot events
+            public const string MdotAccount = "mdotAccount";
+            public const string MdotAccountLogIn = "mdotAccountLogIn";
+            public const string MdotAccountSignUp = "mdotAccountSignUp";
+            public const string MdotAvailability = "mdotAvailability";
+            public const string MdotBag = "mdotBag";
+            public const string MdotBooking = "mdotBooking";
+            public const string MdotCheckout = "mdotCheckout";
+            public const string MdotFast = "mdotFast";
+            public const string MdotFlight = "mdotFlight";
+            public const string MdotPayment = "mdotPayment";
+            public const string MdotPaymentPrepareForPay = "mdotPaymentPrepareForPay";
+            public const string MdotPaymentPay = "mdotPaymentPay";
+            public const string MdotPaymentPayIn = "mdotPaymentPayIn";
+            public const string MdotPriceBreakdown = "mdotPriceBreakdown";
+            public const string MdotSeat = "mdotSeat";
         }
 
         [JilDirective(Name = "e")]

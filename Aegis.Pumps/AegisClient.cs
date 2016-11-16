@@ -703,6 +703,7 @@ namespace Aegis.Pumps
         public INewRelicInsightsClient NewRelicInsightsClient { get; private set; }
         public Settings Settings { get; private set; }
         public ActionsHub ActionsHub { get; private set; }
+        public ActionsHubMdot ActionsHubMdot { get; private set; }
 
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
         public readonly SettingsOnlineClient SettingsOnline;
@@ -882,6 +883,18 @@ namespace Aegis.Pumps
 
             // initialized
             return Instance.ActionsHub;
+        }
+
+        public static ActionsHubMdot GetActionsHubMdot()
+        {
+            // ignore on non initialized
+            if (!IsInitialised)
+            {
+                return null;
+            }
+
+            // initialized
+            return Instance.ActionsHubMdot;
         }
 
         public static void ReportError(string message)

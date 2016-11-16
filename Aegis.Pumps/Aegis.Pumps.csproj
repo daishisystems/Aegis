@@ -63,6 +63,8 @@
     <Compile Include="Actions\Action.cs" />
     <Compile Include="Actions\ActionIpEventNotify.cs" />
     <Compile Include="Actions\ActionsHub.cs" />
+    <Compile Include="Actions\ActionsHubMDot.cs" />
+    <Compile Include="Actions\ActionUtils.cs" />
     <Compile Include="AegisEventCacheClient.cs" />
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
