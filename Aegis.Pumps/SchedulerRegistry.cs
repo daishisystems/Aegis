@@ -708,10 +708,10 @@ namespace Aegis.Pumps
         {
             const int InitialStartDelay = 180; // in seconds
             const int JobStartDelay = 90; // in seconds
-            const int MaxRandomDelay = 20; // in seconds
+            const int MaxRandomDelay = 30; // in seconds
 
             // generate random start delay values
-            var rnd = new Random();
+            var rnd = new Random(AegisClient.ClientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
 
             var delaysSet = new HashSet<int>();
             while (delaysSet.Count < 4)
@@ -723,8 +723,6 @@ namespace Aegis.Pumps
 
             // disable running same job in parallel
             this.NonReentrantAsDefault();
-
-            // TODO use ClientId in job name, to make it unique? or general use random ID
 
             // add jobs
             this.Add(
