@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Aegis.Core.Data;
 
@@ -691,7 +692,8 @@ namespace Aegis.Pumps.SchedulerJobs
     {
         private DateTimeOffset lastSucessfulCheck;
 
-        public GetBlackListJob(AegisClient client) : base(client, "GetBlackListJob")
+        public GetBlackListJob(AegisClient client)
+            : base(client, "GetBlackListJob")
         {
         }
 
@@ -709,34 +711,16 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
-                // get blacklist data
-                List<BlackListItem> blackListData;
-                DateTimeOffset? newTimeStamp;
-
-                var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
-                    AegisClient.ClientName,
-                    AegisClient.ClientId,
-                    AegisClient.ClientVersion,
-                    AegisClient.ClientMachineName,
-                    AegisClient.ClientEnvironment,
-                    AegisClient.AegisVersion,
-                    this.ClientInstance.Settings,
-                    this.ClientInstance.SettingsOnline,
-                    this.ClientInstance.BlackList.TimeStamp,
-                    out blackListData,
-                    out newTimeStamp);
-
-                // update successful timestamp
-                this.lastSucessfulCheck = DateTimeOffset.UtcNow;
-
-                // if data hasn't changed
-                if (!isUpdated)
+                // run logic V2 if enabled
+                if (this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.BlackListDownloadV2))
                 {
+                    this.ProcessBlackListV2();
                     return;
                 }
 
-                // set new data
-                this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
+                // run logic V1
+                this.ProcessBlackListV1();
+
             }
             catch (TaskCanceledException exception)
             {
@@ -751,8 +735,8 @@ namespace Aegis.Pumps.SchedulerJobs
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception,
-                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
-                        $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
+                        + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
                 }
                 else
                 {
@@ -763,9 +747,8 @@ namespace Aegis.Pumps.SchedulerJobs
                         this.ClientInstance.NewRelicInsightsClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                         exception,
-                        "Request timeout. " +
-                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
-                        $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                        "Request timeout. " + $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
+                        + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
                 }
             }
             catch (Exception exception)
@@ -774,9 +757,74 @@ namespace Aegis.Pumps.SchedulerJobs
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception,
-                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
-                    $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
+                    + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
             }
+        }
+
+        protected void ProcessBlackListV1()
+        {
+            // get blacklist data
+            List<BlackListItem> blackListData;
+            DateTimeOffset? newTimeStamp;
+
+            var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListData(
+                AegisClient.ClientName,
+                AegisClient.ClientId,
+                AegisClient.ClientVersion,
+                AegisClient.ClientMachineName,
+                AegisClient.ClientEnvironment,
+                AegisClient.AegisVersion,
+                this.ClientInstance.Settings,
+                this.ClientInstance.SettingsOnline,
+                this.ClientInstance.BlackList.TimeStamp,
+                out blackListData,
+                out newTimeStamp);
+
+            // update successful timestamp
+            this.lastSucessfulCheck = DateTimeOffset.UtcNow;
+
+            // if data hasn't changed
+            if (!isUpdated)
+            {
+                return;
+            }
+
+            // set new data
+            this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
+        }
+
+        protected void ProcessBlackListV2()
+        {
+            // get blacklist data
+            List<BlackListSet> blackListData;
+            DateTimeOffset? newTimeStamp;
+
+            var isUpdated = this.ClientInstance.AegisServiceClient.GetBlackListDataV2(
+                AegisClient.ClientName,
+                AegisClient.ClientId,
+                AegisClient.ClientVersion,
+                AegisClient.ClientMachineName,
+                AegisClient.ClientEnvironment,
+                AegisClient.AegisVersion,
+                this.ClientInstance.Settings,
+                this.ClientInstance.SettingsOnline,
+                this.ClientInstance.BlackList.TimeStamp,
+                this.ClientInstance.BlackList.GetVersionStamps(),
+                out blackListData,
+                out newTimeStamp);
+
+            // update successful timestamp
+            this.lastSucessfulCheck = DateTimeOffset.UtcNow;
+
+            // if data hasn't changed
+            if (!isUpdated)
+            {
+                return;
+            }
+
+            // set new data
+            this.ClientInstance.BlackList.SetNewDataV2(blackListData, newTimeStamp);
         }
     }
 }

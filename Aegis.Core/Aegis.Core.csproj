@@ -93,6 +93,7 @@
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />
     <Compile Include="CitrixNetworkRouteMapper.cs" />
+    <Compile Include="Data\BlackListSet.cs" />
     <Compile Include="ExperimentsUtils.cs" />
     <Compile Include="HttpClientFactory.cs" />
     <Compile Include="HttpHeaderParseResult.cs" />

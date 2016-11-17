@@ -862,6 +862,7 @@ namespace Aegis.Pumps
             }
 
             // TODO flush data (events)
+            // TODO provide public flush method called when Application_End is executed
 
             // set to non-initialised state
             var self = Instance;

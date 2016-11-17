@@ -744,6 +744,9 @@ namespace Aegis.Pumps
         [JilDirective(Name = "jobsInterval")]
         public Dictionary<string, int> JobsInterval { get; set; }
 
+        [JilDirective(Name = "featuresEnabled")]
+        public HashSet<string> FeaturesEnabled { get; set; }
+
         public static SettingsOnlineData Deserialize(string dataString)
         {
             if (string.IsNullOrWhiteSpace(dataString))

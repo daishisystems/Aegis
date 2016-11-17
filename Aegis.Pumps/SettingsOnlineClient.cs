@@ -682,6 +682,11 @@ namespace Aegis.Pumps
 {
     public class SettingsOnlineClient
     {
+        public static class Features
+        {
+            public const string BlackListDownloadV2 = "BlackListDownloadV2";
+        }
+
         public SettingsOnlineData Data { get; private set; }
 
         public DateTimeOffset? TimeStamp { get; private set; }
@@ -765,6 +770,16 @@ namespace Aegis.Pumps
             }
 
             return this.Data.JobsInterval[jobName];
+        }
+
+        public bool IsFeatureEnabled(string featureName)
+        {
+            if (!this.IsAvailable || this.Data.FeaturesEnabled == null)
+            {
+                return false;
+            }
+
+            return this.Data.FeaturesEnabled.Contains(featureName);
         }
     }
 }

@@ -715,7 +715,7 @@ namespace Aegis.Pumps.Tests
             BlackListItem blackItem;
             var self = new BlackListClient();
 
-            var data = new []
+            var data = new[]
                            {
                                new BlackListItem() { IpAddressRaw = "10.1.2.3" },
                                new BlackListItem() { IpAddressRaw = "10.1.2.4" },
@@ -757,5 +757,154 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(self.TimeStamp);
         }
 
+        [TestMethod]
+        public void MergeV2EmptyWithEmpty()
+        {
+            List<BlackListItem> items;
+
+            // current is null, update is empty
+            var sets = BlackListClient.MergeV2(null, new List<BlackListSet>(), out items);
+            Assert.AreEqual(0, sets.Count);
+            Assert.AreEqual(0, items.Count);
+
+            // current is empty, update is empty
+            sets = BlackListClient.MergeV2(new List<BlackListSet>(), new List<BlackListSet>(), out items);
+            Assert.AreEqual(0, sets.Count);
+            Assert.AreEqual(0, items.Count);
+        }
+
+        [TestMethod]
+        public void MergeV2EmptyWithItems()
+        {
+            List<BlackListItem> items;
+            var setsUpdate = new List<BlackListSet>()
+            {
+                new BlackListSet()
+                    {
+                        VersionStamp = 2,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "193.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "194.168.0.1" }
+                                   }
+                    }
+            };
+
+            // current is null
+            var sets = BlackListClient.MergeV2(null, setsUpdate, out items);
+            Assert.AreEqual(setsUpdate.Count, sets.Count);
+            Assert.AreEqual(setsUpdate[0].VersionStamp, sets[0].VersionStamp);
+            Assert.AreEqual(setsUpdate[0].Data.Count, items.Count);
+
+            // current is empty
+            sets = BlackListClient.MergeV2(new List<BlackListSet>(), setsUpdate, out items);
+            Assert.AreEqual(setsUpdate.Count, sets.Count);
+            Assert.AreEqual(setsUpdate[0].VersionStamp, sets[0].VersionStamp);
+            Assert.AreEqual(setsUpdate[0].Data.Count, items.Count);
+        }
+
+        [TestMethod]
+        public void MergeV2ItemsWithItems()
+        {
+            List<BlackListItem> items;
+            var setsCurrent = new List<BlackListSet>()
+            {
+                new BlackListSet()
+                    {
+                        VersionStamp = 200,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "193.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "194.168.0.1" }
+                                   }
+                    },
+                new BlackListSet()
+                    {
+                        VersionStamp = 40,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "200.168.0.1" }
+                                   }
+                    },
+            };
+
+            var setsUpdate = new List<BlackListSet>()
+            {
+                new BlackListSet()
+                    {
+                        VersionStamp = 20,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "193.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "194.168.0.1" }
+                                   }
+                    },
+                new BlackListSet()
+                    {
+                        VersionStamp = 40,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" }
+                                   }
+                    },
+                new BlackListSet()
+                    {
+                        VersionStamp = 60,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "200.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "250.168.0.1" }
+                                   }
+                    },
+            };
+
+            // current is null
+            var sets = BlackListClient.MergeV2(setsCurrent, setsUpdate, out items);
+
+            Assert.AreEqual(setsUpdate.Count, sets.Count);
+            Assert.AreEqual(setsUpdate[0].VersionStamp, sets[0].VersionStamp);
+            Assert.AreEqual(setsUpdate[1].VersionStamp, sets[1].VersionStamp);
+            Assert.AreEqual(setsUpdate[2].VersionStamp, sets[2].VersionStamp);
+            Assert.AreEqual(5, items.Count);
+        }
+
+        [TestMethod]
+        public void MergeV2ItemsWithEmpty()
+        {
+            List<BlackListItem> items;
+            var setsCurrent = new List<BlackListSet>()
+            {
+                new BlackListSet()
+                    {
+                        VersionStamp = 200,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "193.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "194.168.0.1" }
+                                   }
+                    },
+                new BlackListSet()
+                    {
+                        VersionStamp = 40,
+                        Data = new List<BlackListItem>()
+                                   {
+                                       new BlackListItem() { IpAddressRaw = "192.168.0.1" },
+                                       new BlackListItem() { IpAddressRaw = "200.168.0.1" }
+                                   }
+                    },
+            };
+
+            // update is empty
+            var sets = BlackListClient.MergeV2(setsCurrent, new List<BlackListSet>(), out items);
+
+            Assert.AreEqual(0, sets.Count);
+            Assert.AreEqual(0, items.Count);
+        }
     }
 }

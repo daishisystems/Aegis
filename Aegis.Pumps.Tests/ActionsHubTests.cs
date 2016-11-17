@@ -947,7 +947,6 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken żźłćłóęś€$http://dad/&*()");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
-            // TODO test blocking/non blocking (and measure time execution)
 
             // run actions
             this.RunActions(

@@ -678,171 +678,26 @@ Public License instead of this License.  But first, please read
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentScheduler;
-using Aegis.Pumps.SchedulerJobs;
 
-namespace Aegis.Pumps
+using Jil;
+
+namespace Aegis.Core.Data
 {
-    public class SchedulerRegistry : Registry
+    public class BlackListSet
     {
-        public const string TestDisableSchedulerKey = "test_schedule_disabled";
-        private readonly List<Tuple<ClientJob, Schedule>> scheduledItems;
+        [JilDirective(Name = "data")]
+        public List<BlackListItem> Data { get; set; }
 
-        public SchedulerRegistry()
+        [JilDirective(Name = "versionStamp")]
+        public ushort VersionStamp { get; set; }
+
+        public BlackListSet Clone()
         {
-            this.scheduledItems = new List<Tuple<ClientJob, Schedule>>();
-        }
-
-        public static void RemoveAllAegisJobs()
-        {
-            var jobNames = JobManager.AllSchedules.Where(s => s.Name.StartsWith(ClientJob.JobPrefix)).Select(s => s.Name);
-
-            foreach (var name in jobNames)
-            {
-                JobManager.RemoveJob(name);
-            }
-        }
-
-        public void Initialise(AegisClient client, string isSchedulingDisabled)
-        {
-            const int InitialStartDelay = 180; // in seconds
-            const int JobStartDelay = 90; // in seconds
-            const int MaxRandomDelay = 30; // in seconds
-
-            // generate random start delay values
-            var rnd = new Random(AegisClient.ClientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
-
-            var delaysSet = new HashSet<int>();
-            while (delaysSet.Count < 4)
-            {
-                delaysSet.Add(rnd.Next(0, MaxRandomDelay / 2));
-            }
-
-            var delays = delaysSet.OrderBy(x => 2 * x).ToList();
-
-            // disable running same job in parallel
-            this.NonReentrantAsDefault();
-
-            // add jobs
-            this.Add(
-                client,
-                new GetSettingsOnlineJob(client),
-                InitialStartDelay + delays[0],
-                client.Settings.GetSettingsOnlineJobIntervalInSeconds);
-
-            this.Add(
-                client,
-                new GetBlackListJob(client),
-                InitialStartDelay + JobStartDelay + delays[1],
-                client.Settings.GetBlackListJobIntervalInSeconds);
-
-            this.Add(
-                client,
-                new SendAegisEventsJob(client),
-                InitialStartDelay + JobStartDelay + delays[2],
-                client.Settings.SendAegisEventsJobIntervalInSeconds);
-
-            this.Add(
-                client,
-                new SendStatusJob(client),
-                InitialStartDelay + JobStartDelay + delays[3],
-                client.Settings.SendStatusJobIntervalInSeconds);
-
-            // start schedulers
-            if (isSchedulingDisabled != TestDisableSchedulerKey)
-            {
-                JobManager.Initialize(this);
-            }
-        }
-
-        public void ShutDown()
-        {
-            foreach (var sched in this.scheduledItems)
-            {
-                JobManager.RemoveJob(sched.Item2.Name);
-                sched.Item1.Stop(false);
-            }
-
-            this.scheduledItems.Clear();
-            RemoveAllAegisJobs();
-        }
-
-        protected void Add(
-            AegisClient client,
-            ClientJob self,
-            int startTimeDelay,
-            int defaultInterval)
-        {
-            // for safety reason online settings value can't be higher than the following limit
-            const int LimitInSecs = 3600; // an hour
-
-            var sched = this.Schedule(self).WithName(self.JobName);
-            this.scheduledItems.Add(Tuple.Create(self, sched));
-
-            var interval = GetWithLimit(
-                client.SettingsOnline.GetJobInterval(self.JobName),
-                defaultInterval,
-                LimitInSecs);
-
-            sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-                .AndEvery(interval).Seconds();
-        }
-
-        //public void ChangeSchedule(
-        //    AegisClient client, 
-        //    string jobName,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    // remove job
-        //    JobManager.RemoveJob(jobName);
-
-        //    var item = this.scheduledItems.Single(x => x.Item1.JobName == jobName);
-        //    this.scheduledItems.Remove(item);
-
-        //    // add job
-        //    JobManager.AddJob(item.Item1, s => this.Add(s.NonReentrant(), client, item.Item1, startTimeDelay, defaultInterval));
-        //}
-
-        //protected void Add(
-        //    AegisClient client,
-        //    ClientJob self,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    this.Add(
-        //        this.Schedule(self),
-        //        client,
-        //        self,
-        //        startTimeDelay,
-        //        defaultInterval);
-        //}
-
-        //protected void Add(
-        //    Schedule sched,
-        //    AegisClient client,
-        //    ClientJob self,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    // for safety reason online settings value can't be higher than the following limit
-        //    const int LimitInSecs = 3600; // an hour
-
-        //    sched = sched.WithName(self.JobName);
-        //    this.scheduledItems.Add(Tuple.Create(self, sched));
-
-        //    sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-        //        .AndEvery(
-        //            GetWithLimit(
-        //                client.SettingsOnline.GetJobInterval(self.JobName),
-        //                defaultInterval,
-        //                LimitInSecs))
-        //    .Seconds();
-        //}
-
-        protected static int GetWithLimit(int? primaryValue, int secondaryValue, int limit)
-        {
-            return primaryValue != null ? Math.Min(primaryValue.Value, limit) : secondaryValue;
+            var self = new BlackListSet();
+            self.VersionStamp = this.VersionStamp;
+            //self.IsChanged = this.IsChanged;
+            self.Data = new List<BlackListItem>(this.Data.Select(x => x.Clone()));
+            return self;
         }
     }
 }

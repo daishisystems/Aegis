@@ -693,6 +693,7 @@ namespace Aegis.Pumps
         public static class ServiceNames
         {
             public const string Blacklist = "blacklist";
+            public const string BlacklistV2 = "blacklist2";
             public const string SettingsOnline = "settings";
             public const string AegisEvents = "events";
         }
@@ -708,6 +709,7 @@ namespace Aegis.Pumps
             public const string CountInRequest = "cr";
             public const string CountAll = "ca";
             public const string SettingsKey = "key";
+            public const string BlackListVersionStamps = "bvs";
         }
 
         public bool GetBlackListData(
@@ -759,6 +761,71 @@ namespace Aegis.Pumps
             try
             {
                 data = JSON.Deserialize<List<BlackListItem>>(dataString, Options.ISO8601);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Unable to deserialise the BlackList", exception);
+            }
+        }
+
+        public bool GetBlackListDataV2(
+            string clientName,
+            string clientId,
+            string clientVersion,
+            string clientMachineName,
+            string clientEnvironment,
+            string aegisVersion,
+            Settings settings,
+            SettingsOnlineClient settingsOnline,
+            DateTimeOffset? requestTimeStamp,
+            List<ushort> versionStamps,
+            out List<BlackListSet> data,
+            out DateTimeOffset? timeStamp)
+        {
+            data = null;
+            var uriParameters = new Dictionary<string, string>()
+                    {
+                        { ParameterNames.ClientName, clientName },
+                        { ParameterNames.ClientId, clientId },
+                        { ParameterNames.ClientVersion, clientVersion },
+                        { ParameterNames.ClientMachineName, clientMachineName },
+                        { ParameterNames.ClientEnvironment, clientEnvironment },
+                        { ParameterNames.AegisVersion, aegisVersion }
+                    };
+
+            if (versionStamps != null && versionStamps.Count > 0)
+            {
+                var versionStampsStr = string.Join("-", versionStamps.Select(x => x.ToString("x")));
+                uriParameters.Add(ParameterNames.BlackListVersionStamps, versionStampsStr);
+            }
+
+            var uriService = this.CreateUri(
+                settings,
+                settingsOnline,
+                ServiceNames.BlacklistV2,
+                uriParameters);
+
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(
+                settings,
+                settingsOnline,
+                ServiceNames.BlacklistV2,
+                uriService);
+
+            var httpClientFactory = new HttpClientFactory();
+
+            // get string data from service
+            string dataString;
+
+            if (!this.DoGetStringData(httpRequestMetadata, httpClientFactory, requestTimeStamp, out dataString, out timeStamp))
+            {
+                return false;
+            }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<List<BlackListSet>>(dataString, Options.ISO8601);
                 return true;
             }
             catch (Exception exception)

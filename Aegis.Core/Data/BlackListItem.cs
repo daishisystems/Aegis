@@ -738,5 +738,27 @@ namespace Aegis.Core.Data
 
         [JilDirective(Ignore = true)]
         public IPAddress IpAddress { get; private set; }
+
+        public BlackListItem Clone()
+        {
+            var self = new BlackListItem();
+            self.ipAddressString = this.ipAddressString;
+            self.IpAddress = this.IpAddress;
+            self.IsBlocked = this.IsBlocked;
+            self.IsSimulated = this.IsSimulated;
+            self.Country = this.Country;
+
+            if (this.DisabledEventsBlocking != null)
+            {
+                self.DisabledEventsBlocking = new HashSet<string>(this.DisabledEventsBlocking);
+            }
+
+            if (this.DisabledEventsSimulate != null)
+            {
+                self.DisabledEventsSimulate = new HashSet<string>(this.DisabledEventsSimulate);
+            }
+
+            return self;
+        }
     }
 }
