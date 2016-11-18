@@ -779,7 +779,7 @@ namespace Aegis.Pumps
             Settings settings,
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
-            List<ushort> versionStamps,
+            List<uint> versionStamps,
             out List<BlackListSet> data,
             out DateTimeOffset? timeStamp)
         {

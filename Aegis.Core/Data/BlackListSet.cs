@@ -689,13 +689,12 @@ namespace Aegis.Core.Data
         public List<BlackListItem> Data { get; set; }
 
         [JilDirective(Name = "versionStamp")]
-        public ushort VersionStamp { get; set; }
+        public uint VersionStamp { get; set; }
 
         public BlackListSet Clone()
         {
             var self = new BlackListSet();
             self.VersionStamp = this.VersionStamp;
-            //self.IsChanged = this.IsChanged;
             self.Data = new List<BlackListItem>(this.Data.Select(x => x.Clone()));
             return self;
         }

@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
@@ -928,7 +929,9 @@ namespace Aegis.Pumps.Tests
             {
                 new AegisAvailabilityEvent(),
                 new AegisBagEvent(),
-                new AegisConfigurationsEvent()                     
+                new AegisConfigurationsEvent(),
+                new AegisAvailabilityEvent(),
+                new AegisAvailabilityEvent()
             };
 
             foreach (var ev in events)
@@ -947,6 +950,9 @@ namespace Aegis.Pumps.Tests
                 ev.IpAddress = "192.168.0.1";
             }
 
+            // send and measure time
+            var stopWatch = Stopwatch.StartNew();
+
             self.SendAegisEvents(
                 ClientName,
                 ClientId,
@@ -958,6 +964,9 @@ namespace Aegis.Pumps.Tests
                 settingsOnline,
                 new List<AegisBaseEvent>(events),
                 events.Count);
+
+            stopWatch.Stop();
+            Debug.WriteLine($"Send {events.Count} items in {stopWatch.ElapsedMilliseconds} ms");
         }
 
         [TestMethod]

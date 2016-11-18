@@ -695,7 +695,7 @@ namespace Aegis.Pumps
             this.blacklist = new ConcurrentDictionary<string, BlackListItem>();
         }
 
-        public List<ushort> GetVersionStamps()
+        public List<uint> GetVersionStamps()
         {
             if (this.blacklistV2Raw == null || this.blacklistV2Raw.Count == 0)
             {
