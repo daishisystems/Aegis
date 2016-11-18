@@ -884,7 +884,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             var messageData = $"{msg1}${msg2}${msg3}";
 
             // if match to last sent then ignore
-            if (lastSent.Item1 == messageData && DateTime.UtcNow.Subtract(lastSent.Item2).Minutes < LastSentMessageLimitInMinutes)
+            if (lastSent.Item1 == messageData && DateTime.UtcNow.Subtract(lastSent.Item2).TotalMinutes < LastSentMessageLimitInMinutes)
             {
                 return false;
             }

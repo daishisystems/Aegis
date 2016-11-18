@@ -694,7 +694,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 // if there was not successful check for a long time then try other services 
                 var lastTime = this.ClientInstance.SettingsOnline.TimeStampSuccessfulCheck ?? AegisClient.InitializationTime;
-                var hoursSinceLastSuccess = (DateTimeOffset.UtcNow - lastTime).Hours;
+                var hoursSinceLastSuccess = DateTimeOffset.UtcNow.Subtract(lastTime).TotalHours;
                 if (hoursSinceLastSuccess >= this.ClientInstance.Settings.AegisServiceUnavailabilityLimitInHours)
                 {
                     // report issue
