@@ -675,9 +675,8 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Net;
 using System.Collections.Generic;
+using System.Net;
 using Jil;
 
 namespace Aegis.Core.Data
@@ -739,6 +738,16 @@ namespace Aegis.Core.Data
         [JilDirective(Ignore = true)]
         public IPAddress IpAddress { get; private set; }
 
+        public static bool operator ==(BlackListItem item1, BlackListItem item2)
+        {
+            return IsEqual(item1, item2);
+        }
+
+        public static bool operator !=(BlackListItem item1, BlackListItem item2)
+        {
+            return !IsEqual(item1, item2);
+        }
+
         public BlackListItem Clone()
         {
             var self = new BlackListItem();
@@ -759,6 +768,90 @@ namespace Aegis.Core.Data
             }
 
             return self;
+        }
+
+        public override bool Equals(object value)
+        {
+            // Is null?
+            if (object.ReferenceEquals(null, value))
+            {
+                return false;
+            }
+
+            // Is the same object?
+            if (object.ReferenceEquals(this, value))
+            {
+                return true;
+            }
+
+            // Is the same type?
+            if (value.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return IsEqual(this, (BlackListItem)value);
+        }
+
+        public bool Equals(BlackListItem item)
+        {
+            // Is null?
+            if (object.ReferenceEquals(null, item))
+            {
+                return false;
+            }
+
+            // Is the same object?
+            if (object.ReferenceEquals(this, item))
+            {
+                return true;
+            }
+
+            return IsEqual(this, item);
+        }
+
+        private static bool IsEqual(BlackListItem item1, BlackListItem item2)
+        {
+            if (object.ReferenceEquals(null, item1) || object.ReferenceEquals(null, item2))
+            {
+                return false;
+            }
+
+            if (item1.IsBlocked != item2.IsBlocked ||
+                item1.IsSimulated != item2.IsSimulated ||
+                item1.IpAddressRaw != item2.IpAddressRaw ||
+                item1.Country != item2.Country)
+            {
+                return false;
+            }
+
+            if (IsHashSetEqual(item1.DisabledEventsBlocking, item2.DisabledEventsBlocking) == false ||
+                IsHashSetEqual(item1.DisabledEventsSimulate, item2.DisabledEventsSimulate) == false)
+            {
+                return false;
+            }
+         
+            return true;
+        }
+
+        private static bool IsHashSetEqual(HashSet<string> set1, HashSet<string> set2)
+        {
+            if (set1 == null)
+            {
+                if (set2 != null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (set2 == null)
+            {
+                return false;
+            }
+
+            return set1.SetEquals(set2);
         }
     }
 }

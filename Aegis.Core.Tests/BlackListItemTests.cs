@@ -675,455 +675,50 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 using Aegis.Core.Data;
-using Jil;
-using Aegis.Pumps.Tests.Mocks;
-using System.Web;
 
-namespace Aegis.Pumps.Tests
+namespace Aegis.Core.Tests
 {
     [TestClass]
-    public class AegisServiceClientTests
+    public class BlackListItemTests
     {
-        private const string ClientName = "unit-test-client-name";
-        private const string ClientId = "unit-test-client-id";
-        private const string ClientVer = "111.0.333.41";
-        private const string ClientMachine = "unit-test-machine";
-        private const string ClientEnvironment = "unit-test-environment";
-        private const string AegisVer = "1.2.3.4.5";
-
         [TestMethod]
-        public void GetBlackList()
+        public void EqualityCheck()
         {
-            // TODO create another tests with https://demo7227109.mockable.io/blacklist/ireland
+            Assert.AreEqual(new BlackListItem(), new BlackListItem());
+            Assert.AreNotEqual(new BlackListItem(), null);
+            Assert.AreEqual(new BlackListItem() { IpAddressRaw = "192.168.0.1" }, new BlackListItem() { IpAddressRaw = "192.168.0.1" });
 
-            // create data
-            var data = new List<BlackListItem>()
-                           {
-                               new BlackListItem() { IpAddressRaw = "192.168.0.1" },
-                               new BlackListItem() { IpAddressRaw = "192.168.0.2" },
-                           };
-            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
-
-
-            // create mock object
-            var mock = new MockAegisServiceClient();
-            mock.MockResult = true;
-            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
-            mock.MockOutData = dataJson;
-
-            var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-
-            List<BlackListItem> resultData;
-            DateTimeOffset? resultTimeStamp;
-            mock.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out resultData,
-                out resultTimeStamp);
-
-            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
-            Assert.AreEqual(data.Count, resultData.Count);
-            Assert.AreEqual(testUri, mock.MockInUri.Host);
-
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
-        }
-
-        [TestMethod]
-        public void GetSettingsOnline()
-        {
-            // create data
-            var data = new SettingsOnlineData();
-            data.Blacklist = new SettingsOnlineData.BlackListData();
-            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
-            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
-
-            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
-
-            // create mock object
-            var mock = new MockAegisServiceClient();
-            mock.MockResult = true;
-            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
-            mock.MockOutData = dataJson;
-
-            var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-
-            SettingsOnlineData resultData;
-            DateTimeOffset? resultTimeStamp;
-            mock.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out resultData,
-                out resultTimeStamp);
-
-            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
-            CollectionAssert.AreEqual(
-                data.Blacklist.CountriesBlock.ToList(),
-                resultData.Blacklist.CountriesBlock.ToList());
-            CollectionAssert.AreEqual(
-                data.Blacklist.CountriesSimulate.ToList(),
-                resultData.Blacklist.CountriesSimulate.ToList());
-
-            Assert.AreEqual(testUri, mock.MockInUri.Host);
-
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
-        }
-
-        [TestMethod]
-        public void GetSettingsOnlineWithOnlineSettings()
-        {
-            // create data
-            var data = new SettingsOnlineData();
-            data.Blacklist = new SettingsOnlineData.BlackListData();
-            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
-            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
-
-            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
-
-            // create mock object
-            var mock = new MockAegisServiceClient();
-            mock.MockResult = true;
-            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
-            mock.MockOutData = dataJson;
-
-            var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-
-            var settingsData = new SettingsOnlineData();
-            settingsData.ServiceTimeOuts = new Dictionary<string, int>();
-            settingsData.ServiceTimeOuts.Add(AegisServiceClient.ServiceNames.SettingsOnline, 99);
-
-            SettingsOnlineData resultData;
-            DateTimeOffset? resultTimeStamp;
-            mock.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out resultData,
-                out resultTimeStamp);
-
-            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
-            CollectionAssert.AreEqual(
-                data.Blacklist.CountriesBlock.ToList(),
-                resultData.Blacklist.CountriesBlock.ToList());
-            CollectionAssert.AreEqual(
-                data.Blacklist.CountriesSimulate.ToList(),
-                resultData.Blacklist.CountriesSimulate.ToList());
-
-            Assert.AreEqual(testUri, mock.MockInUri.Host);
-
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
-        }
-
-        [TestMethod]
-        public void SendEvents()
-        {
-            // create data
-            var testItems = new List<AegisBaseEvent>()
-                                {
-                                    new AegisAvailabilityEvent(),
-                                    new AegisBagEvent(),
-                                    new AegisCalendarEvent()
-                                };
-
-            // create mock object
-            var mock = new MockAegisServiceClient();
-
-            var testUri = "test.bla.com";
-            var testAllItemsCount = 99;
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-
-            mock.SendAegisEvents(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                testItems,
-                testAllItemsCount);
-
-            Assert.AreEqual(testUri, mock.MockInUri.Host);
-
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountInRequest], testItems.Count.ToString());
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountAll], testAllItemsCount.ToString());
-        }
-
-        [TestMethod]
-        [Ignore]
-        public void SendEventsToTheRealCluster()
-        {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-            var self = new AegisServiceClient();
-
-            var events = new List<AegisBaseIpEvent>()
+            var item1 = new BlackListItem()
             {
-                new AegisAvailabilityEvent(),
-                new AegisBagEvent(),
-                new AegisConfigurationsEvent(),
-                new AegisAvailabilityEvent(),
-                new AegisAvailabilityEvent()
+                IpAddressRaw = "192.168.10.1",
+                Country = "bla bla",
+                DisabledEventsBlocking = new HashSet<string>(),
+                DisabledEventsSimulate = new HashSet<string>()
             };
 
-            foreach (var ev in events)
+            var item2 = new BlackListItem()
             {
-                ev.ApplicationName = "test-appName";
-                ev.ApplicationVersion = "test-appVer";
-                ev.ApplicationMachineName = "test-appM";
-                ev.AegisVersion = "test-aegis-version";
-                ev.Time = DateTime.UtcNow.ToString("o");
-                ev.ExperimentId = 7;
-                ev.GroupId = "test-groupId";
-                ev.Path = "test-path";
-                ev.HttpAcceptLanguage = "test-httpAcceptLang żźłćłóęś€$http://dad/&*()";
-                ev.HttpUserAgent = "test-httpUserAgent żźłćłóęś€$http://dad/&*()";
-                ev.HttpSessionToken = "test-httpSessionToken żźłćłóęś€$http://dad/&*()";
-                ev.IpAddress = "192.168.0.1";
-            }
+                IpAddressRaw = "192.168.10.1",
+                Country = "bla bla",
+                DisabledEventsBlocking = new HashSet<string>(),
+                DisabledEventsSimulate = new HashSet<string>()
+            };
 
-            // send and measure time
-            var stopWatch = Stopwatch.StartNew();
+            var item3 = new BlackListItem()
+            {
+                IpAddressRaw = "192.168.10.1",
+                Country = "bla bla",
+                DisabledEventsBlocking = new HashSet<string>(),
+                DisabledEventsSimulate = new HashSet<string>() { "muuu", "aaaa"}
+            };
 
-            self.SendAegisEvents(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                new List<AegisBaseEvent>(events),
-                events.Count);
-
-            stopWatch.Stop();
-            Debug.WriteLine($"Send {events.Count} items in {stopWatch.ElapsedMilliseconds} ms");
-        }
-
-        [TestMethod]
-        [Ignore]
-        public void GetBlackListFromTheRealCluster()
-        {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-            var self = new AegisServiceClient();
-
-            List<BlackListItem> blackListItems;
-            DateTimeOffset? timeStamp;
-
-            var result = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out blackListItems,
-                out timeStamp);
-
-            Assert.IsTrue(result);
-            Assert.IsNotNull(timeStamp);
-        }
-
-        [TestMethod]
-        [Ignore]
-        public void GetBlackList2xTimesFromTheRealCluster()
-        {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-            var self = new AegisServiceClient();
-
-            // request 1
-            List<BlackListItem> blackListItems;
-            DateTimeOffset? timeStamp;
-
-            var result = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out blackListItems,
-                out timeStamp);
-
-            Assert.IsTrue(result);
-            Assert.IsNotNull(timeStamp);
-
-            // request 2
-            List<BlackListItem> blackListItems2;
-            DateTimeOffset? timeStamp2;
-
-            var result2 = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                timeStamp,
-                out blackListItems2,
-                out timeStamp2);
-
-            Assert.IsFalse(result2);
-            Assert.IsNull(blackListItems2);
-            Assert.IsNull(timeStamp2);
-        }
-
-        [TestMethod]
-        [Ignore]
-        public void GetBlackListV2TwoTimesFromTheRealCluster()
-        {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-            var self = new AegisServiceClient();
-
-            // request 1
-            List<BlackListSet> blackListSets;
-            DateTimeOffset? timeStamp;
-
-            var result = self.GetBlackListDataV2(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                null,
-                out blackListSets,
-                out timeStamp);
-
-            Assert.IsTrue(result);
-            Assert.IsNotNull(timeStamp);
-
-            // request 2
-            List<BlackListSet> blackListSets2;
-            DateTimeOffset? timeStamp2;
-
-            var result2 = self.GetBlackListDataV2(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                timeStamp,
-                blackListSets.Select(x => x.VersionStamp).ToList(),
-                out blackListSets2,
-                out timeStamp2);
-
-            Assert.IsFalse(result2);
-            Assert.IsNull(blackListSets2);
-            Assert.IsNull(timeStamp2);
-        }
-
-        [TestMethod]
-        [Ignore]
-        public void GetSettingsFromTheRealCluster()
-        {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
-            var settingsOnline = new SettingsOnlineClient();
-            var self = new AegisServiceClient();
-
-            SettingsOnlineData settingsData;
-            DateTimeOffset? timeStamp;
-
-            var result = self.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                AegisVer,
-                settings,
-                settingsOnline,
-                null,
-                out settingsData,
-                out timeStamp);
-
-            Assert.IsTrue(result);
+            Assert.AreEqual(item1, item2);
+            Assert.AreNotEqual(item1, item3);
+            Assert.AreNotEqual(item1, null);
+            Assert.AreNotEqual(item3, null);
         }
     }
 }
