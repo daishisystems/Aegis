@@ -686,11 +686,11 @@ namespace Aegis.Pumps
     public class SchedulerRegistry : Registry
     {
         public const string TestDisableSchedulerKey = "test_schedule_disabled";
-        private readonly List<Tuple<ClientJob, Schedule>> scheduledItems;
+        public readonly List<Tuple<ClientJob, Schedule>> ScheduledItems;
 
         public SchedulerRegistry()
         {
-            this.scheduledItems = new List<Tuple<ClientJob, Schedule>>();
+            this.ScheduledItems = new List<Tuple<ClientJob, Schedule>>();
         }
 
         public static void RemoveAllAegisJobs()
@@ -757,13 +757,13 @@ namespace Aegis.Pumps
 
         public void ShutDown()
         {
-            foreach (var sched in this.scheduledItems)
+            foreach (var sched in this.ScheduledItems)
             {
                 JobManager.RemoveJob(sched.Item2.Name);
                 sched.Item1.Stop(false);
             }
 
-            this.scheduledItems.Clear();
+            this.ScheduledItems.Clear();
             RemoveAllAegisJobs();
         }
 
@@ -777,7 +777,7 @@ namespace Aegis.Pumps
             const int LimitInSecs = 3600; // an hour
 
             var sched = this.Schedule(self).WithName(self.JobName);
-            this.scheduledItems.Add(Tuple.Create(self, sched));
+            this.ScheduledItems.Add(Tuple.Create(self, sched));
 
             var interval = GetWithLimit(
                 client.SettingsOnline.GetJobInterval(self.JobName),

@@ -710,7 +710,7 @@ namespace Aegis.Pumps
         public readonly AegisServiceClient AegisServiceClient; // TODO made this instance owned by the Job and follow new httpclient pattern
         public readonly ActionsHub ActionsHub;
         public readonly ActionsHubMdot ActionsHubMdot;
-        private SchedulerRegistry scheduler;
+        public SchedulerRegistry Scheduler { get; private set; }
 
         private AegisClient(
             INewRelicInsightsClient newRelicInsightsClient, 
@@ -735,7 +735,7 @@ namespace Aegis.Pumps
             this.AegisServiceClient = new AegisServiceClient();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
             this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
-            this.scheduler = new SchedulerRegistry();
+            this.Scheduler = new SchedulerRegistry();
         }
 
         private void Reload(
@@ -869,7 +869,7 @@ namespace Aegis.Pumps
             instanceClient = null;
 
             // stop schedulers and clean all data (final data release leave to the GC)
-            self.scheduler?.ShutDown();
+            self.Scheduler?.ShutDown();
             self.BlackList?.CleanUp();
 
             // flush NewRelic events
@@ -920,14 +920,14 @@ namespace Aegis.Pumps
             // TODO made reload scheduler safe to exceptions etc.
 
             // shutdown scheduler
-            this.scheduler?.ShutDown();
+            this.Scheduler?.ShutDown();
 
             // remove all old Aegis jobs
             SchedulerRegistry.RemoveAllAegisJobs();
 
             // start new scheduler
-            this.scheduler = new SchedulerRegistry();
-            this.scheduler.Initialise(Instance, null);
+            this.Scheduler = new SchedulerRegistry();
+            this.Scheduler.Initialise(Instance, null);
         }
 
         private static void DoInitialise(
@@ -943,7 +943,7 @@ namespace Aegis.Pumps
             instanceClient = self;
 
             // start scheduled tasks
-            Instance.scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
+            Instance.Scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
         }
 
         private static string GenerateClientId()

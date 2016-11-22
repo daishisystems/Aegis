@@ -1116,6 +1116,40 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
         }
 
+        [TestMethod]
+        public void SettingsChangeNotificationTest()
+        {
+            // initialize
+            var settings = new Settings(null, null, "http://test", new[] { "NS_CLIENT_IP" });
+            settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
+            var newRelicClient = new MockNewRelicInsightsClient();
+
+            Assert.IsNull(AegisClient.Instance);
+
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.Initialise(newRelicClient, settings);
+
+            Assert.IsNotNull(AegisClient.Instance);
+            Assert.IsNotNull(AegisClient.Instance.Scheduler);
+            Assert.IsNotNull(AegisClient.Instance.Scheduler.ScheduledItems);
+            Assert.IsTrue(AegisClient.Instance.Scheduler.ScheduledItems.Count > 0);
+
+            // run SettingsChangeNotification
+            AegisClient.Instance.SettingsChangeNotification();
+
+            Assert.IsNotNull(AegisClient.Instance);
+            Assert.IsNotNull(AegisClient.Instance.Scheduler);
+            Assert.IsNotNull(AegisClient.Instance.Scheduler.ScheduledItems);
+            Assert.IsTrue(AegisClient.Instance.Scheduler.ScheduledItems.Count > 0);
+
+            // shutdown
+            AegisClient.ShutDown();
+
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
+            Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
         private bool DoCheckAegisEvents(List<AegisBaseEvent> events, int allEventsCount)
         {
             Assert.AreEqual(events.Count, allEventsCount);
