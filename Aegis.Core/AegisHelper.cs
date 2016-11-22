@@ -676,6 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
 using System.Net;
@@ -694,6 +695,7 @@ namespace Aegis.Core
         ///     configuration settings are correctly configured, and that the specified
         ///     configuration value is enabled in the application configuration file.
         /// </summary>
+        /// <param name="appSettings"/>
         /// <param name="appSettingKey">
         ///     The application configuration key pertaining to the
         ///     specified configuration value.
@@ -702,14 +704,10 @@ namespace Aegis.Core
         ///     A <see cref="bool" /> value indicating whether or not a specified
         ///     configuration value is enabled in the application configuration file.
         /// </returns>
-        public static bool IsEnabledInConfigFile(string appSettingKey)
+        public static bool IsEnabledInConfigFile(NameValueCollection appSettings, string appSettingKey)
         {
             bool isEnabled;
-
-            var settingsAreValid =
-                bool.TryParse(
-                    ConfigurationManager.AppSettings[appSettingKey],
-                    out isEnabled);
+            var settingsAreValid = bool.TryParse(appSettings[appSettingKey], out isEnabled);
 
             return settingsAreValid && isEnabled;
         }
@@ -771,16 +769,19 @@ namespace Aegis.Core
         ///     TryParseAppSetting returns <c>true</c>, as well as outputting
         ///     appSettingValue, if appSettingKey is a valid configuration setting.
         /// </summary>
+        /// <param name="appSettings"></param>
         /// <param name="appSettingKey"></param>
         /// <param name="appSettingValue"></param>
         /// <returns>
         ///     <see cref="bool" /> value indicating whether or not appSettingValue is a
         ///     valid configuration setting.
         /// </returns>
-        public static bool TryParseAppSetting(string appSettingKey,
+        public static bool TryParseAppSetting(
+            NameValueCollection appSettings,
+            string appSettingKey,
             out string appSettingValue)
         {
-            appSettingValue = ConfigurationManager.AppSettings[appSettingKey];
+            appSettingValue = appSettings[appSettingKey];
 
             return !string.IsNullOrEmpty(appSettingValue);
         }
