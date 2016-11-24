@@ -701,6 +701,9 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // TODO sends basic information to NewRelic/Service (?)
                 // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
+                // TODO add counter - BlacklistDownloadConsqutieveFailure
+                // TODO add counter - SettingsDownloadConsqutieveFailure
+                // TODO add counter - EventsSentConsqutieveFailure
 
                 var statusEvent = new AegisStatusEvent();
                 statusEvent.BlackListItemsCount = this.ClientInstance.BlackList.GetItemsCount();

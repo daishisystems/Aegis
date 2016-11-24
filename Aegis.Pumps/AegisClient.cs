@@ -683,7 +683,7 @@ using Aegis.Pumps.Actions;
 
 namespace Aegis.Pumps
 {
-    public class AegisClient
+    public class AegisClient // TODO create interface for that for easier testing
     {
         private static readonly object lockInit = new object();
         //private static volatile bool isSetUpDone;
@@ -819,6 +819,7 @@ namespace Aegis.Pumps
         /// Initialise client. Throws exceptions.
         /// </summary>
         /// <returns></returns>
+        // TODO made complex Initialise method (init Aegis nad NewRelic, get appsettings and constants only)
         public static bool Initialise(
             INewRelicInsightsClient newRelicInsightsClient, 
             Settings settings)

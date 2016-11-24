@@ -705,7 +705,7 @@ namespace Aegis.Pumps
 
         public void Initialise(AegisClient client, string isSchedulingDisabled)
         {
-            const int InitialStartDelay = 180; // in seconds
+            const int InitialStartDelay = 180; // in seconds // TODO reduce InitialStartDelay to 90 seconds?
             const int JobStartDelay = 90; // in seconds
             const int MaxRandomDelay = 30; // in seconds
 

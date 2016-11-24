@@ -726,6 +726,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
         ///     expressed in Unix ticks.
         /// </summary>
+        // TODO rename unixTimeStamp to timeStamp for newrelic
+        // TODO add new timestamp - SentTimeStamp
         [JilDirective(Name = "unixTimeStamp")]
         public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(UnixStartTime).TotalSeconds;
 

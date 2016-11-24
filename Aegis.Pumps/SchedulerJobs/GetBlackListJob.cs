@@ -721,6 +721,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 // run logic V1
                 this.ProcessBlackListV1();
 
+                // TODO add counter - BlacklistDownloadConsqutieveFailure, reset to 0 after succc, increase in catch
             }
             catch (TaskCanceledException exception)
             {

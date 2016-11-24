@@ -695,6 +695,7 @@ namespace Aegis.Pumps
         public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisEventsTimeToLiveInHours = 12;
         public readonly int AegisEventsCacheBatchSize = 1000; // TODO made online settings
+        // TODO made intervals prime numbers?
         public readonly int GetBlackListJobIntervalInSeconds = 60;
         public readonly int GetSettingsOnlineJobIntervalInSeconds = 600;
         public readonly int SendAegisEventsJobIntervalInSeconds = 10;
