@@ -798,6 +798,15 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
+                // exit if no data available
+                if (settingsOnlineData == null &&
+                    newTimeStamp == null &&
+                    this.ClientInstance.SettingsOnline.Data == null &&
+                    this.ClientInstance.SettingsOnline.TimeStamp == null)
+                {
+                    return true;
+                }
+
                 this.ClientInstance.NewRelicUtils.AddNotification(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
