@@ -776,11 +776,17 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         {
             try
             {
+                var errMessage = customExceptionMessage ?? exception?.ToString();
+                if (customExceptionMessage != null && exception != null)
+                {
+                    errMessage = $"{customExceptionMessage}\n{exception}";
+                }
+
                 var newRelicInsightsAegisEvent =
                     new AegisErrorEvent()
                     {
                         ComponentName = componentName,
-                        ErrorMessage = customExceptionMessage ?? exception?.ToString(),
+                        ErrorMessage = errMessage,
                         InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
                     };
 
