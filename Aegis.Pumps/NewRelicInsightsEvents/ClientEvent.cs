@@ -723,13 +723,11 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public string AegisVersion => AegisClient.AegisVersion;
 
         /// <summary>
-        ///     <see cref="UnixTimeStamp" /> is the UTC time at which the error occurred,
+        ///     <see cref="TimeStamp" /> is the UTC time at which the error occurred,
         ///     expressed in Unix ticks.
         /// </summary>
-        // TODO rename unixTimeStamp to timeStamp for newrelic
-        // TODO add new timestamp - SentTimeStamp
-        [JilDirective(Name = "unixTimeStamp")]
-        public int UnixTimeStamp => (int)DateTime.UtcNow.Subtract(UnixStartTime).TotalSeconds;
+        [JilDirective(Name = "timestamp")]
+        public int TimeStamp => (int)DateTime.UtcNow.Subtract(UnixStartTime).TotalSeconds;
 
         /// <summary>
         ///     <see cref="MachineName" /> is the name of the underlying server, upon which
