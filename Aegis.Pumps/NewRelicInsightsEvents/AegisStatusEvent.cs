@@ -681,6 +681,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     public class AegisStatusEvent : AegisNotificationEvent
     {
+        [JilDirective(Name = "blackListConsecutiveDownloadError")]
+        public int? BlackListConsecutiveDownloadError { get; set; }
+
         [JilDirective(Name = "blackListItemsCount")]
         public int? BlackListItemsCount { get; set; }
 

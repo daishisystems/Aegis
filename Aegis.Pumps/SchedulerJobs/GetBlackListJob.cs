@@ -705,6 +705,7 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
+                // TODO GetBlackListJob - measure http requests time? same for all other requests?
                 // if job is disabled
                 if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
                 {
@@ -720,46 +721,26 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // run logic V1
                 this.ProcessBlackListV1();
-
-                // TODO add counter - BlacklistDownloadConsqutieveFailure, reset to 0 after succc, increase in catch
             }
-            catch (TaskCanceledException exception)
+            catch (Exception exception)
             {
-                if (this.IsShuttingDown)
+                if (this.IsShuttingDown && exception is TaskCanceledException)
                 {
                     return;
                 }
 
-                if (exception.CancellationToken.IsCancellationRequested)
+                if (this.ClientInstance?.BlackList != null)
                 {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                        exception,
-                        $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
-                        + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                    this.ClientInstance.BlackList.ConsecutiveDownloadError++;
                 }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
-                        exception,
-                        "Request timeout. " + $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
-                        + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
-                }
-            }
-            catch (Exception exception)
-            {
-                this.ClientInstance.NewRelicUtils.AddException(
+
+                this.ClientInstance?.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception,
-                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} "
-                    + $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                    $"consecutiveDownloadError={this.ClientInstance?.BlackList?.ConsecutiveDownloadError} " +
+                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
+                    $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
             }
         }
 
@@ -788,11 +769,13 @@ namespace Aegis.Pumps.SchedulerJobs
             // if data hasn't changed
             if (!isUpdated)
             {
+                this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
                 return;
             }
 
             // set new data
             this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
+            this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
         }
 
         protected void ProcessBlackListV2()
@@ -821,11 +804,13 @@ namespace Aegis.Pumps.SchedulerJobs
             // if data hasn't changed
             if (!isUpdated)
             {
+                this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
                 return;
             }
 
             // set new data
             this.ClientInstance.BlackList.SetNewDataV2(blackListData, newTimeStamp);
+            this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
         }
     }
 }

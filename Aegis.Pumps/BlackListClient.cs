@@ -689,6 +689,7 @@ namespace Aegis.Pumps
         private List<BlackListSet> blacklistV2Raw;
 
         public DateTimeOffset? TimeStamp { get; private set; }
+        public int ConsecutiveDownloadError { get; set; }
 
         public BlackListClient()
         {

@@ -891,6 +891,7 @@ namespace Aegis.Pumps
                 {
                     data = SettingsOnlineData.Deserialize(dataString);
                 }
+
                 return true;
             }
             catch (Exception exception)
