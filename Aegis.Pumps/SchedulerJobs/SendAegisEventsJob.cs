@@ -774,6 +774,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
+                var isCompressionEnabled = this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.EventsPostCompression);
+
                 this.aegisServiceClient.SendAegisEvents(
                     AegisClient.ClientName,
                     AegisClient.ClientId,
@@ -784,7 +786,8 @@ namespace Aegis.Pumps.SchedulerJobs
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     items,
-                    allEventsCount);
+                    allEventsCount,
+                    isCompressionEnabled);
 
                 return true;
             }

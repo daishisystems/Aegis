@@ -900,7 +900,8 @@ namespace Aegis.Pumps.Tests
                 settings,
                 settingsOnline,
                 testItems,
-                testAllItemsCount);
+                testAllItemsCount,
+                false);
 
             Assert.AreEqual(testUri, mock.MockInUri.Host);
 
@@ -963,7 +964,8 @@ namespace Aegis.Pumps.Tests
                 settings,
                 settingsOnline,
                 new List<AegisBaseEvent>(events),
-                events.Count);
+                events.Count,
+                false);
 
             stopWatch.Stop();
             Debug.WriteLine($"Send {events.Count} items in {stopWatch.ElapsedMilliseconds} ms");

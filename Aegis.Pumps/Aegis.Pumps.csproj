@@ -69,6 +69,7 @@
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
     <Compile Include="AegisClient.cs" />
+    <Compile Include="CompressUtils.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisNotificationEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisStatusEvent.cs" />
     <Compile Include="SchedulerJobs\ClientJob.cs" />

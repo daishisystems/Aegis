@@ -675,43 +675,30 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using Aegis.Core;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 
-namespace Aegis.Pumps.Tests.Mocks
+namespace Aegis.Pumps
 {
-    public class MockAegisServiceClient : AegisServiceClient
+    public static class CompressUtils
     {
-        public bool MockResult { get; set; }
-
-        public string MockOutData { get; set; }
-
-        public DateTimeOffset? MockOutTimeStamp { get; set; }
-
-        public Uri MockInUri { get; private set; }
-
-        public string MockInSendAegisEvents { get; private set; }
-
-        protected override bool DoGetStringData(
-            Core.HttpRequestMetadata httpRequestMetadata,
-            DateTimeOffset? requestTimeStamp,
-            out string data,
-            out DateTimeOffset? timeStamp)
+        public static byte[] Compress(string str)
         {
-            this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());
+            var bytes = Encoding.UTF8.GetBytes(str);
 
-            data = this.MockOutData;
-            timeStamp = this.MockOutTimeStamp;
-            return this.MockResult;
-        }
+            using (var msi = new MemoryStream(bytes))
+            {
+                using (var mso = new MemoryStream())
+                {
+                    using (var gs = new GZipStream(mso, CompressionMode.Compress))
+                    {
+                        msi.CopyTo(gs);
+                    }
 
-        protected override void DoSendAegisEvents(
-            HttpRequestMetadata httpRequestMetadata,
-            string itemsJson,
-            bool isCompressionEnabled)
-        {
-            this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());
-            this.MockInSendAegisEvents = itemsJson;
+                    return mso.ToArray();
+                }
+            }
         }
     }
 }

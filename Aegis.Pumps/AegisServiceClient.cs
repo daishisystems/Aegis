@@ -908,7 +908,8 @@ namespace Aegis.Pumps
             Settings settings,
             SettingsOnlineClient settingsOnline,
             List<AegisBaseEvent> items,
-            int allItemsCount)
+            int allItemsCount,
+            bool isCompressionEnabled)
         {
             var uriService = this.CreateUri(
                 settings,
@@ -933,9 +934,7 @@ namespace Aegis.Pumps
                 uriService);
 
             var itemsJson = JSON.SerializeDynamic(items, Options.ExcludeNullsIncludeInherited);
-
-            // TODO online settings to enable sending data compressed
-            this.DoSendAegisEvents(httpRequestMetadata, itemsJson);
+            this.DoSendAegisEvents(httpRequestMetadata, itemsJson, isCompressionEnabled);
         }
 
         private HttpRequestMetadata CreateHttpRequestMetadata(
@@ -1043,7 +1042,8 @@ namespace Aegis.Pumps
 
         protected virtual void DoSendAegisEvents(
             HttpRequestMetadata httpRequestMetadata,
-            string itemsJson)
+            string itemsJson,
+            bool isCompressionEnabled)
         {
             HttpRequestMetadataException httpRequestMetadataException;
 
@@ -1060,7 +1060,20 @@ namespace Aegis.Pumps
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var content = new StringContent(itemsJson, Encoding.UTF8, "application/json");
+            HttpContent content;
+            if (isCompressionEnabled)
+            {
+                var itemsJsonCompressed = CompressUtils.Compress(itemsJson);
+
+                content = new ByteArrayContent(itemsJsonCompressed);
+                content.Headers.Add("Content-Encoding", "gzip");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            }
+            else
+            {
+                content = new StringContent(itemsJson, Encoding.UTF8, "application/json");
+            }
+
             var response = httpClient.PostAsync(httpRequestMetadata.URI, content).Result;
 
             if (!response.IsSuccessStatusCode)
