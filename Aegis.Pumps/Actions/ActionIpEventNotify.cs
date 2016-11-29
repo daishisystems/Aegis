@@ -762,6 +762,7 @@ namespace Aegis.Pumps.Actions
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
+            var httpReferer = this.GetHttpHeaderValue(@"Referer", requestHeaders, 256);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
             var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
             // TODO start logging proxy headers:
@@ -787,6 +788,7 @@ namespace Aegis.Pumps.Actions
                         groupId,
                         requestUri,
                         httpUserAgent,
+                        httpReferer,
                         httpAcceptLanguage,
                         httpSessionToken,
                         eventBuilder);
@@ -803,6 +805,7 @@ namespace Aegis.Pumps.Actions
                                             groupId,
                                             requestUri,
                                             httpUserAgent,
+                                            httpReferer,
                                             httpAcceptLanguage,
                                             httpSessionToken);
                 }
@@ -818,6 +821,7 @@ namespace Aegis.Pumps.Actions
             string groupId,
             Uri requestUri,
             string httpUserAgent,
+            string httpReferer,
             string httpAcceptLanguage,
             string httpSessionToken,
             Func<T> eventBuilder)
@@ -834,6 +838,7 @@ namespace Aegis.Pumps.Actions
             evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
             evnt.HttpUserAgent = httpUserAgent;
+            evnt.HttpReferer = httpReferer;
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
             evnt.HttpSessionToken = httpSessionToken;
             evnt.Path = requestUri.AbsolutePath;
@@ -858,6 +863,7 @@ namespace Aegis.Pumps.Actions
             string groupId,
             Uri requestUri,
             string httpUserAgent,
+            string httpReferer,
             string httpAcceptLanguage,
             string httpSessionToken)
         {
@@ -933,6 +939,7 @@ namespace Aegis.Pumps.Actions
                 SourceEventType = eventTypeName,
                 Country = blackItem.Country,
                 HttpUserAgent = httpUserAgent,
+                HttpReferer = httpReferer,
                 HttpAcceptLanguage = httpAcceptLanguage,
                 HttpSessionToken = httpSessionToken,
                 Path = requestUri.AbsolutePath,

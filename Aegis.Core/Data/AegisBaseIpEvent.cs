@@ -704,6 +704,10 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "hpAgent")]
         public string HttpUserAgent { get; set; }
 
+        /// <summary>Referer in HTTP request</summary>
+        [JilDirective(Name = "hpReferer")]
+        public string HttpReferer { get; set; }
+
         /// <summary>Session token in HTTP request</summary>
         [JilDirective(Name = "hpSession")]
         public string HttpSessionToken { get; set; }

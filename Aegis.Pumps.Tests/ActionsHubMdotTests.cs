@@ -761,6 +761,7 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("NS_CLIENT_IP", "204.168.1.1");
             requestHeaders.Add("User-Agent", "testUserAgent");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage");
+            requestHeaders.Add("Referer", "testReferer");
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
@@ -856,6 +857,7 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("NS_CLIENT_IP", "208.168.1.1");
 
             requestHeaders.Add("User-Agent", "testUserAgent żźłćłóęś€$http://dad/&*()");
+            requestHeaders.Add("Referer", "testReferer żźłćłóęś€$http://dad/&*()");
             requestHeaders.Add("Accept-Language", "testAcceptLanguage żźłćłóęś€$http://dad/&*()");
             requestHeaders.Add("X-Session-Token", "testSessionToken żźłćłóęś€$http://dad/&*()");
 
@@ -947,6 +949,7 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.GroupId), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.IpAddress), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpUserAgent), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpReferer), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
                 }
