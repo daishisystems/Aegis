@@ -85,6 +85,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsOnlineClient.cs" />
     <Compile Include="SettingsOnlineData.cs" />
+    <Compile Include="Status.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Aegis.licenseheader" />

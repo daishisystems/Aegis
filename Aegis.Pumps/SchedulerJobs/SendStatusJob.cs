@@ -703,9 +703,10 @@ namespace Aegis.Pumps.SchedulerJobs
                 // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
                 // TODO add counter - SettingsDownloadConsqutieveFailure
                 // TODO add counter - EventsSentConsqutieveFailure
+                // TODO total sent events, parse ip events error, number since last status?
 
                 var statusEvent = new AegisStatusEvent();
-                statusEvent.BlackListConsecutiveDownloadError = this.ClientInstance.BlackList.ConsecutiveDownloadError;
+                statusEvent.BlackListConsecutiveDownloadError = this.ClientInstance.Status.BlackListConsecutiveDownloadError;
                 statusEvent.BlackListItemsCount = this.ClientInstance.BlackList.GetItemsCount();
                 statusEvent.BlackListTimeStamp = this.ClientInstance.BlackList.TimeStamp?.ToString("o");
                 statusEvent.AegisEventsCacheCount = this.ClientInstance.AegisEventCache.Count();
@@ -717,38 +718,17 @@ namespace Aegis.Pumps.SchedulerJobs
                     $"Status: {DateTime.UtcNow.ToString("o")}",
                     customEvent: statusEvent);
             }
-            catch (TaskCanceledException exception)
+            catch (Exception exception)
             {
-                if (this.IsShuttingDown)
+                if (this.IsShuttingDown && exception is TaskCanceledException)
                 {
                     return;
                 }
 
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
                 this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                    exception);
+                this.ClientInstance.NewRelicInsightsClient,
+                NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
+                exception);
             }
         }
     }

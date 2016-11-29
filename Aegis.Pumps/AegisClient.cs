@@ -704,6 +704,7 @@ namespace Aegis.Pumps
         public Settings Settings { get; private set; }
 
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
+        public readonly Status Status;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
@@ -730,6 +731,7 @@ namespace Aegis.Pumps
             this.NewRelicUtils = new NewRelicInsightsEvents.Utils();
             this.Settings = settings;
             this.SettingsOnline = new SettingsOnlineClient();
+            this.Status = new Status();
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
             this.AegisServiceClient = new AegisServiceClient();

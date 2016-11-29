@@ -731,14 +731,14 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 if (this.ClientInstance?.BlackList != null)
                 {
-                    this.ClientInstance.BlackList.ConsecutiveDownloadError++;
+                    this.ClientInstance.Status.BlackListConsecutiveDownloadError++;
                 }
 
                 this.ClientInstance?.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception,
-                    $"consecutiveDownloadError={this.ClientInstance?.BlackList?.ConsecutiveDownloadError} " +
+                    $"consecutiveDownloadError={this.ClientInstance?.Status?.BlackListConsecutiveDownloadError} " +
                     $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
                     $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
             }
@@ -769,13 +769,13 @@ namespace Aegis.Pumps.SchedulerJobs
             // if data hasn't changed
             if (!isUpdated)
             {
-                this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
+                this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
                 return;
             }
 
             // set new data
             this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
-            this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
+            this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }
 
         protected void ProcessBlackListV2()
@@ -804,13 +804,13 @@ namespace Aegis.Pumps.SchedulerJobs
             // if data hasn't changed
             if (!isUpdated)
             {
-                this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
+                this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
                 return;
             }
 
             // set new data
             this.ClientInstance.BlackList.SetNewDataV2(blackListData, newTimeStamp);
-            this.ClientInstance.BlackList.ConsecutiveDownloadError = 0;
+            this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }
     }
 }
