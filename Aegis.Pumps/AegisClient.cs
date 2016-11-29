@@ -901,7 +901,7 @@ namespace Aegis.Pumps
             return Instance.ActionsHubMdot;
         }
 
-        public static void ReportError(string message)
+        public static void ReportError(string message, bool noDuplicateRecent = false)
         {
             if (!IsInitialised)
             {
@@ -912,7 +912,8 @@ namespace Aegis.Pumps
                 Instance.NewRelicInsightsClient,
                 NewRelicInsightsEvents.Utils.ComponentNames.ClientReportError,
                 null,
-                message);
+                message,
+                noDuplicateRecent);
         }
 
         public void SettingsChangeNotification()
