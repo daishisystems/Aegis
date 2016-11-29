@@ -708,7 +708,6 @@ namespace Aegis.Pumps
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
         public readonly AegisEventCacheClient AegisEventCache;
-        public readonly AegisServiceClient AegisServiceClient; // TODO made this instance owned by the Job and follow new httpclient pattern
         public readonly ActionsHub ActionsHub;
         public readonly ActionsHubMdot ActionsHubMdot;
         public SchedulerRegistry Scheduler { get; private set; }
@@ -734,7 +733,6 @@ namespace Aegis.Pumps
             this.Status = new Status();
             this.BlackList = new BlackListClient();
             this.AegisEventCache = new AegisEventCacheClient();
-            this.AegisServiceClient = new AegisServiceClient();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
             this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
             this.Scheduler = new SchedulerRegistry();
@@ -758,6 +756,8 @@ namespace Aegis.Pumps
             this.Settings = settings;
             this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
             this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
+
+            // TODO scheduler reload
         }
 
         /// <summary>

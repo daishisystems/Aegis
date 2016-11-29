@@ -684,10 +684,12 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendAegisEventsJob : ClientJob
     {
+        private readonly AegisServiceClient aegisServiceClient;
         private DateTimeOffset lastSucessfulSent;
 
         public SendAegisEventsJob(AegisClient client) : base(client, "SendAegisEventsJob")
         {
+            this.aegisServiceClient = new AegisServiceClient();
         }
 
         protected override void DoExecute()
@@ -772,7 +774,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
-                this.ClientInstance.AegisServiceClient.SendAegisEvents(
+                this.aegisServiceClient.SendAegisEvents(
                     AegisClient.ClientName,
                     AegisClient.ClientId,
                     AegisClient.ClientVersion,

@@ -694,7 +694,6 @@ namespace Aegis.Pumps.Tests.Mocks
 
         protected override bool DoGetStringData(
             Core.HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory,
             DateTimeOffset? requestTimeStamp,
             out string data,
             out DateTimeOffset? timeStamp)
@@ -708,7 +707,6 @@ namespace Aegis.Pumps.Tests.Mocks
 
         protected override void DoSendAegisEvents(
             HttpRequestMetadata httpRequestMetadata,
-            HttpClientFactory httpClientFactory,
             string itemsJson)
         {
             this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());

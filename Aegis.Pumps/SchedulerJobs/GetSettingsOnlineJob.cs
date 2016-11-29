@@ -683,9 +683,12 @@ namespace Aegis.Pumps.SchedulerJobs
 {
     internal class GetSettingsOnlineJob : ClientJob
     {
+        private readonly AegisServiceClient aegisServiceClient;
+
         public GetSettingsOnlineJob(AegisClient client)
             : base(client, "GetSettingsOnlineJob")
         {
+            this.aegisServiceClient = new AegisServiceClient();
         }
 
         protected override void DoExecute()
@@ -775,7 +778,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 SettingsOnlineData settingsOnlineData;
                 DateTimeOffset? newTimeStamp;
 
-                var isUpdated = this.ClientInstance.AegisServiceClient.GetSettingsOnlineData(
+                var isUpdated = this.aegisServiceClient.GetSettingsOnlineData(
                     AegisClient.ClientName,
                     AegisClient.ClientId,
                     AegisClient.ClientVersion,
