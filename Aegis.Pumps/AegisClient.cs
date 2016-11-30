@@ -686,7 +686,7 @@ namespace Aegis.Pumps
     public class AegisClient // TODO create interface for that for easier testing
     {
         private static readonly object lockInit = new object();
-        //private static volatile bool isSetUpDone;
+
         private static volatile AegisClient instanceClient;
 
         public static AegisClient Instance => instanceClient;
@@ -773,12 +773,6 @@ namespace Aegis.Pumps
         {
             lock (lockInit)
             {
-                // TODO fix later
-                //if (isSetUpDone)
-                //{
-                //    return;
-                //}
-
                 InitializationTime = DateTimeOffset.UtcNow;
                 AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
                 ClientName = string.Empty;
@@ -797,9 +791,6 @@ namespace Aegis.Pumps
 
                     // set ClientUniqueId with an unique id to recognize many instances
                     ClientId = GenerateClientId();
-
-                    // set flag
-                    //isSetUpDone = true;
 
                     // set machine name if available
                     var machineName = Environment.MachineName;
@@ -858,8 +849,6 @@ namespace Aegis.Pumps
 
         public static void ShutDown()
         {
-            //isSetUpDone = false;
-
             // do nothing if not initialised
             if (!IsInitialised)
             {

@@ -696,7 +696,6 @@ namespace Aegis.Pumps
         public readonly int AegisEventsTimeToLiveInHours = 12;
         public readonly int AegisEventsCacheBatchSize = 1000; // TODO made online settings
 
-        // TODO made intervals prime numbers?
         public readonly Dictionary<string, int> JobsIntervals = new Dictionary<string, int>()
         {
             { "AegisGetBlackListJob", 60 },
