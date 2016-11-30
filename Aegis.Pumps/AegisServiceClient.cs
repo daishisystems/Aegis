@@ -1092,6 +1092,10 @@ namespace Aegis.Pumps
                 return this.httpClientInstance;
             }
 
+            // dispose existing object
+            this.httpClientInstance?.Dispose();
+            this.httpClientInstance = null;
+
             // create new http client
             HttpClientHandler httpClientHandler;
             this.httpClientInstance = this.CreateHttpClient(httpRequestMetadata, out httpClientHandler);
