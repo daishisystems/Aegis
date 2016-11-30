@@ -676,10 +676,13 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Threading;
 using Daishi.NewRelic.Insights;
+using Aegis.Core;
 using Aegis.Pumps.Actions;
+using System.Net;
 
 namespace Aegis.Pumps
 {
@@ -700,7 +703,7 @@ namespace Aegis.Pumps
 
         public static bool IsInitialised => Instance != null;
 
-        public INewRelicInsightsClient NewRelicInsightsClient { get; private set; }
+        public INewRelicInsightsClient NewRelicClient { get; private set; }
         public Settings Settings { get; private set; }
 
         public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
@@ -726,7 +729,7 @@ namespace Aegis.Pumps
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            this.NewRelicInsightsClient = newRelicInsightsClient;
+            this.NewRelicClient = newRelicInsightsClient;
             this.NewRelicUtils = new NewRelicInsightsEvents.Utils();
             this.Settings = settings;
             this.SettingsOnline = new SettingsOnlineClient();
@@ -752,7 +755,7 @@ namespace Aegis.Pumps
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            this.NewRelicInsightsClient = newRelicInsightsClient;
+            this.NewRelicClient = newRelicInsightsClient;
             this.Settings = settings;
             this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
             this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
@@ -813,7 +816,6 @@ namespace Aegis.Pumps
         /// Initialise client. Throws exceptions.
         /// </summary>
         /// <returns></returns>
-        // TODO made complex Initialise method (init Aegis nad NewRelic, get appsettings and constants only)
         public static bool Initialise(
             INewRelicInsightsClient newRelicInsightsClient, 
             Settings settings)
@@ -846,6 +848,85 @@ namespace Aegis.Pumps
             }
         }
 
+        /// <summary>
+        /// Initialise client. Throws exceptions.
+        /// </summary>
+        /// <returns></returns>
+        public static bool InitialiseAll(
+            NameValueCollection appSettings,
+            string applicationVersionKey,
+            string netscalerClientHeader)
+        {
+            try
+            {
+                // is Aegis enabled
+                if (!AegisHelper.IsEnabledInConfigFile(appSettings, "AegisIsEnabled"))
+                {
+                    return false;
+                }
+
+                // initialize NewRelicInsightsClient
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.AccountID = appSettings["NewRelicInsightsAccountID"];
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.APIKey = appSettings["NewRelicInsightsAPIKey"];
+                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.URI = new Uri(appSettings["NewRelicInsightsURI"]);
+
+                var webProxy = appSettings["Proxy"];
+
+                if (!string.IsNullOrEmpty(webProxy))
+                {
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseWebProxy = true;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.WebProxy = new WebProxy(webProxy);
+                }
+
+                var newRelicInsightsNonDefaultTimeout = appSettings["NewRelicInsightsNonDefaultTimeout"];
+
+                if (!string.IsNullOrEmpty(newRelicInsightsNonDefaultTimeout))
+                {
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseNonDefaultTimeout = true;
+                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.NonDefaultTimeout =
+                        new TimeSpan(0, 0, int.Parse(newRelicInsightsNonDefaultTimeout));
+                }
+
+                NewRelicInsightsClient.Instance.Initialise();
+
+                // setup client
+                AegisClient.SetUp(
+                    NewRelicInsightsClient.Instance,
+                    appSettings["AegisApplicationName"],
+                    applicationVersionKey,
+                    //appSettings[dotrez.common.constants.Application.VersionKey],
+                    appSettings["AegisDeploymentEnvironment"]);
+
+                // create Aegis client settings
+                var aegisSettings = Settings.Initialise(
+                    NewRelicInsightsClient.Instance,
+                    appSettings["Proxy"],
+                    appSettings["AegisWebNonDefaultTimeout"],
+                    appSettings["AegisServiceUri"],
+                    new[]
+                    {
+                        //dotrez.common.constants.Application.NetscalerClientHeader,
+                        netscalerClientHeader,
+                        "NS_CLIENT_IP",
+                        "REMOTE_ADDR"
+                    });
+
+                // initialize Aegis client
+                return AegisClient.Initialise(NewRelicInsightsClient.Instance, aegisSettings);
+            }
+            catch (Exception exception)
+            {
+                if (NewRelicInsightsClient.Instance.HasStarted)
+                {
+                    NewRelicInsightsEvents.Utils.UploadException(
+                        NewRelicInsightsClient.Instance,
+                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                        exception);
+                }
+                throw;
+            }
+        }
+
         public static void ShutDown()
         {
             // do nothing if not initialised
@@ -866,7 +947,7 @@ namespace Aegis.Pumps
             self.BlackList?.CleanUp();
 
             // flush NewRelic events
-            self.NewRelicInsightsClient?.UploadAllCachedEvents();
+            self.NewRelicClient?.UploadAllCachedEvents();
         }
 
         public static ActionsHub GetActionsHub()
@@ -901,7 +982,7 @@ namespace Aegis.Pumps
             }
 
             Instance.NewRelicUtils.AddException(
-                Instance.NewRelicInsightsClient,
+                Instance.NewRelicClient,
                 NewRelicInsightsEvents.Utils.ComponentNames.ClientReportError,
                 null,
                 message,
@@ -931,7 +1012,7 @@ namespace Aegis.Pumps
             catch (Exception exception)
             {
                 this.NewRelicUtils.AddException(
-                    this.NewRelicInsightsClient,
+                    this.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
                     exception);
             }

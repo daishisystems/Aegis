@@ -707,7 +707,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance);
-            Assert.IsNotNull(AegisClient.Instance.NewRelicInsightsClient);
+            Assert.IsNotNull(AegisClient.Instance.NewRelicClient);
             Assert.IsNotNull(AegisClient.Instance.Settings);
             Assert.IsNotNull(AegisClient.Instance.BlackList);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
@@ -738,7 +738,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.IsTrue(AegisClient.IsInitialised);
             Assert.IsNotNull(AegisClient.Instance);
-            Assert.IsNotNull(AegisClient.Instance.NewRelicInsightsClient);
+            Assert.IsNotNull(AegisClient.Instance.NewRelicClient);
             Assert.IsNotNull(AegisClient.Instance.Settings);
             Assert.IsNotNull(AegisClient.Instance.BlackList);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
@@ -768,7 +768,7 @@ namespace Aegis.Pumps.Tests
 
                 Assert.IsTrue(AegisClient.IsInitialised);
                 Assert.IsNotNull(AegisClient.Instance);
-                Assert.IsNotNull(AegisClient.Instance.NewRelicInsightsClient);
+                Assert.IsNotNull(AegisClient.Instance.NewRelicClient);
                 Assert.IsNotNull(AegisClient.Instance.Settings);
                 Assert.IsNotNull(AegisClient.Instance.BlackList);
                 Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);

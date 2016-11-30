@@ -717,7 +717,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     if (removedCount > 0)
                     {
                         this.ClientInstance.NewRelicUtils.AddException(
-                            this.ClientInstance.NewRelicInsightsClient,
+                            this.ClientInstance.NewRelicClient,
                             NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                             null,
                             $"Removed too old events: {removedCount}",
@@ -740,7 +740,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception);
                 }
@@ -750,7 +750,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                         exception,
                         "Request timeout.");
@@ -759,7 +759,7 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception);
             }
@@ -799,7 +799,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
                     exception,
                     $"eventsToSend={items.Count} allEventsCount={allEventsCount} lastSucessfulSent={this.lastSucessfulSent.ToString("O")}",

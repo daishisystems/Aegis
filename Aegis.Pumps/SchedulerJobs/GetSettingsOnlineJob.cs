@@ -702,7 +702,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 {
                     // report issue
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         null,
                         $"GetSettingsOnlineData is failing for {hoursSinceLastSuccess} hours. Trying alternatives.");
@@ -745,7 +745,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception);
                 }
@@ -755,7 +755,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception,
                         "Request timeout.");
@@ -764,7 +764,7 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                     exception);
             }
@@ -811,7 +811,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 this.ClientInstance.NewRelicUtils.AddNotification(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                     $"New settings applying newTimeStamp={newTimeStamp?.ToString("o")}");
 
@@ -827,7 +827,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 if (exception.CancellationToken.IsCancellationRequested)
                 {
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception);
                 }
@@ -837,7 +837,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     // then the exception likely occurred due to HTTPClient.Timeout exceeding.
                     // Add a custom message in order to ensure that tasks are not canceled.
                     this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicInsightsClient,
+                        this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         exception,
                         "Request timeout.");
@@ -846,7 +846,7 @@ namespace Aegis.Pumps.SchedulerJobs
             catch (Exception exception)
             {
                 this.ClientInstance.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                     exception);
             }

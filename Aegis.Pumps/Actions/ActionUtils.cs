@@ -718,7 +718,7 @@ namespace Aegis.Pumps.Actions
             catch (Exception exception)
             {
                 client.NewRelicUtils.AddException(
-                    client.NewRelicInsightsClient,
+                    client.NewRelicClient,
                     componentName,
                     exception,
                     $"paramContactEmail={email}=");

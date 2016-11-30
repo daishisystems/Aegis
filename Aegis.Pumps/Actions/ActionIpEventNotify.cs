@@ -675,10 +675,8 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http.Headers;
 using Aegis.Core;
 using Aegis.Core.Data;
@@ -716,7 +714,7 @@ namespace Aegis.Pumps.Actions
             catch (Exception exception)
             {
                 this.Client.NewRelicUtils.AddException(
-                    this.Client.NewRelicInsightsClient,
+                    this.Client.NewRelicClient,
                     this.newRelicExceptionComponentName,
                     exception);
             }
@@ -742,11 +740,11 @@ namespace Aegis.Pumps.Actions
 
             // get IP addresses
             string errorMessage;
-            var ipAddresses = Action.ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage);
+            var ipAddresses = ParseIpAddressesFromHeaders(ipHeaderNames, requestHeaders, out errorMessage);
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 this.Client.NewRelicUtils.AddNotification(
-                    this.Client.NewRelicInsightsClient,
+                    this.Client.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.ParseIpAddress,
                     errorMessage,
                     true);
@@ -848,7 +846,7 @@ namespace Aegis.Pumps.Actions
             if (isCacheFull)
             {
                 this.Client.NewRelicUtils.AddException(
-                    this.Client.NewRelicInsightsClient,
+                    this.Client.NewRelicClient,
                     this.newRelicExceptionComponentName,
                     null,
                     $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
@@ -920,7 +918,7 @@ namespace Aegis.Pumps.Actions
                 FullPath = requestUri.PathAndQuery
             };
 
-            this.Client.NewRelicInsightsClient.AddNewRelicInsightEvent(ipBlackListEvent);
+            this.Client.NewRelicClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
             var ipBlackListAegisEvent = new AegisBlackListEvent()
@@ -950,7 +948,7 @@ namespace Aegis.Pumps.Actions
             if (isCacheFull)
             {
                 this.Client.NewRelicUtils.AddException(
-                    this.Client.NewRelicInsightsClient,
+                    this.Client.NewRelicClient,
                     this.newRelicExceptionComponentName,
                     null,
                     $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");

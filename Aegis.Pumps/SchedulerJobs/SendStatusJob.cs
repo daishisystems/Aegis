@@ -716,7 +716,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 statusEvent.SettingsOnlineTimeStamp = this.ClientInstance.SettingsOnline.TimeStamp?.ToString("o");
 
                 this.ClientInstance.NewRelicUtils.AddNotification(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                     $"Status: {currentTime.ToString("o")}",
                     customEvent: statusEvent);
@@ -729,7 +729,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 this.ClientInstance.NewRelicUtils.AddException(
-                this.ClientInstance.NewRelicInsightsClient,
+                this.ClientInstance.NewRelicClient,
                 NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                 exception);
             }

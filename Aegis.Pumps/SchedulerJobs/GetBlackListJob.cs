@@ -735,7 +735,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 this.ClientInstance?.NewRelicUtils.AddException(
-                    this.ClientInstance.NewRelicInsightsClient,
+                    this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception,
                     $"consecutiveDownloadError={this.ClientInstance?.Status?.BlackListConsecutiveDownloadError} " +
