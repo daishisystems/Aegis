@@ -705,17 +705,20 @@ namespace Aegis.Pumps.SchedulerJobs
                 // TODO add counter - EventsSentConsqutieveFailure
                 // TODO total sent events, parse ip events error, number since last status?
 
+                var currentTime = DateTime.UtcNow;
                 var statusEvent = new AegisStatusEvent();
                 statusEvent.BlackListConsecutiveDownloadError = this.ClientInstance.Status.BlackListConsecutiveDownloadError;
                 statusEvent.BlackListItemsCount = this.ClientInstance.BlackList.GetItemsCount();
+                statusEvent.BlackListLastSucessfulCheck = this.GetElapsedTime(currentTime, this.ClientInstance.Status.BlackListLastSucessfulCheck);
                 statusEvent.BlackListTimeStamp = this.ClientInstance.BlackList.TimeStamp?.ToString("o");
+
                 statusEvent.AegisEventsCacheCount = this.ClientInstance.AegisEventCache.Count();
                 statusEvent.SettingsOnlineTimeStamp = this.ClientInstance.SettingsOnline.TimeStamp?.ToString("o");
 
                 this.ClientInstance.NewRelicUtils.AddNotification(
                     this.ClientInstance.NewRelicInsightsClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                    $"Status: {DateTime.UtcNow.ToString("o")}",
+                    $"Status: {currentTime.ToString("o")}",
                     customEvent: statusEvent);
             }
             catch (Exception exception)
@@ -730,6 +733,16 @@ namespace Aegis.Pumps.SchedulerJobs
                 NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
                 exception);
             }
+        }
+
+        private int? GetElapsedTime(DateTimeOffset current, DateTimeOffset? time)
+        {
+            if (time == null)
+            {
+                return null;
+            }
+
+            return (int)current.Subtract(time.Value).TotalSeconds;
         }
     }
 }

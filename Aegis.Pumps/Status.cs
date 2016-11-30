@@ -686,5 +686,7 @@ namespace Aegis.Pumps
     public class Status
     {
         public int BlackListConsecutiveDownloadError { get; set; }
+
+        public DateTimeOffset? BlackListLastSucessfulCheck { get; set; }
     }
 }

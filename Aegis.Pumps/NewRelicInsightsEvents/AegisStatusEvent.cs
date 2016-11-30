@@ -687,6 +687,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "blackListItemsCount")]
         public int? BlackListItemsCount { get; set; }
 
+        [JilDirective(Name = "blackListLastSucessfulCheck")]
+        public int? BlackListLastSucessfulCheck { get; set; }
+
         [JilDirective(Name = "blackListTimeStamp")]
         public string BlackListTimeStamp { get; set; }
 

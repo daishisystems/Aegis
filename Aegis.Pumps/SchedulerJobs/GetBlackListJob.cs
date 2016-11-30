@@ -677,7 +677,6 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Aegis.Core.Data;
 
@@ -691,7 +690,6 @@ namespace Aegis.Pumps.SchedulerJobs
     internal class GetBlackListJob : ClientJob
     {
         private readonly AegisServiceClient aegisServiceClient;
-        private DateTimeOffset lastSucessfulCheck;
 
         public GetBlackListJob(AegisClient client)
             : base(client, "GetBlackListJob")
@@ -741,7 +739,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
                     exception,
                     $"consecutiveDownloadError={this.ClientInstance?.Status?.BlackListConsecutiveDownloadError} " +
-                    $"lastSucessfulCheck={this.lastSucessfulCheck.ToString("O")} " +
+                    $"lastSucessfulCheck={this.ClientInstance?.Status?.BlackListLastSucessfulCheck?.ToString("O")} " +
                     $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
             }
         }
@@ -766,7 +764,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 out newTimeStamp);
 
             // update successful timestamp
-            this.lastSucessfulCheck = DateTimeOffset.UtcNow;
+            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTimeOffset.UtcNow;
 
             // if data hasn't changed
             if (!isUpdated)
@@ -801,7 +799,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 out newTimeStamp);
 
             // update successful timestamp
-            this.lastSucessfulCheck = DateTimeOffset.UtcNow;
+            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTimeOffset.UtcNow;
 
             // if data hasn't changed
             if (!isUpdated)
