@@ -758,8 +758,7 @@ namespace Aegis.Pumps
             this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
 
             // scheduler reload
-            // TODO mark that jobs delay is needed
-            this.SettingsChangeNotification();
+            this.SchedulerReload(true);
         }
 
         /// <summary>
@@ -911,6 +910,11 @@ namespace Aegis.Pumps
 
         public void SettingsChangeNotification()
         {
+            this.SchedulerReload(false);
+        }
+
+        private void SchedulerReload(bool isStartDelayNeeded)
+        {
             if (this.Scheduler?.IsReloadRequired(this.Settings, this.SettingsOnline) == false)
             {
                 return;
@@ -933,9 +937,8 @@ namespace Aegis.Pumps
             }
 
             // start new scheduler
-            // TODO mark that job delay is not needed
             this.Scheduler = new SchedulerRegistry();
-            this.Scheduler.Initialise(Instance, null);
+            this.Scheduler.Initialise(Instance, isStartDelayNeeded, null);
         }
 
         private static void DoInitialise(
@@ -951,7 +954,7 @@ namespace Aegis.Pumps
             instanceClient = self;
 
             // start scheduled tasks
-            Instance.Scheduler.Initialise(Instance, settings.IsJobSchedulingDisabled);
+            Instance.Scheduler.Initialise(Instance, true, settings.IsJobSchedulingDisabled);
         }
 
         private static string GenerateClientId()

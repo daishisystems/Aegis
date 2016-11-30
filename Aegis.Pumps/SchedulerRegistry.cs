@@ -717,22 +717,23 @@ namespace Aegis.Pumps
             }
         }
 
-        public void Initialise(AegisClient client, string isSchedulingDisabled)
+        public void Initialise(
+            AegisClient client,
+            bool isStartDelayNeeded,
+            string isSchedulingDisabled)
         {
             const int InitialStartDelay = 120; // in seconds
             const int JobStartDelay = 90; // in seconds
             const int MaxRandomDelay = 30; // in seconds
 
-            // generate random start delay values
-            var rnd = new Random(AegisClient.ClientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
-
-            var delaysSet = new HashSet<int>();
-            while (delaysSet.Count < 4)
+            var initStartDelay = 5;
+            if (isStartDelayNeeded)
             {
-                delaysSet.Add(rnd.Next(0, MaxRandomDelay / 2));
+                initStartDelay = InitialStartDelay;
             }
 
-            var delays = delaysSet.OrderBy(x => 2 * x).ToList();
+            // generate random start delay values
+            var delays = this.GenerateRandomDelays(AegisClient.ClientId, MaxRandomDelay);
 
             // disable running same job in parallel
             this.NonReentrantAsDefault();
@@ -744,22 +745,22 @@ namespace Aegis.Pumps
             this.Add(
                 this.settingsIntervals,
                 new GetSettingsOnlineJob(client),
-                InitialStartDelay + delays[0]);
+                initStartDelay + delays[0]);
 
             this.Add(
                 this.settingsIntervals,
                 new GetBlackListJob(client),
-                InitialStartDelay + JobStartDelay + delays[1]);
+                initStartDelay + JobStartDelay + delays[1]);
 
             this.Add(
                 this.settingsIntervals,
                 new SendAegisEventsJob(client),
-                InitialStartDelay + JobStartDelay + delays[2]);
+                initStartDelay + JobStartDelay + delays[2]);
 
             this.Add(
                 this.settingsIntervals,
                 new SendStatusJob(client),
-                InitialStartDelay + JobStartDelay + delays[3]);
+                initStartDelay + JobStartDelay + delays[3]);
 
             // start schedulers
             if (isSchedulingDisabled != TestDisableSchedulerKey)
@@ -863,6 +864,19 @@ namespace Aegis.Pumps
         protected static int GetWithLimit(int? primaryValue, int secondaryValue, int limit)
         {
             return primaryValue != null ? Math.Min(primaryValue.Value, limit) : secondaryValue;
+        }
+
+        protected List<int> GenerateRandomDelays(string clientId, int maxRandomValue)
+        {
+            var rnd = new Random(clientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
+
+            var delaysSet = new HashSet<int>();
+            while (delaysSet.Count < 4)
+            {
+                delaysSet.Add(rnd.Next(0, maxRandomValue / 2));
+            }
+
+            return delaysSet.OrderBy(x => 2 * x).ToList();
         }
     }
 }
