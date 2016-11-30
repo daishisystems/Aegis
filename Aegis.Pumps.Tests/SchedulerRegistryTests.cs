@@ -690,12 +690,11 @@ namespace Aegis.Pumps.Tests
         private class TestRegistry : SchedulerRegistry
         {
             public void PublicAdd(
-                AegisClient client,
+                Dictionary<string, int> intervals,
                 SchedulerJobs.ClientJob self,
-                int startTimeDelay,
-                int defaultInterval)
+                int startTimeDelay)
             {
-                this.Add(client, self, startTimeDelay, defaultInterval);
+                this.Add(intervals, self, startTimeDelay);
             }
         }
 
@@ -740,9 +739,10 @@ namespace Aegis.Pumps.Tests
             // add new job
             int startTimeDelay = 13;
             int interval = 5;
+            Dictionary<string, int> intervals = new Dictionary<string, int>() { { selfJob.JobName, interval } };
             var testStartTime = DateTime.Now;
 
-            selfRegistry.PublicAdd(AegisClient.Instance, selfJob, startTimeDelay, interval);
+            selfRegistry.PublicAdd(intervals, selfJob, startTimeDelay);
             Assert.AreEqual(0, selfJob.Events.Count);
 
             // start job manager

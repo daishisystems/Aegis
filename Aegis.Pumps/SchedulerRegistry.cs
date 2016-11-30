@@ -687,10 +687,24 @@ namespace Aegis.Pumps
     {
         public const string TestDisableSchedulerKey = "test_schedule_disabled";
         public readonly List<Tuple<ClientJob, Schedule>> ScheduledItems;
+        private Dictionary<string, int> settingsIntervals;
 
         public SchedulerRegistry()
         {
             this.ScheduledItems = new List<Tuple<ClientJob, Schedule>>();
+        }
+
+        public bool IsReloadRequired(Settings settings, SettingsOnlineClient settingsOnline)
+        {
+            if (this.settingsIntervals == null)
+            {
+                return true;
+            }
+
+            var settingsIntervalsNew = this.GetSettings(settings, settingsOnline);
+            var isEqual = this.settingsIntervals.OrderBy(x => x.Key).Intersect(settingsIntervalsNew.OrderBy(x => x.Key)).Count() == this.settingsIntervals.Count;
+
+            return !isEqual;
         }
 
         public static void RemoveAllAegisJobs()
@@ -723,30 +737,29 @@ namespace Aegis.Pumps
             // disable running same job in parallel
             this.NonReentrantAsDefault();
 
+            // jobs
+            this.settingsIntervals = this.GetSettings(client.Settings, client.SettingsOnline);
+
             // add jobs
             this.Add(
-                client,
+                this.settingsIntervals,
                 new GetSettingsOnlineJob(client),
-                InitialStartDelay + delays[0],
-                client.Settings.GetSettingsOnlineJobIntervalInSeconds);
+                InitialStartDelay + delays[0]);
 
             this.Add(
-                client,
+                this.settingsIntervals,
                 new GetBlackListJob(client),
-                InitialStartDelay + JobStartDelay + delays[1],
-                client.Settings.GetBlackListJobIntervalInSeconds);
+                InitialStartDelay + JobStartDelay + delays[1]);
 
             this.Add(
-                client,
+                this.settingsIntervals,
                 new SendAegisEventsJob(client),
-                InitialStartDelay + JobStartDelay + delays[2],
-                client.Settings.SendAegisEventsJobIntervalInSeconds);
+                InitialStartDelay + JobStartDelay + delays[2]);
 
             this.Add(
-                client,
+                this.settingsIntervals,
                 new SendStatusJob(client),
-                InitialStartDelay + JobStartDelay + delays[3],
-                client.Settings.SendStatusJobIntervalInSeconds);
+                InitialStartDelay + JobStartDelay + delays[3]);
 
             // start schedulers
             if (isSchedulingDisabled != TestDisableSchedulerKey)
@@ -768,24 +781,31 @@ namespace Aegis.Pumps
         }
 
         protected void Add(
-            AegisClient client,
+            Dictionary<string, int> intervals,
             ClientJob self,
-            int startTimeDelay,
-            int defaultInterval)
+            int startTimeDelay)
+        {
+            var sched = this.Schedule(self).WithName(self.JobName);
+            this.ScheduledItems.Add(Tuple.Create(self, sched));
+
+            sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
+                .AndEvery(intervals[self.JobName])
+                .Seconds();
+        }
+
+        protected Dictionary<string, int> GetSettings(Settings settings, SettingsOnlineClient settingsOnline)
         {
             // for safety reason online settings value can't be higher than the following limit
             const int LimitInSecs = 3600; // an hour
 
-            var sched = this.Schedule(self).WithName(self.JobName);
-            this.ScheduledItems.Add(Tuple.Create(self, sched));
+            var result = new Dictionary<string, int>(settings.JobsIntervals);
+            foreach (var key in settings.JobsIntervals.Keys)
+            {
+                var interval = settingsOnline.GetJobInterval(key);
+                result[key] = GetWithLimit(interval, settings.JobsIntervals[key], LimitInSecs);
+            }
 
-            var interval = GetWithLimit(
-                client.SettingsOnline.GetJobInterval(self.JobName),
-                defaultInterval,
-                LimitInSecs);
-
-            sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-                .AndEvery(interval).Seconds();
+            return result;
         }
 
         //public void ChangeSchedule(

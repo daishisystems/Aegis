@@ -710,8 +710,6 @@ namespace Aegis.Core
             HttpRequestMetadata httpRequestMetadata, 
             out HttpClientHandler httpClientHandler)
         {
-            // TODO follow new pattern and initialize HttpClient once only
-
             httpClientHandler = new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip,

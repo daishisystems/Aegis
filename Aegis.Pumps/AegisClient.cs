@@ -757,7 +757,9 @@ namespace Aegis.Pumps
             this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
             this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
 
-            // TODO scheduler reload
+            // scheduler reload
+            // TODO mark that jobs delay is needed
+            this.SettingsChangeNotification();
         }
 
         /// <summary>
@@ -920,16 +922,29 @@ namespace Aegis.Pumps
 
         public void SettingsChangeNotification()
         {
-            // TODO reload scheduler only if right settings has changed, not always
-            // TODO made reload scheduler safe to exceptions etc.
+            if (this.Scheduler?.IsReloadRequired(this.Settings, this.SettingsOnline) == false)
+            {
+                return;
+            }
 
-            // shutdown scheduler
-            this.Scheduler?.ShutDown();
+            try
+            {
+                // shutdown scheduler
+                this.Scheduler?.ShutDown();
 
-            // remove all old Aegis jobs
-            SchedulerRegistry.RemoveAllAegisJobs();
+                // remove all old Aegis jobs
+                SchedulerRegistry.RemoveAllAegisJobs();
+            }
+            catch (Exception exception)
+            {
+                this.NewRelicUtils.AddException(
+                    this.NewRelicInsightsClient,
+                    NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
+                    exception);
+            }
 
             // start new scheduler
+            // TODO mark that job delay is not needed
             this.Scheduler = new SchedulerRegistry();
             this.Scheduler.Initialise(Instance, null);
         }
