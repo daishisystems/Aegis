@@ -676,22 +676,20 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using Daishi.NewRelic.Insights;
 
 namespace Aegis.Pumps.NewRelicInsightsEvents
 {
     public class Utils
     {
-        private const int LastSentMessageLimitInMinutes = 5;
-        private Tuple<string, DateTime> lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
-        private Tuple<string, DateTime> lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
-
         public static class ComponentNames
         {
             public const string ClientInitialisation = "Client initialisation";
             public const string ClientReportError = "Client report error";
             public const string SettingsInitialisation = "Settings initialisation";
             public const string ParseIpAddress = "ParseIpAddress";
+            public const string UtilsInternal = "UtilsInternal";
 
             // Actions
             public const string ActionAvailability = "Action-Availability";
@@ -744,30 +742,17 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string AegisBlackListActivity = "AegisBlackListActivity";
         }
 
+        private const int LastSentMessageLimitInMinutes = 5;
+        private Tuple<string, DateTime> lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
+        private Tuple<string, DateTime> lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
+        private static readonly List<string> newRelicExceptions = new List<string>(10);
+
         public void ResetLastSent()
         {
             this.lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
             this.lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
         }
 
-        /// <summary>
-        ///     <see cref="UploadException" /> uploads
-        ///     <see cref="Exception" /> metadata to New Relic Insights.
-        /// </summary>
-        /// <param name="componentName"></param>
-        /// <param name="exception">
-        ///     The <see cref="Exception" /> to upload to New Relic
-        ///     Insights.
-        /// </param>
-        /// <param name="newRelicInsightsClient">
-        ///     The <see cref="NewRelicInsightsClient" />
-        ///     instance that facilitates the <see cref="Exception" />-upload.
-        /// </param>
-        /// <param name="customExceptionMessage">
-        ///     A custom message, generally used in place
-        ///     of <see cref="Exception.Message" /> properties that are vague, and do not
-        ///     isolate the specific underlying issue.
-        /// </param>
         public static void UploadException(
             INewRelicInsightsClient newRelicInsightsClient,
             string componentName,
@@ -776,6 +761,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         {
             try
             {
+                // process any internal exceptions
+                ProcessNewRelicExceptions(newRelicInsightsClient);
+
                 var errMessage = customExceptionMessage ?? exception?.ToString();
                 if (customExceptionMessage != null && exception != null)
                 {
@@ -794,9 +782,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                     new[] { newRelicInsightsAegisEvent },
                     new HttpClientFactory());
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                AddNewRelicException(exc);
             }
         }
 
@@ -810,6 +798,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         {
             try
             {
+                // process any internal exceptions
+                ProcessNewRelicExceptions(newRelicInsightsClient);
+
                 // create event
                 var errMessage = customExceptionMessage ?? exception?.ToString();
                 if (customExceptionMessage != null && exception != null)
@@ -842,9 +833,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 // add to NewRelic
                 newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                AddNewRelicException(exc);
             }
         }
 
@@ -857,6 +848,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         {
             try
             {
+                // process any internal exceptions
+                ProcessNewRelicExceptions(newRelicInsightsClient);
+
                 // set event
                 var newRelicInsightsAegisEvent = customEvent ?? new AegisNotificationEvent();
                 newRelicInsightsAegisEvent.ComponentName = componentName;
@@ -879,9 +873,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 // add to NewRelic
                 newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-                // ToDo: There is no fall-back solution if New Relic Insights is offline.          
+                AddNewRelicException(exc);
             }
         }
 
@@ -898,6 +892,60 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             // update
             lastSent = Tuple.Create(messageData, DateTime.UtcNow);
             return true;
+        }
+
+        private static void AddNewRelicException(Exception exc)
+        {
+            try
+            {
+                if (exc == null)
+                {
+                    return;
+                }
+
+                if (newRelicExceptions == null || newRelicExceptions.Count >= 10)
+                {
+                    return;
+                }
+
+                newRelicExceptions.Add(exc.ToString());
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private static void ProcessNewRelicExceptions(INewRelicInsightsClient newRelicInsightsClient)
+        {
+            try
+            {
+                if (newRelicInsightsClient == null)
+                {
+                    return;
+                }
+
+                if (newRelicExceptions == null || newRelicExceptions.Count == 0)
+                {
+                    return;
+                }
+
+                foreach (var error in newRelicExceptions)
+                {
+                    var newRelicInsightsAegisEvent =
+                        new AegisErrorEvent()
+                        {
+                            ComponentName = ComponentNames.UtilsInternal,
+                            ErrorMessage = error
+                        };
+
+                    newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                }
+            }
+            catch (Exception exc)
+            {
+                AddNewRelicException(exc);
+            }            
         }
     }
 }
