@@ -676,7 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Daishi.NewRelic.Insights;
 
 namespace Aegis.Pumps.NewRelicInsightsEvents
@@ -744,14 +746,14 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         }
 
         private const int LastSentMessageLimitInMinutes = 5;
-        private Tuple<string, DateTime> lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
-        private Tuple<string, DateTime> lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
+        private readonly ConcurrentDictionary<string, DateTime> lastSentNotification = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, DateTime> lastSentError = new ConcurrentDictionary<string, DateTime>();
         private static readonly List<string> newRelicExceptions = new List<string>(10);
 
         public void ResetLastSent()
         {
-            this.lastSentNotification = Tuple.Create<string, DateTime>(null, default(DateTime));
-            this.lastSentError = Tuple.Create<string, DateTime>(null, default(DateTime));
+            this.lastSentNotification.Clear();
+            this.lastSentError.Clear();
         }
 
         public static void UploadException(
@@ -817,22 +819,16 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                         InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
                     };
 
-                // check if it is a duplicate to the last sent event
-                if (noDuplicateLastSent)
-                {
-                    // if message same like last one then ignore it
-                    if (!this.CheckAndUpdateLastSent(
-                        ref this.lastSentError, 
+                // add event
+                this.AddEvent(
+                    newRelicInsightsClient,
+                    this.lastSentError,
+                    newRelicInsightsAegisEvent, 
+                    noDuplicateLastSent,
+                    this.GetMessageHash(
                         newRelicInsightsAegisEvent.ComponentName,
                         newRelicInsightsAegisEvent.ErrorMessage,
-                        newRelicInsightsAegisEvent.InnerErrorMessage))
-                    {
-                        return;
-                    }
-                }
-
-                // add to NewRelic
-                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                        newRelicInsightsAegisEvent.InnerErrorMessage));
             }
             catch (Exception exc)
             {
@@ -857,22 +853,15 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 newRelicInsightsAegisEvent.ComponentName = componentName;
                 newRelicInsightsAegisEvent.Message = message;
 
-                // check if it is a duplicate to the last sent event
-                if (noDuplicateLastSent)
-                {
-                    // if message same like last one then ignore it
-                    if (!this.CheckAndUpdateLastSent(
-                        ref this.lastSentNotification,
+                // add event
+                this.AddEvent(
+                    newRelicInsightsClient,
+                    this.lastSentNotification,
+                    newRelicInsightsAegisEvent,
+                    noDuplicateLastSent,
+                    this.GetMessageHash(
                         newRelicInsightsAegisEvent.ComponentName,
-                        newRelicInsightsAegisEvent.Message,
-                        null))
-                    {
-                        return;
-                    }
-                }
-
-                // add to NewRelic
-                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicInsightsAegisEvent);
+                        newRelicInsightsAegisEvent.Message));
             }
             catch (Exception exc)
             {
@@ -880,19 +869,89 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             }
         }
 
-        private bool CheckAndUpdateLastSent(ref Tuple<string, DateTime> lastSent, string msg1, string msg2, string msg3)
+        private void AddEvent(
+            INewRelicInsightsClient newRelicInsightsClient,
+            ConcurrentDictionary<string, DateTime> lastSent,
+            NewRelicInsightsEvent newRelicEvent, 
+            bool noDuplicateLastSent, 
+            string messageHash)
         {
-            var messageData = $"{msg1}${msg2}${msg3}";
-
-            // if match to last sent then ignore
-            if (lastSent.Item1 == messageData && DateTime.UtcNow.Subtract(lastSent.Item2).TotalMinutes < LastSentMessageLimitInMinutes)
+            // add to NewRelic
+            if (!noDuplicateLastSent)
             {
-                return false;
+                newRelicInsightsClient.AddNewRelicInsightEvent(newRelicEvent);
+                return;
             }
 
-            // update
-            lastSent = Tuple.Create(messageData, DateTime.UtcNow);
-            return true;
+            // check if it is a duplicate to the last sent event
+            if (!this.CheckLastSent(
+                lastSent,
+                messageHash))
+            {
+                return;
+            }
+
+            // add to NewRelic
+            newRelicInsightsClient.AddNewRelicInsightEvent(newRelicEvent);
+
+            // update last sent
+            this.UpdateLastSent(
+                lastSent,
+                messageHash);
+
+            // remove old sent
+            this.CleanOldLastSent(lastSent);
+        }
+
+        private string GetMessageHash(string msg1, string msg2, string msg3 = null)
+        {
+            return $"{msg1}${msg2}${msg3}";
+        }
+
+        private bool CheckLastSent(ConcurrentDictionary<string, DateTime> lastSent, string messageHash)
+        {
+            DateTime itemTime;
+            if (!lastSent.TryGetValue(messageHash, out itemTime))
+            {
+                // not found
+                return true;
+            }
+
+            if (DateTime.UtcNow.Subtract(itemTime).TotalMinutes >= LastSentMessageLimitInMinutes)
+            {
+                // expired
+                return true;
+            }
+
+            // same valid message found
+            return false;
+        }
+
+        private void UpdateLastSent(ConcurrentDictionary<string, DateTime> lastSent, string messageHash)
+        {
+            if (lastSent.Count >= 50)
+            {
+                return;
+            }
+
+            lastSent.AddOrUpdate(messageHash, DateTime.UtcNow, (k, old) => DateTime.UtcNow);
+        }
+
+        private void CleanOldLastSent(ConcurrentDictionary<string, DateTime> lastSent)
+        {
+            if (lastSent.IsEmpty)
+            {
+                return;
+            }
+
+            var limit = DateTime.UtcNow.AddMinutes(-LastSentMessageLimitInMinutes);
+            var keysToRemove = lastSent.Where(x => x.Value <= limit).Select(x => x.Key).ToList();
+
+            foreach (var key in keysToRemove)
+            {
+                DateTime itemTime;
+                lastSent.TryRemove(key, out itemTime);
+            }
         }
 
         private static void AddNewRelicException(Exception exc)
