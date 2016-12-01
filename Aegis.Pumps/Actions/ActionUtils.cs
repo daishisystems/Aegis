@@ -717,11 +717,10 @@ namespace Aegis.Pumps.Actions
             }
             catch (Exception exception)
             {
-                client.NewRelicUtils.AddException(
+                client.NewRelicUtils.AddNotification(
                     client.NewRelicClient,
                     componentName,
-                    exception,
-                    $"paramContactEmail={email}=");
+                    $"ParseEmail exception email={email}=\n{exception}");
             }
 
             // hash mail
