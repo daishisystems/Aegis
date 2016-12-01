@@ -677,9 +677,9 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http.Headers;
-using System.Net.Mail;
 using Aegis.Core;
 using Aegis.Core.Data;
 
@@ -710,6 +710,7 @@ namespace Aegis.Pumps.Actions
         private readonly ActionIpEventNotify<AegisPayment2Event> actionPayment2;
         private readonly ActionIpEventNotify<AegisPayment3Event> actionPayment3;
         private readonly ActionIpEventNotify<AegisPromoCodesEvent> actionPromoCodes;
+        private readonly ActionIpEventNotify<AegisHttpOptionsEvent> actionHttpOptions;
 
         public ActionsHub(AegisClient client, IEnumerable<string> httpIpHeaderNames)
         {
@@ -737,6 +738,7 @@ namespace Aegis.Pumps.Actions
             this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPayment);
             this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
+            this.actionHttpOptions = new ActionIpEventNotify<AegisHttpOptionsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionHttpOptions);
         }
 
         public void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames)
@@ -1149,6 +1151,20 @@ namespace Aegis.Pumps.Actions
                     PaymentInfo1 = paymentInfo1,
                     PaymentInfo2 = paymentInfo2
                 });
+        }
+
+        public bool HttpOptions(
+            NameValueCollection requestHeaders,
+            Uri requestUri)
+        {
+            return this.actionHttpOptions.Run(
+                    AegisBaseEvent.EventTypes.HttpOptions,
+                    this.ipHeaderNames,
+                    ActionsUtils.GetAsHttpHeaders(requestHeaders),
+                    requestUri,
+                    () => new AegisHttpOptionsEvent()
+                    {
+                    });
         }
     }
 }

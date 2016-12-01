@@ -683,6 +683,7 @@ using System.Net.Http.Headers;
 using Jil;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
+using Aegis.Pumps.Actions;
 using Aegis.Pumps.Tests.Mocks;
 
 namespace Aegis.Pumps.Tests
@@ -1168,6 +1169,8 @@ namespace Aegis.Pumps.Tests
                HttpHeaders requestHeaders,
                Uri requestUri)
         {
+            var requestHeadersNameValue = ActionsUtils.GetAsNameValueCollection(requestHeaders);
+
             Func<bool>[] testMethodsWithNullParameters =
             {
                 () => AegisClient.GetActionsHub().GetAvailability(requestHeaders, requestUri, null, null, null, null),
@@ -1196,6 +1199,7 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
                                                 null, null, null, null,
                                                 null, null, null, null, null),
+                () => AegisClient.GetActionsHub().HttpOptions(requestHeadersNameValue, requestUri),
             };
 
 
@@ -1227,6 +1231,7 @@ namespace Aegis.Pumps.Tests
                 () => AegisClient.GetActionsHub().PostPayment3(requestHeaders, requestUri,
                                                 "customer-id", "1234567890", "p-method-code", "city",
                                                 "country", "postal", "email@host.com", "info1", "info2"),
+                () => AegisClient.GetActionsHub().HttpOptions(requestHeadersNameValue, requestUri),
             };
 
             return new[]

@@ -709,6 +709,7 @@ namespace Aegis.Core.Data
             public const string Resource = "resource";
             public const string Seat = "seat";
             public const string PromoCodes = "promoCodes";
+            public const string HttpOptions = "httpOptions";
 
             // Mdot events
             public const string MdotAccount = "mdotAccount";

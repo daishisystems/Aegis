@@ -754,5 +754,19 @@ namespace Aegis.Pumps.Actions
 
             return headers;
         }
+
+        public static NameValueCollection GetAsNameValueCollection(HttpHeaders headers)
+        {
+            var collection = new NameValueCollection();
+            foreach (var item in headers)
+            {
+                foreach (var value in item.Value)
+                {
+                    collection.Add(item.Key, value);
+                }
+            }
+
+            return collection;
+        }
     }
 }

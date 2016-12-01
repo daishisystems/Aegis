@@ -68,6 +68,7 @@
     <Compile Include="Data\AegisFastEvent.cs" />
     <Compile Include="Data\AegisFeesEvent.cs" />
     <Compile Include="Data\AegisFlightEvent.cs" />
+    <Compile Include="Data\AegisHttpOptionsEvent.cs" />
     <Compile Include="Data\AegisMdotAccountEvent.cs" />
     <Compile Include="Data\AegisMdotAccountLogInEvent.cs" />
     <Compile Include="Data\AegisMdotAccountSignUpEvent.cs" />
