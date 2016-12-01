@@ -810,6 +810,11 @@ namespace Aegis.Core.Data
             return IsEqual(this, item);
         }
 
+        public override int GetHashCode()
+        {
+            return 1;
+        }
+
         private static bool IsEqual(BlackListItem item1, BlackListItem item2)
         {
             if (object.ReferenceEquals(null, item1) || object.ReferenceEquals(null, item2))
