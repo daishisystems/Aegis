@@ -677,7 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Linq;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1135,6 +1135,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(AegisClient.Instance.Scheduler.ScheduledItems.Count > 0);
 
             // run SettingsChangeNotification
+            settings.JobsIntervals[settings.JobsIntervals.Keys.First()] += 5;
             AegisClient.Instance.SettingsChangeNotification();
 
             Assert.IsNotNull(AegisClient.Instance);
