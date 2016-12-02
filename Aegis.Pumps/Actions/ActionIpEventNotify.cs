@@ -688,6 +688,10 @@ namespace Aegis.Pumps.Actions
     {
         private readonly string newRelicExceptionComponentName;
         private readonly bool isBlockingMechanismEnabled;
+        private readonly HashSet<string> ignoredHttpHeaders = new HashSet<string>()
+        {
+            "User-Agent", "Referer", "Accept-Language", "X-Session-Token"
+        };
 
         public ActionIpEventNotify(AegisClient client, string newRelicExceptionComponentName) : base(client)
         {
@@ -763,7 +767,8 @@ namespace Aegis.Pumps.Actions
             var httpReferer = this.GetHttpHeaderValue(@"Referer", requestHeaders, 256);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
             var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
-            // TODO start logging proxy headers:
+            var httpHeadersRest = this.GetAllHttpHeaders(requestHeaders, this.ignoredHttpHeaders, 256);
+            
             // process each IP
             var isBlocked = false;
 
@@ -789,6 +794,7 @@ namespace Aegis.Pumps.Actions
                         httpReferer,
                         httpAcceptLanguage,
                         httpSessionToken,
+                        httpHeadersRest,
                         eventBuilder);
                 }
 
@@ -805,7 +811,8 @@ namespace Aegis.Pumps.Actions
                                             httpUserAgent,
                                             httpReferer,
                                             httpAcceptLanguage,
-                                            httpSessionToken);
+                                            httpSessionToken,
+                                            httpHeadersRest);
                 }
             }
 
@@ -822,6 +829,7 @@ namespace Aegis.Pumps.Actions
             string httpReferer,
             string httpAcceptLanguage,
             string httpSessionToken,
+            Dictionary<string, List<string>> httpHeadersRest,
             Func<T> eventBuilder)
         {
             // add IP address to data-pump
@@ -839,7 +847,8 @@ namespace Aegis.Pumps.Actions
             evnt.HttpReferer = httpReferer;
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
             evnt.HttpSessionToken = httpSessionToken;
-            evnt.Path = requestUri.AbsolutePath;
+            evnt.HttpHeadersRest = httpHeadersRest;
+            evnt.Path = requestUri.PathAndQuery;
             evnt.Time = currentTime.ToString("O");
 
             var isCacheFull = this.Client.AegisEventCache.Add(evnt);
@@ -863,7 +872,8 @@ namespace Aegis.Pumps.Actions
             string httpUserAgent,
             string httpReferer,
             string httpAcceptLanguage,
-            string httpSessionToken)
+            string httpSessionToken,
+            Dictionary<string, List<string>> httpHeadersRest)
         {
             // are online settings available
             if (!this.Client.SettingsOnline.IsAvailable)
@@ -940,7 +950,8 @@ namespace Aegis.Pumps.Actions
                 HttpReferer = httpReferer,
                 HttpAcceptLanguage = httpAcceptLanguage,
                 HttpSessionToken = httpSessionToken,
-                Path = requestUri.AbsolutePath,
+                HttpHeadersRest = httpHeadersRest,
+                Path = requestUri.PathAndQuery,
                 Time = currentTime.ToString("O")
             };
 

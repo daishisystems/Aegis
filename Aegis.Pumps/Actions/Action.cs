@@ -688,6 +688,7 @@ namespace Aegis.Pumps.Actions
 {
     public abstract class Action
     {
+        protected const string CutPostfix = "[CUT]";
         protected readonly AegisClient Client;
 
         protected Action(AegisClient client)
@@ -757,10 +758,21 @@ namespace Aegis.Pumps.Actions
             return parsedIpsNonDups.Where(ip => !ip.IsPrivate()).ToList();
         }
 
+        protected Dictionary<string, List<string>> GetAllHttpHeaders(
+            HttpHeaders headers,
+            HashSet<string> ignoreHeaders, 
+            int lengthLimit)
+        {
+            return headers.Where(x => !ignoreHeaders.Contains(x.Key)).ToDictionary(
+                x => x.Key, 
+                x => x.Value.Select(v => v.Length <= lengthLimit ? 
+                                    v : 
+                                    v.Substring(0, Math.Max(lengthLimit - CutPostfix.Length, 0)) + CutPostfix).ToList());
+        }
+
         protected string GetHttpHeaderValue(string headerName, NameValueCollection headers)
         {
             var values = headers.GetValues(headerName);
-
             if (values == null)
             {
                 return null;
@@ -771,8 +783,6 @@ namespace Aegis.Pumps.Actions
 
         protected string GetHttpHeaderValue(string headerName, HttpHeaders headers, int lengthLimit = 0)
         {
-            const string CutPostfix = "[CUT]";
-
             IEnumerable<string> values;
             if (!headers.TryGetValues(headerName, out values))
             {

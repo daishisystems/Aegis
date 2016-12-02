@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Collections.Generic;
 using Jil;
 
 namespace Aegis.Core.Data
@@ -711,6 +712,10 @@ namespace Aegis.Core.Data
         /// <summary>Session token in HTTP request</summary>
         [JilDirective(Name = "hpSession")]
         public string HttpSessionToken { get; set; }
+
+        /// <summary>Session token in HTTP request</summary>
+        [JilDirective(Name = "hpHeadersRst")]
+        public Dictionary<string, List<string>> HttpHeadersRest { get; set; }
 
         public override string ToString()
         {

@@ -952,6 +952,9 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpReferer), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.Path), evntbaseIp.EventType);
+
+                    Assert.IsNotNull(evntbaseIp.HttpHeadersRest, evntbaseIp.EventType);
+                    Assert.IsTrue(evntbaseIp.HttpHeadersRest.Count > 0, evntbaseIp.EventType);
                 }
 
                 var paymentEvents = new[]

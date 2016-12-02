@@ -712,7 +712,7 @@ namespace Aegis.Pumps.Actions
             try
             {
                 var mail = new MailAddress(email);
-                mailHost = mail.Host;
+                mailHost = mail.Host.Substring(0, Math.Min(mail.Host.Length, 64));
                 mailAddr = mail.Address;
             }
             catch (Exception exception)
@@ -720,7 +720,7 @@ namespace Aegis.Pumps.Actions
                 client.NewRelicUtils.AddNotification(
                     client.NewRelicClient,
                     componentName,
-                    $"ParseEmail exception email={email}=\n{exception}");
+                    $"ParseEmail exception email={email.Substring(0, Math.Min(email.Length, 64))}=\n{exception}");
             }
 
             // hash mail
