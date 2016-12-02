@@ -698,6 +698,7 @@ namespace Aegis.Pumps
         public static string ClientVersion { get; private set; }
         public static string ClientMachineName { get; private set; }
         public static string ClientEnvironment { get; private set; }
+        public static string ClientProject { get; private set; }
         public static string AegisVersion { get; private set; }
         public static DateTimeOffset InitializationTime { get; private set; }
 
@@ -771,7 +772,8 @@ namespace Aegis.Pumps
             INewRelicInsightsClient newRelicInsightsClient,
             string clientName,
             string clientVersion,
-            string clientEnvironment)
+            string clientEnvironment,
+            string clientProject)
         {
             lock (lockInit)
             {
@@ -782,6 +784,7 @@ namespace Aegis.Pumps
                 ClientVersion = string.Empty;
                 ClientMachineName = string.Empty;
                 ClientEnvironment = string.Empty;
+                ClientProject = string.Empty;
 
                 // set safely names
                 try
@@ -790,6 +793,7 @@ namespace Aegis.Pumps
                     ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
                     ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
                     ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
+                    ClientProject = Uri.EscapeDataString(clientProject?.ToLowerInvariant() ?? string.Empty);
 
                     // set ClientUniqueId with an unique id to recognize many instances
                     ClientId = GenerateClientId();
@@ -895,7 +899,8 @@ namespace Aegis.Pumps
                     appSettings["AegisApplicationName"],
                     applicationVersionKey,
                     //appSettings[dotrez.common.constants.Application.VersionKey],
-                    appSettings["AegisDeploymentEnvironment"]);
+                    appSettings["AegisDeploymentEnvironment"],
+                    appSettings["AegisApplicationProject"]);
 
                 // create Aegis client settings
                 var aegisSettings = Settings.Initialise(

@@ -716,6 +716,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public string ApplicationEnvironment => AegisClient.ClientEnvironment;
 
         /// <summary>
+        ///     <see cref="ApplicationProject" /> is the friendly name of the application project
+        /// </summary>
+        [JilDirective(Name = "applicationProject")]
+        public string ApplicationProject => AegisClient.ClientProject;
+
+        /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis in
         ///     which the error occurred.
         /// </summary>

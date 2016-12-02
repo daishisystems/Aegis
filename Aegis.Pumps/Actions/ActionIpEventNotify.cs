@@ -839,6 +839,7 @@ namespace Aegis.Pumps.Actions
             evnt.ApplicationVersion = AegisClient.ClientVersion;
             evnt.ApplicationMachineName = AegisClient.ClientMachineName;
             evnt.ApplicationEnvironment = AegisClient.ClientEnvironment;
+            evnt.ApplicationProject = AegisClient.ClientProject;
             evnt.AegisVersion = AegisClient.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
@@ -938,6 +939,7 @@ namespace Aegis.Pumps.Actions
                 ApplicationVersion = AegisClient.ClientVersion,
                 ApplicationMachineName = AegisClient.ClientMachineName,
                 ApplicationEnvironment = AegisClient.ClientEnvironment,
+                ApplicationProject = AegisClient.ClientProject,
                 AegisVersion = AegisClient.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddressString,

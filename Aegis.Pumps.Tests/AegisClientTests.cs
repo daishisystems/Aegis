@@ -702,7 +702,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsTrue(AegisClient.IsInitialised);
@@ -729,7 +729,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
             var instance1 = AegisClient.Instance;
 
@@ -763,7 +763,7 @@ namespace Aegis.Pumps.Tests
                 Assert.IsNull(AegisClient.Instance);
                 Assert.IsFalse(AegisClient.IsInitialised);
 
-                AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+                AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
                 AegisClient.Initialise(newRelicClient, settings);
 
                 Assert.IsTrue(AegisClient.IsInitialised);
@@ -821,7 +821,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             // OnAvailabilityController
@@ -856,7 +856,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             // OnAvailabilityController
@@ -893,7 +893,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             var blackListData = new List<BlackListItem>()
@@ -945,7 +945,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
@@ -1003,7 +1003,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
@@ -1063,7 +1063,7 @@ namespace Aegis.Pumps.Tests
             settings.IsJobSchedulingDisabled = SchedulerRegistry.TestDisableSchedulerKey;
             var newRelicClient = new MockNewRelicInsightsClient();
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             var settingsData = new SettingsOnlineData();
@@ -1126,7 +1126,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.IsNull(AegisClient.Instance);
 
-            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv");
+            AegisClient.SetUp(newRelicClient, "UnitTests", "1.2.1", "UnitEnv", "UnitProject");
             AegisClient.Initialise(newRelicClient, settings);
 
             Assert.IsNotNull(AegisClient.Instance);

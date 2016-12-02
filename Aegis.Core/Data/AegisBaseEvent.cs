@@ -760,6 +760,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "appE")]
         public string ApplicationEnvironment { get; set; }
 
+        [JilDirective(Name = "appP")]
+        public string ApplicationProject { get; set; }
+
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis
         /// </summary>
