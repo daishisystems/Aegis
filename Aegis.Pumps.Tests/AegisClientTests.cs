@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Aegis.Core.Data;
 using Aegis.Pumps.Tests.Mocks;
@@ -718,6 +719,39 @@ namespace Aegis.Pumps.Tests
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
+        }
+
+        [TestMethod]
+        public void InitialiseAllAndShutDown()
+        {
+            const string SettingsVersionKey = "ver_key";
+            const string SettingsNestcaler = "net_key";
+
+            var appSettings = new NameValueCollection();
+            appSettings.Add(SettingsVersionKey, "unit-version");
+            appSettings.Add(SettingsNestcaler, "blabla-header");
+            appSettings.Add("AegisIsEnabled", "true");
+            appSettings.Add("AegisApplicationName", "unittest");
+            appSettings.Add("AegisServiceUri", "http://localhost:8467");
+            appSettings.Add("NewRelicInsightsURI", "https://insights-collector.newrelic.com/v1/accounts/events");
+
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
+
+            var result = AegisClient.InitialiseAll(appSettings, SettingsVersionKey, SettingsNestcaler);
+            Assert.IsTrue(result);
+
+            Assert.IsTrue(AegisClient.IsInitialised);
+            Assert.IsNotNull(AegisClient.Instance);
+            Assert.IsNotNull(AegisClient.Instance.NewRelicClient);
+            Assert.IsNotNull(AegisClient.Instance.Settings);
+            Assert.IsNotNull(AegisClient.Instance.BlackList);
+            Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
+
+            AegisClient.ShutDown();
+
+            Assert.IsNull(AegisClient.Instance);
+            Assert.IsFalse(AegisClient.IsInitialised);
         }
 
         [TestMethod]
