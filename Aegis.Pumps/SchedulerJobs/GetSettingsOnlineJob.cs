@@ -705,7 +705,7 @@ namespace Aegis.Pumps.SchedulerJobs
                         this.ClientInstance.NewRelicClient,
                         NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
                         null,
-                        $"GetSettingsOnlineData is failing for {hoursSinceLastSuccess} hours. Trying alternatives.");
+                        $"GetSettingsOnlineData is failing for {hoursSinceLastSuccess:0.0} hours. Trying alternatives.");
 
                     // get list of endpoints to try
                     var endpointsKnown = new List<string>(this.ClientInstance.Settings.AegisServiceUriAll);
