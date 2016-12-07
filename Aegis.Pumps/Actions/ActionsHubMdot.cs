@@ -731,16 +731,18 @@ namespace Aegis.Pumps.Actions
             this.actionPriceBreakdown = new ActionIpEventNotify<AegisMdotPriceBreakdownEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionMdotPriceBreakdown);
             this.actionSeat = new ActionIpEventNotify<AegisMdotSeatEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionMdotSeat);
         }
-
+        // TODO add HTTP Method type flag (get/post/delete etc.)
         public bool GetAccount(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionAccount.Run(
                     AegisBaseEvent.EventTypes.MdotAccount,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotAccountEvent()
                     {
                     });
@@ -749,6 +751,7 @@ namespace Aegis.Pumps.Actions
         public bool PostAccountLogIn(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramEmail)
         {
             string mailHost, mailHash;
@@ -765,6 +768,7 @@ namespace Aegis.Pumps.Actions
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotAccountLogInEvent()
                     {
                         MailDomain = mailHost,
@@ -775,6 +779,7 @@ namespace Aegis.Pumps.Actions
         public bool PostAccountSignUp(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramEmail)
         {
             string mailHost, mailHash;
@@ -791,6 +796,7 @@ namespace Aegis.Pumps.Actions
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotAccountSignUpEvent()
                     {
                         MailDomain = mailHost,
@@ -801,6 +807,7 @@ namespace Aegis.Pumps.Actions
         public bool GetAvailability(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramOrigin,
             string paramDestination,
             DateTime? paramDateIn,
@@ -811,6 +818,7 @@ namespace Aegis.Pumps.Actions
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotAvailabilityEvent()
                     {
                         DateIn = paramDateIn?.ToString("O"),
@@ -822,13 +830,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetBag(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionBag.Run(
                     AegisBaseEvent.EventTypes.MdotBag,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotBagEvent()
                     {
                     });
@@ -836,13 +846,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetBooking(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionBooking.Run(
                     AegisBaseEvent.EventTypes.MdotBooking,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotBookingEvent()
                     {
                     });
@@ -850,13 +862,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetCheckout(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionCheckout.Run(
                     AegisBaseEvent.EventTypes.MdotCheckout,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotCheckoutEvent()
                     {
                     });
@@ -864,13 +878,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetFast(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionFast.Run(
                     AegisBaseEvent.EventTypes.MdotFast,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotFastEvent()
                     {
                     });
@@ -879,6 +895,7 @@ namespace Aegis.Pumps.Actions
         public bool PostFlight(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             short? paramAdults,
             short? paramTeens,
             short? paramChildren,
@@ -889,6 +906,7 @@ namespace Aegis.Pumps.Actions
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotFlightEvent()
                     {
                         Adults = paramAdults,
@@ -900,13 +918,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetPayment(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionPayment.Run(
                     AegisBaseEvent.EventTypes.MdotPayment,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotPaymentEvent()
                     {
                     });
@@ -915,6 +935,7 @@ namespace Aegis.Pumps.Actions
         public bool GetPaymentPrepareForPay(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramAccountNumber,
             string paramPaymentMethodCode,
             string paramAddressCity,
@@ -936,6 +957,7 @@ namespace Aegis.Pumps.Actions
                 this.ipHeaderNames,
                 ActionsUtils.GetAsHttpHeaders(requestHeaders),
                 requestUri,
+                httpMethod,
                 () =>
                 new AegisMdotPaymentPrepareForPayEvent()
                 {
@@ -952,6 +974,7 @@ namespace Aegis.Pumps.Actions
         public bool PostPaymentPay(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramAccountNumber,
             string paramPaymentMethodCode,
             string paramAddressCity,
@@ -973,6 +996,7 @@ namespace Aegis.Pumps.Actions
                 this.ipHeaderNames,
                 ActionsUtils.GetAsHttpHeaders(requestHeaders),
                 requestUri,
+                httpMethod,
                 () =>
                 new AegisMdotPaymentPayEvent()
                 {
@@ -989,6 +1013,7 @@ namespace Aegis.Pumps.Actions
         public bool PostPaymentPayIn(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             string paramCustomerId,
             string paramAccountNumber,
             string paramPaymentMethodCode,
@@ -1013,6 +1038,7 @@ namespace Aegis.Pumps.Actions
                 this.ipHeaderNames,
                 ActionsUtils.GetAsHttpHeaders(requestHeaders),
                 requestUri,
+                httpMethod,
                 () =>
                 new AegisMdotPaymentPayInEvent()
                 {
@@ -1032,6 +1058,7 @@ namespace Aegis.Pumps.Actions
         public bool PostPriceBreakdown(
             NameValueCollection requestHeaders,
             Uri requestUri,
+            string httpMethod,
             short? paramAdults,
             short? paramTeens,
             short? paramChildren,
@@ -1042,6 +1069,7 @@ namespace Aegis.Pumps.Actions
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotPriceBreakdownEvent()
                     {
                         Adults = paramAdults,
@@ -1053,13 +1081,15 @@ namespace Aegis.Pumps.Actions
 
         public bool GetSeat(
             NameValueCollection requestHeaders,
-            Uri requestUri)
+            Uri requestUri,
+            string httpMethod)
         {
             return this.actionSeat.Run(
                     AegisBaseEvent.EventTypes.MdotSeat,
                     this.ipHeaderNames,
                     ActionsUtils.GetAsHttpHeaders(requestHeaders),
                     requestUri,
+                    httpMethod,
                     () => new AegisMdotSeatEvent()
                     {
                     });

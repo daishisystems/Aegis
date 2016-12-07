@@ -704,6 +704,7 @@ namespace Aegis.Pumps.Actions
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
+            string httpMethod,
             Func<T> eventBuilder)
         {
             try
@@ -713,6 +714,7 @@ namespace Aegis.Pumps.Actions
                     ipHeaderNames,
                     requestHeaders,
                     requestUri,
+                    httpMethod,
                     eventBuilder);
             }
             catch (Exception exception)
@@ -731,6 +733,7 @@ namespace Aegis.Pumps.Actions
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
+            string httpMethod,
             Func<T> eventBuilder)
         {
             // is current action disabled
@@ -761,6 +764,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
+            httpMethod = httpMethod?.ToLowerInvariant();
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
@@ -790,6 +794,7 @@ namespace Aegis.Pumps.Actions
                         currentTime,
                         groupId,
                         requestUri,
+                        httpMethod,
                         httpUserAgent,
                         httpReferer,
                         httpAcceptLanguage,
@@ -808,6 +813,7 @@ namespace Aegis.Pumps.Actions
                                             currentTime,
                                             groupId,
                                             requestUri,
+                                            httpMethod,
                                             httpUserAgent,
                                             httpReferer,
                                             httpAcceptLanguage,
@@ -825,6 +831,7 @@ namespace Aegis.Pumps.Actions
             DateTime currentTime,
             string groupId,
             Uri requestUri,
+            string httpMethod,
             string httpUserAgent,
             string httpReferer,
             string httpAcceptLanguage,
@@ -844,6 +851,7 @@ namespace Aegis.Pumps.Actions
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
+            evnt.HttpMethod = httpMethod;
             evnt.HttpUserAgent = httpUserAgent;
             evnt.HttpReferer = httpReferer;
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
@@ -870,6 +878,7 @@ namespace Aegis.Pumps.Actions
             DateTime currentTime,
             string groupId,
             Uri requestUri,
+            string httpMethod,
             string httpUserAgent,
             string httpReferer,
             string httpAcceptLanguage,
@@ -916,6 +925,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // log the malicious event to NewRelic
+            // TODO use currentTime variable in this newrelic event
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
                 SourceEventType = eventTypeName,
@@ -948,6 +958,7 @@ namespace Aegis.Pumps.Actions
                 IsSimulated = isSimulated,
                 SourceEventType = eventTypeName,
                 Country = blackItem.Country,
+                HttpMethod = httpMethod,
                 HttpUserAgent = httpUserAgent,
                 HttpReferer = httpReferer,
                 HttpAcceptLanguage = httpAcceptLanguage,

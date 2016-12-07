@@ -697,6 +697,10 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "p")]
         public string Path { get; set; }
 
+        /// <summary>Http method: get/post/delete etc.</summary>
+        [JilDirective(Name = "hpMethod")]
+        public string HttpMethod { get; set; }
+
         /// <summary>Accepted languages in HTTP request</summary>
         [JilDirective(Name = "hpLang")]
         public string HttpAcceptLanguage { get; set; }

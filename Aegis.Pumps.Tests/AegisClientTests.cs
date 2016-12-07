@@ -833,10 +833,12 @@ namespace Aegis.Pumps.Tests
         {
             var requestHeaders = new MockHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
@@ -861,10 +863,12 @@ namespace Aegis.Pumps.Tests
             // OnAvailabilityController
             var requestHeaders = new MockHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders, 
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow, 
@@ -898,10 +902,12 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("NS_CLIENT_IP", "bla.bla.bla");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
@@ -949,10 +955,12 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
@@ -1007,10 +1015,12 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
@@ -1067,10 +1077,12 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
@@ -1128,10 +1140,12 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
+            var httpMethod = "GET";
 
             var result = AegisClient.GetActionsHub()?.GetAvailability(
                 requestHeaders,
                 requestUri,
+                httpMethod,
                 "origin",
                 null,
                 DateTime.UtcNow,
