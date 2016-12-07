@@ -695,6 +695,7 @@ namespace Aegis.Pumps.Tests
         private const string ClientVer = "111.0.333.41";
         private const string ClientMachine = "unit-test-machine";
         private const string ClientEnvironment = "unit-test-environment";
+        private const string ClientProject = "unit-test-project";
         private const string AegisVer = "1.2.3.4.5";
 
         [TestMethod]
@@ -729,6 +730,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -780,6 +782,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -842,6 +845,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -896,6 +900,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -960,6 +965,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -988,6 +994,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -1017,6 +1024,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -1037,6 +1045,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -1067,6 +1076,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -1088,6 +1098,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,
@@ -1118,6 +1129,7 @@ namespace Aegis.Pumps.Tests
                 ClientVer,
                 ClientMachine,
                 ClientEnvironment,
+                ClientProject,
                 AegisVer,
                 settings,
                 settingsOnline,

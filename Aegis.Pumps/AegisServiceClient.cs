@@ -709,6 +709,7 @@ namespace Aegis.Pumps
             public const string ClientVersion = "v";
             public const string ClientMachineName = "m";
             public const string ClientEnvironment = "e";
+            public const string ClientProject = "p";
             public const string AegisVersion = "a";
             public const string CountInRequest = "cr";
             public const string CountAll = "ca";
@@ -722,6 +723,7 @@ namespace Aegis.Pumps
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
+            string clientProject,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -742,6 +744,7 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
+                        { ParameterNames.ClientProject, clientProject },
                         { ParameterNames.AegisVersion, aegisVersion },
                     });
 
@@ -777,6 +780,7 @@ namespace Aegis.Pumps
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
+            string clientProject,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -793,6 +797,7 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
+                        { ParameterNames.ClientProject, clientProject },
                         { ParameterNames.AegisVersion, aegisVersion }
                     };
 
@@ -840,6 +845,7 @@ namespace Aegis.Pumps
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
+            string clientProject,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -864,6 +870,7 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
+                        { ParameterNames.ClientProject, clientProject },
                         { ParameterNames.AegisVersion, aegisVersion }
                     },
                 forcedAegisServiceUri);
@@ -904,6 +911,7 @@ namespace Aegis.Pumps
             string clientVersion,
             string clientMachineName,
             string clientEnvironment,
+            string clientProject,
             string aegisVersion,
             Settings settings,
             SettingsOnlineClient settingsOnline,
@@ -922,6 +930,7 @@ namespace Aegis.Pumps
                         { ParameterNames.ClientVersion, clientVersion },
                         { ParameterNames.ClientMachineName, clientMachineName },
                         { ParameterNames.ClientEnvironment, clientEnvironment },
+                        { ParameterNames.ClientProject, clientProject },
                         { ParameterNames.AegisVersion, aegisVersion },
                         { ParameterNames.CountInRequest, items.Count.ToString() },
                         { ParameterNames.CountAll, allItemsCount.ToString() }
