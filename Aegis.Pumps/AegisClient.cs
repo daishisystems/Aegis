@@ -793,7 +793,7 @@ namespace Aegis.Pumps
                     ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
                     ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
                     ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
-                    ClientProject = Uri.EscapeDataString(clientProject?.ToLowerInvariant() ?? string.Empty);
+                    ClientProject = Uri.EscapeDataString(clientProject?.ToLowerInvariant().Trim() ?? string.Empty);
 
                     // set ClientUniqueId with an unique id to recognize many instances
                     ClientId = GenerateClientId();
@@ -911,8 +911,8 @@ namespace Aegis.Pumps
                     new[]
                     {
                         //dotrez.common.constants.Application.NetscalerClientHeader,
-                        netscalerClientHeader,
                         "NS_CLIENT_IP",
+                        netscalerClientHeader,
                         "REMOTE_ADDR"
                     });
 
