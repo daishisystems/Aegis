@@ -967,7 +967,7 @@ namespace Aegis.Pumps
             return Instance.ActionsHub;
         }
 
-        public static ActionsHubMdot GetActionsHubMdot()
+        public static IActionsHubMdot GetActionsHubMdot()
         {
             // ignore on non initialized
             if (!IsInitialised)

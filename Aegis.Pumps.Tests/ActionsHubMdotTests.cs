@@ -680,7 +680,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http.Headers;
 using Jil;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
