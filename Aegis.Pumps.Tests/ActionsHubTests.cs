@@ -787,11 +787,10 @@ namespace Aegis.Pumps.Tests
             requestHeaders.Add("X-Session-Token", "testSessionToken");
 
             var requestUri = new Uri("http://www.bla.com/unit/tests");
-            var httpMethod = "GET";
 
             // run actions
             this.RunActions(
-                this.GetTestMethodsSet(requestHeaders, requestUri, httpMethod),
+                this.GetTestMethodsSet(requestHeaders, requestUri, null),
                 newRelicClient,
                 1,
                 0,
