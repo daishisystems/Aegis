@@ -857,7 +857,7 @@ namespace Aegis.Pumps.Actions
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
             evnt.HttpSessionToken = httpSessionToken;
             evnt.HttpHeadersRest = httpHeadersRest;
-            evnt.Path = requestUri.PathAndQuery;
+            evnt.HttpPath = requestUri.PathAndQuery;
             evnt.Time = currentTime.ToString("O");
 
             var isCacheFull = this.Client.AegisEventCache.Add(evnt);
@@ -964,7 +964,7 @@ namespace Aegis.Pumps.Actions
                 HttpAcceptLanguage = httpAcceptLanguage,
                 HttpSessionToken = httpSessionToken,
                 HttpHeadersRest = httpHeadersRest,
-                Path = requestUri.PathAndQuery,
+                HttpPath = requestUri.PathAndQuery,
                 Time = currentTime.ToString("O")
             };
 

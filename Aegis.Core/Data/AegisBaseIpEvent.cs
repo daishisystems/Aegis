@@ -695,7 +695,7 @@ namespace Aegis.Core.Data
 
         /// <summary>Path is the URI path from which the event metadata originated.</summary>
         [JilDirective(Name = "p")]
-        public string Path { get; set; }
+        public string HttpPath { get; set; }
 
         /// <summary>Http method: get/post/delete etc.</summary>
         [JilDirective(Name = "hpMethod")]

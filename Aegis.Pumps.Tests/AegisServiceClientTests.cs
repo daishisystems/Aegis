@@ -949,7 +949,7 @@ namespace Aegis.Pumps.Tests
                 ev.Time = DateTime.UtcNow.ToString("o");
                 ev.ExperimentId = 7;
                 ev.GroupId = "test-groupId";
-                ev.Path = "test-path";
+                ev.HttpPath = "test-path";
                 ev.HttpAcceptLanguage = "test-httpAcceptLang żźłćłóęś€$http://dad/&*()";
                 ev.HttpUserAgent = "test-httpUserAgent żźłćłóęś€$http://dad/&*()";
                 ev.HttpSessionToken = "test-httpSessionToken żźłćłóęś€$http://dad/&*()";
