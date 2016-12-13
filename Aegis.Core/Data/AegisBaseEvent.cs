@@ -727,6 +727,16 @@ namespace Aegis.Core.Data
             public const string MdotPaymentPayIn = "mdotPaymentPayIn";
             public const string MdotPriceBreakdown = "mdotPriceBreakdown";
             public const string MdotSeat = "mdotSeat";
+
+            public static string GetInputEventName(string name)
+            {
+                return name;
+            }
+
+            public static string GetOutputEventName(string name)
+            {
+                return $"{name}-out";
+            }
         }
 
         [JilDirective(Name = "e")]
@@ -762,6 +772,12 @@ namespace Aegis.Core.Data
 
         [JilDirective(Name = "appP")]
         public string ApplicationProject { get; set; }
+
+        [JilDirective(Name = "appC")]
+        public string ApplicationControllerName { get; set; }
+
+        [JilDirective(Name = "appA")]
+        public string ApplicationActionName { get; set; }
 
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis

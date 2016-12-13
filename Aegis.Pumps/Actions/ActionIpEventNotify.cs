@@ -686,16 +686,14 @@ namespace Aegis.Pumps.Actions
     public class ActionIpEventNotify<T> : Action 
         where T : AegisBaseIpEvent
     {
-        private readonly string newRelicExceptionComponentName;
         private readonly bool isBlockingMechanismEnabled;
         private readonly HashSet<string> ignoredHttpHeaders = new HashSet<string>()
         {
             "User-Agent", "Referer", "Accept-Language", "X-Session-Token"
         };
 
-        public ActionIpEventNotify(AegisClient client, string newRelicExceptionComponentName) : base(client)
+        public ActionIpEventNotify(AegisClient client) : base(client)
         {
-            this.newRelicExceptionComponentName = newRelicExceptionComponentName;
             this.isBlockingMechanismEnabled = true;
         }
 
@@ -705,6 +703,8 @@ namespace Aegis.Pumps.Actions
             HttpHeaders requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string clientControllerName,
+            string clientActionName,
             Func<T> eventBuilder)
         {
             try
@@ -714,6 +714,8 @@ namespace Aegis.Pumps.Actions
                     ipHeaderNames,
                     requestHeaders,
                     requestUri,
+                    clientControllerName,
+                    clientActionName,
                     httpMethod,
                     eventBuilder);
             }
@@ -721,7 +723,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicClient,
-                    this.newRelicExceptionComponentName,
+                    eventTypeName,
                     exception);
             }
 
@@ -733,6 +735,8 @@ namespace Aegis.Pumps.Actions
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
             Uri requestUri,
+            string clientControllerName,
+            string clientActionName,
             string httpMethod,
             Func<T> eventBuilder)
         {
@@ -764,6 +768,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
+            // TODO log in AegisFilter, onexecuted, where we create session token?
             httpMethod = httpMethod?.ToLowerInvariant();
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
@@ -789,11 +794,14 @@ namespace Aegis.Pumps.Actions
                 if (!isNotificationSettingsDisabled)
                 {
                     this.DoRunNotification(
+                        eventTypeName,
                         expId,
                         ipAddress.ToString(),
                         currentTime,
                         groupId,
                         requestUri,
+                        clientControllerName,
+                        clientActionName,
                         httpMethod,
                         httpUserAgent,
                         httpReferer,
@@ -813,6 +821,8 @@ namespace Aegis.Pumps.Actions
                                             currentTime,
                                             groupId,
                                             requestUri,
+                                            clientControllerName,
+                                            clientActionName,
                                             httpMethod,
                                             httpUserAgent,
                                             httpReferer,
@@ -826,11 +836,14 @@ namespace Aegis.Pumps.Actions
         }
 
         private void DoRunNotification(
+            string eventTypeName,
             int? expId,
             string ipAddressString,
             DateTime currentTime,
             string groupId,
             Uri requestUri,
+            string clientControllerName,
+            string clientActionName,
             string httpMethod,
             string httpUserAgent,
             string httpReferer,
@@ -847,6 +860,8 @@ namespace Aegis.Pumps.Actions
             evnt.ApplicationMachineName = AegisClient.ClientMachineName;
             evnt.ApplicationEnvironment = AegisClient.ClientEnvironment;
             evnt.ApplicationProject = AegisClient.ClientProject;
+            evnt.ApplicationControllerName = clientControllerName;
+            evnt.ApplicationActionName = clientActionName;
             evnt.AegisVersion = AegisClient.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
@@ -865,7 +880,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicClient,
-                    this.newRelicExceptionComponentName,
+                    eventTypeName,
                     null,
                     $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
             }
@@ -878,6 +893,8 @@ namespace Aegis.Pumps.Actions
             DateTime currentTime,
             string groupId,
             Uri requestUri,
+            string clientControllerName,
+            string clientActionName,
             string httpMethod,
             string httpUserAgent,
             string httpReferer,
@@ -926,6 +943,7 @@ namespace Aegis.Pumps.Actions
 
             // log the malicious event to NewRelic
             // TODO use currentTime variable in this newrelic event
+            // TODO blacklist event - include payment info if available?
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
                 SourceEventType = eventTypeName,
@@ -942,6 +960,7 @@ namespace Aegis.Pumps.Actions
             this.Client.NewRelicClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
+            // TODO blacklist event - include payment info if available?
             var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
                 ApplicationName = AegisClient.ClientName,
@@ -950,6 +969,8 @@ namespace Aegis.Pumps.Actions
                 ApplicationMachineName = AegisClient.ClientMachineName,
                 ApplicationEnvironment = AegisClient.ClientEnvironment,
                 ApplicationProject = AegisClient.ClientProject,
+                ApplicationControllerName = clientControllerName,
+                ApplicationActionName = clientActionName,
                 AegisVersion = AegisClient.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddressString,
@@ -973,7 +994,7 @@ namespace Aegis.Pumps.Actions
             {
                 this.Client.NewRelicUtils.AddException(
                     this.Client.NewRelicClient,
-                    this.newRelicExceptionComponentName,
+                    eventTypeName,
                     null,
                     $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
             }

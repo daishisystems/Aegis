@@ -90,6 +90,7 @@
     <Compile Include="Data\AegisRefreshEvent.cs" />
     <Compile Include="Data\AegisResourceEvent.cs" />
     <Compile Include="Data\AegisSeatEvent.cs" />
+    <Compile Include="Data\AegisUniversalEvent.cs" />
     <Compile Include="Data\BlackListItem.cs" />
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />

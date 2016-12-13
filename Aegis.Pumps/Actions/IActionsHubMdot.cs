@@ -685,70 +685,76 @@ namespace Aegis.Pumps.Actions
     {
         void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames);
 
-        bool GetAccount(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetAccount(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
         bool PostAccountLogIn(
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string controllerName,
+            string actionName,
             string paramEmail);
 
         bool PostAccountSignUp(
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string controllerName,
+            string actionName,
             string paramEmail);
 
-        bool GetAvailability(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string paramOrigin,
-            string paramDestination,
-            DateTime? paramDateIn,
-            DateTime? paramDateOut);
+        //bool GetAvailability(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string paramOrigin,
+        //    string paramDestination,
+        //    DateTime? paramDateIn,
+        //    DateTime? paramDateOut);
 
-        bool GetBag(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetBag(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
-        bool GetBooking(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetBooking(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
-        bool GetCheckout(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetCheckout(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
-        bool GetFast(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetFast(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
-        bool PostFlight(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            short? paramAdults,
-            short? paramTeens,
-            short? paramChildren,
-            short? paramInfants);
+        //bool PostFlight(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    short? paramAdults,
+        //    short? paramTeens,
+        //    short? paramChildren,
+        //    short? paramInfants);
 
-        bool GetPayment(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+        //bool GetPayment(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
 
         bool GetPaymentPrepareForPay(
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string controllerName,
+            string actionName,
             string paramAccountNumber,
             string paramPaymentMethodCode,
             string paramAddressCity,
@@ -760,6 +766,8 @@ namespace Aegis.Pumps.Actions
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string controllerName,
+            string actionName,
             string paramAccountNumber,
             string paramPaymentMethodCode,
             string paramAddressCity,
@@ -771,6 +779,8 @@ namespace Aegis.Pumps.Actions
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string controllerName,
+            string actionName,
             string paramCustomerId,
             string paramAccountNumber,
             string paramPaymentMethodCode,
@@ -781,18 +791,28 @@ namespace Aegis.Pumps.Actions
             string paymentInfo1,
             string paymentInfo2);
 
-        bool PostPriceBreakdown(
+        //bool PostPriceBreakdown(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    short? paramAdults,
+        //    short? paramTeens,
+        //    short? paramChildren,
+        //    short? paramInfants);
+
+        //bool GetSeat(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod);
+
+        bool ProcessEvent(
+            string eventName,
             NameValueCollection requestHeaders,
             Uri requestUri,
             string httpMethod,
-            short? paramAdults,
-            short? paramTeens,
-            short? paramChildren,
-            short? paramInfants);
-
-        bool GetSeat(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod);
+            string controllerName,
+            string actionName,
+            object[] data,
+            bool isOutput = false);
     }
 }
