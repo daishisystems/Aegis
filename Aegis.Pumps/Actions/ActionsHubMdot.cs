@@ -679,8 +679,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Net.Http.Headers;
-using Aegis.Core;
 using Aegis.Core.Data;
 using Jil;
 
@@ -689,11 +687,12 @@ namespace Aegis.Pumps.Actions
     public class ActionsHubMdot : IActionsHubMdot
     {
         private readonly AegisClient client;
+        private readonly ActionIpEventNotify<AegisUniversalEvent> actionUniversal;
         private List<string> ipHeaderNames;
 
         //private readonly ActionIpEventNotify<AegisMdotAccountEvent> actionAccount;
-        private readonly ActionIpEventNotify<AegisMdotAccountLogInEvent> actionAccountLogIn;
-        private readonly ActionIpEventNotify<AegisMdotAccountSignUpEvent> actionAccountSignUp;
+        //private readonly ActionIpEventNotify<AegisMdotAccountLogInEvent> actionAccountLogIn;
+        //private readonly ActionIpEventNotify<AegisMdotAccountSignUpEvent> actionAccountSignUp;
         //private readonly ActionIpEventNotify<AegisMdotAvailabilityEvent> actionAvailability;
         //private readonly ActionIpEventNotify<AegisMdotBagEvent> actionBag;
         //private readonly ActionIpEventNotify<AegisMdotBookingEvent> actionBooking;
@@ -701,12 +700,11 @@ namespace Aegis.Pumps.Actions
         //private readonly ActionIpEventNotify<AegisMdotFastEvent> actionFast;
         //private readonly ActionIpEventNotify<AegisMdotFlightEvent> actionFlight;
         //private readonly ActionIpEventNotify<AegisMdotPaymentEvent> actionPayment;
-        private readonly ActionIpEventNotify<AegisMdotPaymentPrepareForPayEvent> actionPaymentPrepareForPay;
-        private readonly ActionIpEventNotify<AegisMdotPaymentPayEvent> actionPaymentPay;
-        private readonly ActionIpEventNotify<AegisMdotPaymentPayInEvent> actionPaymentPayIn;
+        //private readonly ActionIpEventNotify<AegisMdotPaymentPrepareForPayEvent> actionPaymentPrepareForPay;
+        //private readonly ActionIpEventNotify<AegisMdotPaymentPayEvent> actionPaymentPay;
+        //private readonly ActionIpEventNotify<AegisMdotPaymentPayInEvent> actionPaymentPayIn;
         //private readonly ActionIpEventNotify<AegisMdotPriceBreakdownEvent> actionPriceBreakdown;
         //private readonly ActionIpEventNotify<AegisMdotSeatEvent> actionSeat;
-        private readonly ActionIpEventNotify<AegisUniversalEvent> actionUniversal;
 
         public void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames)
         {
@@ -719,8 +717,8 @@ namespace Aegis.Pumps.Actions
             this.ipHeaderNames = httpIpHeaderNames.ToList();
 
             //this.actionAccount = new ActionIpEventNotify<AegisMdotAccountEvent>(client);
-            this.actionAccountLogIn = new ActionIpEventNotify<AegisMdotAccountLogInEvent>(client);
-            this.actionAccountSignUp = new ActionIpEventNotify<AegisMdotAccountSignUpEvent>(client);
+            //this.actionAccountLogIn = new ActionIpEventNotify<AegisMdotAccountLogInEvent>(client);
+            //this.actionAccountSignUp = new ActionIpEventNotify<AegisMdotAccountSignUpEvent>(client);
             //this.actionAvailability = new ActionIpEventNotify<AegisMdotAvailabilityEvent>(client);
             //this.actionBag = new ActionIpEventNotify<AegisMdotBagEvent>(client);
             //this.actionBooking = new ActionIpEventNotify<AegisMdotBookingEvent>(client);
@@ -728,9 +726,9 @@ namespace Aegis.Pumps.Actions
             //this.actionFast = new ActionIpEventNotify<AegisMdotFastEvent>(client);
             //this.actionFlight = new ActionIpEventNotify<AegisMdotFlightEvent>(client);
             //this.actionPayment = new ActionIpEventNotify<AegisMdotPaymentEvent>(client);
-            this.actionPaymentPrepareForPay = new ActionIpEventNotify<AegisMdotPaymentPrepareForPayEvent>(client);
-            this.actionPaymentPay = new ActionIpEventNotify<AegisMdotPaymentPayEvent>(client);
-            this.actionPaymentPayIn = new ActionIpEventNotify<AegisMdotPaymentPayInEvent>(client);
+            //this.actionPaymentPrepareForPay = new ActionIpEventNotify<AegisMdotPaymentPrepareForPayEvent>(client);
+            //this.actionPaymentPay = new ActionIpEventNotify<AegisMdotPaymentPayEvent>(client);
+            //this.actionPaymentPayIn = new ActionIpEventNotify<AegisMdotPaymentPayInEvent>(client);
             //this.actionPriceBreakdown = new ActionIpEventNotify<AegisMdotPriceBreakdownEvent>(client);
             //this.actionSeat = new ActionIpEventNotify<AegisMdotSeatEvent>(client);
             this.actionUniversal = new ActionIpEventNotify<AegisUniversalEvent>(client);
@@ -756,238 +754,241 @@ namespace Aegis.Pumps.Actions
         //            });
         //}
 
-        public bool PostAccountLogIn(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramEmail)
-        {
-            string mailHost, mailHash;
+        //public bool PostAccountLogIn(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramEmail)
+        //{
+        //    string mailHost, mailHash;
 
-            ActionsUtils.ParseEmail(
-                this.client,
-                AegisBaseEvent.EventTypes.MdotAccountLogIn,
-                paramEmail,
-                out mailHost,
-                out mailHash);
+        //    ActionsUtils.ParseEmail(
+        //        this.client,
+        //        AegisBaseEvent.EventTypes.MdotAccountLogIn,
+        //        paramEmail,
+        //        out mailHost,
+        //        out mailHash);
 
-            return this.actionAccountLogIn.Run(
-                    AegisBaseEvent.EventTypes.MdotAccountLogIn,
-                    this.ipHeaderNames,
-                    ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                    requestUri,
-                    httpMethod,
-                    controllerName,
-                    actionName,
-                    () => new AegisMdotAccountLogInEvent()
-                    {
-                        MailDomain = mailHost,
-                        Mail = mailHash
-                    });
-        }
+        //    return this.actionAccountLogIn.Run(
+        //            AegisBaseEvent.EventTypes.MdotAccountLogIn,
+        //            this.ipHeaderNames,
+        //            ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //            requestUri,
+        //            httpMethod,
+        //            controllerName,
+        //            actionName,
+        //            () => new AegisMdotAccountLogInEvent()
+        //            {
+        //                MailDomain = mailHost,
+        //                Mail = mailHash
+        //            });
+        //}
 
-        public bool PostAccountSignUp(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramEmail)
-        {
-            string mailHost, mailHash;
+        //public bool PostAccountSignUp(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramEmail)
+        //{
+        //    string mailHost, mailHash;
 
-            ActionsUtils.ParseEmail(
-                this.client,
-                AegisBaseEvent.EventTypes.MdotAccountSignUp,
-                paramEmail,
-                out mailHost,
-                out mailHash);
+        //    ActionsUtils.ParseEmail(
+        //        this.client,
+        //        AegisBaseEvent.EventTypes.MdotAccountSignUp,
+        //        paramEmail,
+        //        out mailHost,
+        //        out mailHash);
 
-            return this.actionAccountSignUp.Run(
-                    AegisBaseEvent.EventTypes.MdotAccountSignUp,
-                    this.ipHeaderNames,
-                    ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                    requestUri,
-                    httpMethod,
-                    controllerName,
-                    actionName,
-                    () => new AegisMdotAccountSignUpEvent()
-                    {
-                        MailDomain = mailHost,
-                        Mail = mailHash
-                    });
-        }
+        //    return this.actionAccountSignUp.Run(
+        //            AegisBaseEvent.EventTypes.MdotAccountSignUp,
+        //            this.ipHeaderNames,
+        //            ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //            requestUri,
+        //            httpMethod,
+        //            controllerName,
+        //            actionName,
+        //            () => new AegisMdotAccountSignUpEvent()
+        //            {
+        //                MailDomain = mailHost,
+        //                Mail = mailHash
+        //            });
+        //}
 
-        public bool GetPaymentPrepareForPay(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail)
-        {
-            string mailHost, mailHash;
+        //public bool GetPaymentPrepareForPay(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail)
+        //{
+        //    string mailHost, mailHash;
 
-            ActionsUtils.ParseEmail(
-                this.client,
-               AegisBaseEvent.EventTypes.MdotPaymentPrepareForPay,
-                paramContactEmail,
-                out mailHost,
-                out mailHash);
+        //    ActionsUtils.ParseEmail(
+        //        this.client,
+        //       AegisBaseEvent.EventTypes.MdotPaymentPrepareForPay,
+        //        paramContactEmail,
+        //        out mailHost,
+        //        out mailHash);
 
-            return this.actionPaymentPrepareForPay.Run(
-                AegisBaseEvent.EventTypes.MdotPaymentPrepareForPay,
-                this.ipHeaderNames,
-                ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                requestUri,
-                httpMethod,
-                controllerName,
-                actionName,
-                () =>
-                new AegisMdotPaymentPrepareForPayEvent()
-                {
-                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
-                    PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                    AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                    AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                    AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
-                    ContactMailDomain = mailHost,
-                    ContactMail = mailHash
-                });
-        }
+        //    return this.actionPaymentPrepareForPay.Run(
+        //        AegisBaseEvent.EventTypes.MdotPaymentPrepareForPay,
+        //        this.ipHeaderNames,
+        //        ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //        requestUri,
+        //        httpMethod,
+        //        controllerName,
+        //        actionName,
+        //        () =>
+        //        new AegisMdotPaymentPrepareForPayEvent()
+        //        {
+        //            AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
+        //            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+        //            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+        //            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+        //            AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
+        //            ContactMailDomain = mailHost,
+        //            ContactMail = mailHash
+        //        });
+        //}
 
-        public bool PostPaymentPay(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail)
-        {
-            string mailHost, mailHash;
+        //public bool PostPaymentPay(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail)
+        //{
+        //    string mailHost, mailHash;
 
-            ActionsUtils.ParseEmail(
-                this.client,
-                AegisBaseEvent.EventTypes.MdotPaymentPay,
-                paramContactEmail,
-                out mailHost,
-                out mailHash);
+        //    ActionsUtils.ParseEmail(
+        //        this.client,
+        //        AegisBaseEvent.EventTypes.MdotPaymentPay,
+        //        paramContactEmail,
+        //        out mailHost,
+        //        out mailHash);
 
-            return this.actionPaymentPay.Run(
-                AegisBaseEvent.EventTypes.MdotPaymentPay,
-                this.ipHeaderNames,
-                ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                requestUri,
-                httpMethod,
-                controllerName,
-                actionName,
-                () =>
-                new AegisMdotPaymentPayEvent()
-                {
-                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
-                    PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                    AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                    AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                    AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
-                    ContactMailDomain = mailHost,
-                    ContactMail = mailHash
-                });
-        }
+        //    return this.actionPaymentPay.Run(
+        //        AegisBaseEvent.EventTypes.MdotPaymentPay,
+        //        this.ipHeaderNames,
+        //        ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //        requestUri,
+        //        httpMethod,
+        //        controllerName,
+        //        actionName,
+        //        () =>
+        //        new AegisMdotPaymentPayEvent()
+        //        {
+        //            AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
+        //            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+        //            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+        //            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+        //            AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
+        //            ContactMailDomain = mailHost,
+        //            ContactMail = mailHash
+        //        });
+        //}
 
-        public bool PostPaymentPayIn(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramCustomerId,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail,
-            string paymentInfo1,
-            string paymentInfo2)
-        {
-            string mailHost, mailHash;
+        //public bool PostPaymentPayIn(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramCustomerId,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail,
+        //    string paymentInfo1,
+        //    string paymentInfo2)
+        //{
+        //    string mailHost, mailHash;
 
-            ActionsUtils.ParseEmail(
-                this.client,
-                AegisBaseEvent.EventTypes.MdotPaymentPayIn,
-                paramContactEmail,
-                out mailHost,
-                out mailHash);
+        //    ActionsUtils.ParseEmail(
+        //        this.client,
+        //        AegisBaseEvent.EventTypes.MdotPaymentPayIn,
+        //        paramContactEmail,
+        //        out mailHost,
+        //        out mailHash);
 
-            return this.actionPaymentPayIn.Run(
-                AegisBaseEvent.EventTypes.MdotPaymentPayIn,
-                this.ipHeaderNames,
-                ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                requestUri,
-                httpMethod,
-                controllerName,
-                actionName,
-                () =>
-                new AegisMdotPaymentPayInEvent()
-                {
-                    CustomerId = paramCustomerId,
-                    AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
-                    PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
-                    AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
-                    AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
-                    AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
-                    ContactMailDomain = mailHost,
-                    ContactMail = mailHash,
-                    PaymentInfo1 = paymentInfo1,
-                    PaymentInfo2 = paymentInfo2
-                });
-        }
+        //    return this.actionPaymentPayIn.Run(
+        //        AegisBaseEvent.EventTypes.MdotPaymentPayIn,
+        //        this.ipHeaderNames,
+        //        ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //        requestUri,
+        //        httpMethod,
+        //        controllerName,
+        //        actionName,
+        //        () =>
+        //        new AegisMdotPaymentPayInEvent()
+        //        {
+        //            CustomerId = paramCustomerId,
+        //            AccountNumberRaw = ActionsUtils.TruncateCardAccountNumber(paramAccountNumber),
+        //            PaymentMethodCode = paramPaymentMethodCode?.ToLowerInvariant().Trim(),
+        //            AddressCity = paramAddressCity?.ToLowerInvariant().Trim(),
+        //            AddressCountry = paramAddressCountry?.ToLowerInvariant().Trim(),
+        //            AddressPostal = CryptUtils.HashSimple(paramAddressPostal),
+        //            ContactMailDomain = mailHost,
+        //            ContactMail = mailHash,
+        //            PaymentInfo1 = paymentInfo1,
+        //            PaymentInfo2 = paymentInfo2
+        //        });
+        //}
 
-        public bool ProcessEvent(
-            string eventName,
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            object[] data,
-            bool isOutput = false)
-        {
-            string dataStr = null;
-            if (data != null && data.Length > 0)
-            {
-                dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
-            }
+        //public bool ProcessEvent(
+        //    string eventName,
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    object[] data,
+        //    bool isOutput = false)
+        //{
+        //    string dataStr = null;
+        //    if (data != null && data.Length > 0)
+        //    {
+        //        dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
+        //    }
 
-            var eventNameFinal = isOutput
-                ? AegisBaseEvent.EventTypes.GetOutputEventName(eventName)
-                : AegisBaseEvent.EventTypes.GetInputEventName(eventName);
+        //    var dataKey = this.client.ActionsDataHandler.AddData(data);
 
-            return this.actionUniversal.Run(
-                    eventNameFinal,
-                    this.ipHeaderNames,
-                    ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                    requestUri,
-                    httpMethod,
-                    controllerName,
-                    actionName,
-                    () => new AegisUniversalEvent()
-                    {
-                        EventType = eventNameFinal,
-                        Data = dataStr
-                    });
-        }
+        //    var eventNameFinal = isOutput
+        //        ? AegisBaseEvent.EventTypes.GetOutputEventName(eventName)
+        //        : AegisBaseEvent.EventTypes.GetInputEventName(eventName);
+
+        //    return this.actionUniversal.Run(
+        //            eventNameFinal,
+        //            this.ipHeaderNames,
+        //            ActionsUtils.GetAsHttpHeaders(requestHeaders),
+        //            requestUri,
+        //            httpMethod,
+        //            controllerName,
+        //            actionName,
+        //            () => new AegisUniversalEvent()
+        //            {
+        //                EventType = eventNameFinal,
+        //                DataKey = dataKey,
+        //                DataRaw = dataStr
+        //            });
+        //}
     }
 }

@@ -690,21 +690,21 @@ namespace Aegis.Pumps.Actions
         //    Uri requestUri,
         //    string httpMethod);
 
-        bool PostAccountLogIn(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramEmail);
+        //bool PostAccountLogIn(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramEmail);
 
-        bool PostAccountSignUp(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramEmail);
+        //bool PostAccountSignUp(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramEmail);
 
         //bool GetAvailability(
         //    NameValueCollection requestHeaders,
@@ -749,47 +749,47 @@ namespace Aegis.Pumps.Actions
         //    Uri requestUri,
         //    string httpMethod);
 
-        bool GetPaymentPrepareForPay(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail);
+        //bool GetPaymentPrepareForPay(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail);
 
-        bool PostPaymentPay(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail);
+        //bool PostPaymentPay(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail);
 
-        bool PostPaymentPayIn(
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            string paramCustomerId,
-            string paramAccountNumber,
-            string paramPaymentMethodCode,
-            string paramAddressCity,
-            string paramAddressCountry,
-            string paramAddressPostal,
-            string paramContactEmail,
-            string paymentInfo1,
-            string paymentInfo2);
+        //bool PostPaymentPayIn(
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    string paramCustomerId,
+        //    string paramAccountNumber,
+        //    string paramPaymentMethodCode,
+        //    string paramAddressCity,
+        //    string paramAddressCountry,
+        //    string paramAddressPostal,
+        //    string paramContactEmail,
+        //    string paymentInfo1,
+        //    string paymentInfo2);
 
         //bool PostPriceBreakdown(
         //    NameValueCollection requestHeaders,
@@ -805,14 +805,14 @@ namespace Aegis.Pumps.Actions
         //    Uri requestUri,
         //    string httpMethod);
 
-        bool ProcessEvent(
-            string eventName,
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            object[] data,
-            bool isOutput = false);
+        //bool ProcessEvent(
+        //    string eventName,
+        //    NameValueCollection requestHeaders,
+        //    Uri requestUri,
+        //    string httpMethod,
+        //    string controllerName,
+        //    string actionName,
+        //    object[] data,
+        //    bool isOutput = false);
     }
 }

@@ -676,9 +676,11 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net.Http.Headers;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using Aegis.Core;
 
 namespace Aegis.Pumps.Actions
@@ -717,7 +719,7 @@ namespace Aegis.Pumps.Actions
             }
             catch (Exception exception)
             {
-                client.NewRelicUtils.AddNotification(
+                client?.NewRelicUtils.AddNotification(
                     client.NewRelicClient,
                     componentName,
                     $"ParseEmail exception email={email.Substring(0, Math.Min(email.Length, 64))}=\n{exception}");

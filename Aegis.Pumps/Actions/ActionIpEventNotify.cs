@@ -769,6 +769,7 @@ namespace Aegis.Pumps.Actions
 
             // get common data
             // TODO log in AegisFilter, onexecuted, where we create session token?
+            // TODO add X-AUTH-TOKEN header?
             httpMethod = httpMethod?.ToLowerInvariant();
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;

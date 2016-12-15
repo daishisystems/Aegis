@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Diagnostics;
 using Aegis.Pumps.Actions;
 using Jil;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -688,25 +689,17 @@ namespace Aegis.Pumps.Tests
         public void CheckNullInput()
         {
             var self = new ActionsDataHandler();
-            self.AddData(null, null, null, null);
-            Assert.IsNull(self.ProcessData(null, null, null, null, null));
-        }
-
-        [TestMethod]
-        public void CheckNullData()
-        {
-            var self = new ActionsDataHandler();
-            self.AddData("get", "c", "a", null);
-            Assert.IsNull(self.ProcessData(null, "get", "c", "a", null));
+            var key = self.AddData(null);
+            Assert.IsNull(self.ProcessData(null, key, null));
         }
 
         [TestMethod]
         public void CheckEmptyData()
         {
             var self = new ActionsDataHandler();
-            this.DoTest(self, "get", "c", "a1", string.Empty, "\"\"");
-            this.DoTest(self, "get", "c", "a2", new string[0], "[]");
-            this.DoTest(self, "get", "c", "a3", new string[1], "[null]");
+            this.DoTest(self, string.Empty, "\"\"");
+            this.DoTest(self, new string[0], "[]");
+            this.DoTest(self, new string[1], "[null]");
         }
 
         [TestMethod]
@@ -715,7 +708,7 @@ namespace Aegis.Pumps.Tests
             var testObj = new { a = 7, e = "bag" };
 
             var self = new ActionsDataHandler();
-            this.DoTest(self, "get", "c", "a1", testObj, "{\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj, "{\"a\":7,\"e\":\"bag\"}");
         }
 
         [TestMethod]
@@ -724,11 +717,13 @@ namespace Aegis.Pumps.Tests
             var testObj1 = new { a = 7, BlaBlaExpirationBumBum = "bla", e = "bag" };
             var testObj2 = new { a = 7, Expiration = "bla", e = "bag" };
             var testObj3 = new { a = 7, Expiration = 1, e = "bag" };
+            var testObj4 = new { a = 7, First = "bla", FirstNumber = "eye" };
 
             var self = new ActionsDataHandler();
-            this.DoTest(self, "get", "c", "a1", testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaBlaExpirationBumBum\":\"X$DEL$X\"}");
-            this.DoTest(self, "get", "c", "a2", testObj2, "{\"a\":7,\"e\":\"bag\",\"Expiration\":\"X$DEL$X\"}");
-            this.DoTest(self, "get", "c", "a3", testObj3, "{\"Expiration\":\"X$DEL$X\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaBlaExpirationBumBum\":\"X$DEL$X\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Expiration\":\"X$DEL$X\"}");
+            this.DoTest(self, testObj3, "{\"Expiration\":\"X$DEL$X\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj4, "{\"a\":7,\"FirstNumber\":\"eye\",\"First\":\"X$DEL$X\"}");
         }
 
         [TestMethod]
@@ -739,9 +734,9 @@ namespace Aegis.Pumps.Tests
             var testObj3 = new { a = 7, Mail = 3, e = "bag" };
 
             var self = new ActionsDataHandler();
-            this.DoTest(self, "get", "c", "a1", testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
-            this.DoTest(self, "get", "c", "a2", testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
-            this.DoTest(self, "get", "c", "a3", testObj3, "{\"Mail\":\"unknown$TgdAhWK+24tgzgXB3s/jrRa3IjCWfeAfZAt+Rym0n84=\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
+            this.DoTest(self, testObj3, "{\"Mail\":\"unknown$TgdAhWK+24tgzgXB3s/jrRa3IjCWfeAfZAt+Rym0n84=\",\"a\":7,\"e\":\"bag\"}");
         }
 
         [TestMethod]
@@ -752,24 +747,43 @@ namespace Aegis.Pumps.Tests
             var testObj3 = new { a = 7, AccountNumber = 1234567890, e = "bag" };
 
             var self = new ActionsDataHandler();
-            this.DoTest(self, "get", "c", "a1", testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaAccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
-            this.DoTest(self, "get", "c", "a2", testObj2, "{\"a\":7,\"e\":\"bag\",\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
-            this.DoTest(self, "get", "c", "a3", testObj3, "{\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaAccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
+            this.DoTest(self, testObj3, "{\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"a\":7,\"e\":\"bag\"}");
+        }
+
+        [TestMethod]
+        public void CheckAllActions()
+        {
+            var testObj1 = new { Mail = "john@smith.com", AccountNumberBum = "1234567890", Expiration = "bla" };
+
+            var self = new ActionsDataHandler();
+            this.DoTest(self, testObj1, "{\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
         }
 
         public void DoTest(
             ActionsDataHandler self, 
-            string method,
-            string controller,
-            string action,
             object data,
             string expected)
         {
-            self.AddData(method, controller, action, data);
+            var stopWatch1 = Stopwatch.StartNew();
+            var stopWatch2 = Stopwatch.StartNew();
+
+            var key = self.AddData(data);
 
             var dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
 
-            Assert.AreEqual(expected, self.ProcessData(null, method, controller, action, dataStr));
+            stopWatch2.Stop();
+            var stopWatch3 = Stopwatch.StartNew();
+
+            Assert.AreEqual(expected, self.ProcessData(null, key, dataStr));
+
+            stopWatch1.Stop();
+            stopWatch2.Stop();
+            stopWatch3.Stop();
+            Debug.WriteLine($"DoTest stopWatch1={stopWatch1.ElapsedMilliseconds} ms  " +
+                            $"stopWatch2={stopWatch2.ElapsedMilliseconds} ms  " +
+                            $"stopWatch3={stopWatch3.ElapsedMilliseconds} ms");
         }
     }
 }

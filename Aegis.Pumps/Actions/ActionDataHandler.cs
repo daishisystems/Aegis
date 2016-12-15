@@ -681,6 +681,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Aegis.Core;
+using Aegis.Core.Data;
 using Jil;
 
 namespace Aegis.Pumps.Actions
@@ -690,31 +691,46 @@ namespace Aegis.Pumps.Actions
         private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
         {
             { "expiration", ActionRemove },
+            { "accountname", ActionRemove },
+            { "accname", ActionRemove },
+            { "verificationcode", ActionRemove },
+            { "cardid", ActionRemove },
+            { "line", ActionRemove },
+            { "phone", ActionRemove },
+            { "password", ActionRemove },
+            { "url", ActionRemove },
+            { "credential", ActionRemove },
+
+            { "^first$", ActionRemove },
+            { "^last$", ActionRemove },
+            { "^middle$", ActionRemove },
+            { "^suffix$", ActionRemove },
+            { "^title$", ActionRemove },
+            { "^fullname$", ActionRemove },
+
             { "mail", ActionMail },
-            { "accountnumber", ActionAccountNumber }
+
+            { "accountnumber", ActionAccountNumber },
+            { "accnum", ActionAccountNumber }
         };
 
         private readonly ConcurrentDictionary<string, ActionsDataHandlerItem> cache = new ConcurrentDictionary<string, ActionsDataHandlerItem>();
         private static readonly Regex RegexFields = new Regex("\"(\\w+)\"\\s*:\\s*((\".*?\")|(\\w+))", 
                                                         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        public void AddData(
-            string httpMethod,
-            string controllerName,
-            string actionName,
-            object data)
+        public string AddData(object data)
         {
             // ignore null data
             if (ReferenceEquals(data, null))
             {
-                return;
+                return null;
             }
 
             // check if checked this data
-            var key = $"{httpMethod}${controllerName}${actionName}";
+            var key = data.GetType().FullName;
             if (this.cache.ContainsKey(key))
             {
-                return;
+                return key;
             }
 
             // serialize
@@ -726,9 +742,8 @@ namespace Aegis.Pumps.Actions
 
             foreach (var field in fields)
             {
-                //actionWords.co
-
-                var found = this.actionWords.FirstOrDefault(x => field.Contains(x.Key));
+                var fieldExtended = $"^{field}$";
+                var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
                 if (string.IsNullOrEmpty(found.Key))
                 {
                     continue;
@@ -746,18 +761,21 @@ namespace Aegis.Pumps.Actions
             }
 
             this.cache.AddOrUpdate(key, item, (k, old) => item);
+            return key;
         }
 
         public string ProcessData(
             AegisClient client,
-            string httpMethod,
-            string controllerName,
-            string actionName,
+            string key,
             string json)
         {
-            // check if there are any actions
-            var key = $"{httpMethod}${controllerName}${actionName}";
+            // if key is empty
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(json))
+            {
+                return json;
+            }
 
+            // check if there are any actions
             ActionsDataHandlerItem item;
             if (!this.cache.TryGetValue(key, out item) || item == null)
             {

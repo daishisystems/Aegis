@@ -774,6 +774,24 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
+                // process universal events
+                foreach (var item in items)
+                {
+                    var itemUniversal = item as AegisUniversalEvent;
+                    if (itemUniversal == null || itemUniversal.IsDataRawProcessed == true)
+                    {
+                        continue;
+                    }
+
+                    itemUniversal.Data = this.ClientInstance.ActionsDataHandler.ProcessData(
+                        this.ClientInstance,
+                        itemUniversal.DataKey,
+                        itemUniversal.DataRaw);
+
+                    itemUniversal.IsDataRawProcessed = true;
+                }
+
+                // send
                 var isCompressionEnabled = this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.EventsPostCompression);
 
                 this.aegisServiceClient.SendAegisEvents(

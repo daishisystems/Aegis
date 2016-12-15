@@ -1032,8 +1032,8 @@ namespace Aegis.Pumps.Tests
             Action[] testMethodsWithNullParameters =
             {
                 //() => AegisClient.GetActionsHubMdot().GetAccount(requestHeaders, requestUri, httpMethod),
-                () => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, httpMethod, null, null, null),
-                () => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, httpMethod, null, null, null),
+                //() => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, httpMethod, null, null, null),
+                //() => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, httpMethod, null, null, null),
                 //() => AegisClient.GetActionsHubMdot().GetAvailability(requestHeaders, requestUri, httpMethod, null, null, null, null),
                 //() => AegisClient.GetActionsHubMdot().GetBag(requestHeaders, requestUri, httpMethod),
                 //() => AegisClient.GetActionsHubMdot().GetBooking(requestHeaders, requestUri, httpMethod),
@@ -1041,27 +1041,27 @@ namespace Aegis.Pumps.Tests
                 //() => AegisClient.GetActionsHubMdot().GetFast(requestHeaders, requestUri, httpMethod),
                 //() => AegisClient.GetActionsHubMdot().PostFlight(requestHeaders, requestUri, httpMethod, null, null, null, null),
                 //() => AegisClient.GetActionsHubMdot().GetPayment(requestHeaders, requestUri, httpMethod),
-                () => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri, httpMethod, null, null,
-                                                null, null, null, null,
-                                                null, null),
-                () => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri, httpMethod, null, null,
-                                                null, null, null, null,
-                                                null, null),
-                () => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri, httpMethod, null, null,
-                                                null, null, null, null,
-                                                null, null, null, null, null),
+                //() => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri, httpMethod, null, null,
+                //                                null, null, null, null,
+                //                                null, null),
+                //() => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri, httpMethod, null, null,
+                //                                null, null, null, null,
+                //                                null, null),
+                //() => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri, httpMethod, null, null,
+                //                                null, null, null, null,
+                //                                null, null, null, null, null),
                 //() => AegisClient.GetActionsHubMdot().PostPriceBreakdown(requestHeaders, requestUri, httpMethod, null, null, null, null),
                 //() => AegisClient.GetActionsHubMdot().GetSeat(requestHeaders, requestUri, httpMethod)
-                () => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, null, null,
-                                                null),
+                //() => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, null, null,
+                //                                null),
             };
 
 
             Action[] testMethodsWithRealParameters =
             {
                 //() => AegisClient.GetActionsHubMdot().GetAccount(requestHeaders, requestUri, httpMethod),
-                () => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, httpMethod, "controller", "action", "email@host.com"),
-                () => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, httpMethod, "controller", "action", "email@host.com"),
+                //() => AegisClient.GetActionsHubMdot().PostAccountLogIn(requestHeaders, requestUri, httpMethod, "controller", "action", "email@host.com"),
+                //() => AegisClient.GetActionsHubMdot().PostAccountSignUp(requestHeaders, requestUri, httpMethod, "controller", "action", "email@host.com"),
                 //() => AegisClient.GetActionsHubMdot().GetAvailability(requestHeaders, requestUri, httpMethod, "orig", "dst", DateTime.UtcNow, DateTime.Today),
                 //() => AegisClient.GetActionsHubMdot().GetBag(requestHeaders, requestUri, httpMethod),
                 //() => AegisClient.GetActionsHubMdot().GetBooking(requestHeaders, requestUri, httpMethod),
@@ -1069,21 +1069,21 @@ namespace Aegis.Pumps.Tests
                 //() => AegisClient.GetActionsHubMdot().GetFast(requestHeaders, requestUri, httpMethod),
                 //() => AegisClient.GetActionsHubMdot().PostFlight(requestHeaders, requestUri, httpMethod, 1, 2, 3, 4),
                 //() => AegisClient.GetActionsHubMdot().GetPayment(requestHeaders, requestUri, httpMethod),
-                () => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri, httpMethod, "controller", "action",
-                                                "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com"),
-                () => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri, httpMethod, "controller", "action",
-                                                "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com"),
-                () => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri, httpMethod, "controller", "action",
-                                                "customer-id", "1234567890", "p-method-code", "city",
-                                                "country", "postal", "email@host.com", "info1", "info2"),
+                //() => AegisClient.GetActionsHubMdot().GetPaymentPrepareForPay(requestHeaders, requestUri, httpMethod, "controller", "action",
+                //                                "1234567890", "p-method-code", "city",
+                //                                "country", "postal", "email@host.com"),
+                //() => AegisClient.GetActionsHubMdot().PostPaymentPay(requestHeaders, requestUri, httpMethod, "controller", "action",
+                //                                "1234567890", "p-method-code", "city",
+                //                                "country", "postal", "email@host.com"),
+                //() => AegisClient.GetActionsHubMdot().PostPaymentPayIn(requestHeaders, requestUri, httpMethod, "controller", "action",
+                //                                "customer-id", "1234567890", "p-method-code", "city",
+                //                                "country", "postal", "email@host.com", "info1", "info2"),
                 //() => AegisClient.GetActionsHubMdot().PostPriceBreakdown(requestHeaders, requestUri, httpMethod, 1, 2, 3, 4),
                 //() => AegisClient.GetActionsHubMdot().GetSeat(requestHeaders, requestUri, httpMethod)
-                () => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "controller", "action",
-                                                new object[] {"aaa", "bbb"}),
-                () => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "controller", "action",
-                                                new object[] {"cccc", "dddd"})
+                //() => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "controller", "action",
+                //                                new object[] {"aaa", "bbb"}),
+                //() => AegisClient.GetActionsHubMdot().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "controller", "action",
+                //                                new object[] {"cccc", "dddd"})
             };
 
             return new[]
