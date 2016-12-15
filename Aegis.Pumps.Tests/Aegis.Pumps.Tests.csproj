@@ -72,6 +72,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ActionsDataHandlerTests.cs" />
     <Compile Include="ActionsHubMdotTests.cs" />
     <Compile Include="ActionsHubTests.cs" />
     <Compile Include="AegisServiceClientTests.cs" />

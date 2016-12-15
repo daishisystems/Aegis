@@ -61,7 +61,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\Action.cs" />
+    <Compile Include="Actions\ActionDataHandler.cs" />
     <Compile Include="Actions\ActionIpEventNotify.cs" />
+    <Compile Include="Actions\ActionsDataHandlerItem.cs" />
     <Compile Include="Actions\ActionsHub.cs" />
     <Compile Include="Actions\ActionsHubMdot.cs" />
     <Compile Include="Actions\ActionUtils.cs" />
