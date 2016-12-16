@@ -958,7 +958,7 @@ namespace Aegis.Pumps
             self.NewRelicClient?.UploadAllCachedEvents();
         }
 
-        public static ActionsHub GetActionsHub()
+        public static IActionsHub GetActionsHub()
         {
             // ignore on non initialized
             if (!IsInitialised)
