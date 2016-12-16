@@ -1057,6 +1057,7 @@ namespace Aegis.Pumps.Actions
         //            });
         //}
 
+        // TODO log response headers too (at least session token)
         public bool ProcessEvent(
             string eventName,
             HttpHeaders requestHeaders,

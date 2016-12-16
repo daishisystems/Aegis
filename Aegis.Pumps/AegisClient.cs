@@ -714,7 +714,7 @@ namespace Aegis.Pumps
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly ActionsDataHandler ActionsDataHandler;
         public readonly ActionsHub ActionsHub;
-        public readonly ActionsHubMdot ActionsHubMdot;
+        //public readonly ActionsHubMdot ActionsHubMdot;
         public SchedulerRegistry Scheduler { get; private set; }
 
         private AegisClient(
@@ -740,7 +740,7 @@ namespace Aegis.Pumps
             this.AegisEventCache = new AegisEventCacheClient();
             this.ActionsDataHandler = new ActionsDataHandler();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
-            this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
+            //this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
             this.Scheduler = new SchedulerRegistry();
         }
 
@@ -761,7 +761,7 @@ namespace Aegis.Pumps
             this.NewRelicClient = newRelicInsightsClient;
             this.Settings = settings;
             this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
-            this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
+            //this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
 
             // scheduler reload
             this.SchedulerReload(true);
@@ -781,6 +781,7 @@ namespace Aegis.Pumps
             {
                 InitializationTime = DateTimeOffset.UtcNow;
                 AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
+                // TODO set to none/unknown if parameter is empty or null
                 ClientName = string.Empty;
                 ClientId = string.Empty;
                 ClientVersion = string.Empty;
@@ -969,17 +970,17 @@ namespace Aegis.Pumps
             return Instance.ActionsHub;
         }
 
-        public static IActionsHubMdot GetActionsHubMdot()
-        {
-            // ignore on non initialized
-            if (!IsInitialised)
-            {
-                return null;
-            }
+        //public static IActionsHubMdot GetActionsHubMdot()
+        //{
+        //    // ignore on non initialized
+        //    if (!IsInitialised)
+        //    {
+        //        return null;
+        //    }
 
-            // initialized
-            return Instance.ActionsHubMdot;
-        }
+        //    // initialized
+        //    return Instance.ActionsHubMdot;
+        //}
 
         public static void ReportError(string message, bool noDuplicateRecent = false)
         {
