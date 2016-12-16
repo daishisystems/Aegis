@@ -719,7 +719,10 @@ namespace Aegis.Pumps.Actions
         private static readonly Regex RegexFields = new Regex("\"(\\w+)\"\\s*:\\s*((\".*?\")|(\\w+))", 
                                                         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        public string AddData(object data)
+        public string AddData(
+            string controllerName,
+            string actionName,
+            object data)
         {
             // ignore null data
             if (ReferenceEquals(data, null))
@@ -728,7 +731,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // check if checked this data
-            var key = data.GetType().FullName;
+            var key = $"{controllerName}${actionName}${data.GetType().FullName}";
             if (this.cache.ContainsKey(key))
             {
                 return key;

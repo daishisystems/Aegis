@@ -1065,7 +1065,7 @@ namespace Aegis.Pumps.Actions
             string httpMethod,
             string controllerName,
             string actionName,
-            object[] data,
+            object[] data, // TODO remove array
             bool isOutput = false)
         {
             string dataStr = null;
@@ -1074,7 +1074,7 @@ namespace Aegis.Pumps.Actions
                 dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
             }
 
-            var dataKey = this.client.ActionsDataHandler.AddData(data);
+            var dataKey = this.client.ActionsDataHandler.AddData(controllerName, actionName, data);
 
             var eventNameFinal = isOutput
                 ? AegisBaseEvent.EventTypes.GetOutputEventName(eventName)

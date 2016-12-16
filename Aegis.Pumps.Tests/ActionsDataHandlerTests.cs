@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Diagnostics;
 using Aegis.Pumps.Actions;
 using Jil;
@@ -689,7 +690,7 @@ namespace Aegis.Pumps.Tests
         public void CheckNullInput()
         {
             var self = new ActionsDataHandler();
-            var key = self.AddData(null);
+            var key = self.AddData(null, null, null);
             Assert.IsNull(self.ProcessData(null, key, null));
         }
 
@@ -769,7 +770,7 @@ namespace Aegis.Pumps.Tests
             var stopWatch1 = Stopwatch.StartNew();
             var stopWatch2 = Stopwatch.StartNew();
 
-            var key = self.AddData(data);
+            var key = self.AddData(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), data);
 
             var dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
 
