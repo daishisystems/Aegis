@@ -711,7 +711,8 @@ namespace Aegis.Pumps.Actions
             { "mail", ActionMail },
 
             { "accountnumber", ActionAccountNumber },
-            { "accnum", ActionAccountNumber }
+            { "accnum", ActionAccountNumber },
+            { "creditcard", ActionAccountNumber },
         };
 
         private readonly ConcurrentDictionary<string, ActionsDataHandlerItem> cache = new ConcurrentDictionary<string, ActionsDataHandlerItem>();
