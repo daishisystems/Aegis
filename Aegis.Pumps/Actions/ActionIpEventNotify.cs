@@ -701,6 +701,7 @@ namespace Aegis.Pumps.Actions
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
+            HttpHeaders responseHeaders,
             Uri requestUri,
             string httpMethod,
             string clientControllerName,
@@ -713,6 +714,7 @@ namespace Aegis.Pumps.Actions
                     eventTypeName,
                     ipHeaderNames,
                     requestHeaders,
+                    responseHeaders,
                     requestUri,
                     clientControllerName,
                     clientActionName,
@@ -734,6 +736,7 @@ namespace Aegis.Pumps.Actions
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
+            HttpHeaders responseHeaders,
             Uri requestUri,
             string clientControllerName,
             string clientActionName,
@@ -768,7 +771,6 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
-            // TODO log in AegisFilter, onexecuted, where we create session token?
             // TODO add X-AUTH-TOKEN header?
             httpMethod = httpMethod?.ToLowerInvariant();
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
@@ -778,6 +780,7 @@ namespace Aegis.Pumps.Actions
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
             var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
             var httpHeadersRest = this.GetAllHttpHeaders(requestHeaders, this.ignoredHttpHeaders, 256);
+            var httpHeadersResponse = this.GetAllHttpHeaders(responseHeaders, "X-", 256);
             
             // process each IP
             var isBlocked = false;
@@ -809,6 +812,7 @@ namespace Aegis.Pumps.Actions
                         httpAcceptLanguage,
                         httpSessionToken,
                         httpHeadersRest,
+                        httpHeadersResponse,
                         eventBuilder);
                 }
 
@@ -851,6 +855,7 @@ namespace Aegis.Pumps.Actions
             string httpAcceptLanguage,
             string httpSessionToken,
             Dictionary<string, List<string>> httpHeadersRest,
+            Dictionary<string, List<string>> httpHeadersResponse,
             Func<T> eventBuilder)
         {
             // add IP address to data-pump
@@ -873,6 +878,7 @@ namespace Aegis.Pumps.Actions
             evnt.HttpAcceptLanguage = httpAcceptLanguage;
             evnt.HttpSessionToken = httpSessionToken;
             evnt.HttpHeadersRest = httpHeadersRest;
+            evnt.HttpHeadersResponse = httpHeadersResponse;
             evnt.HttpPath = requestUri.PathAndQuery;
             evnt.Time = currentTime.ToString("O");
 

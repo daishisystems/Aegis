@@ -680,27 +680,11 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http.Headers;
-using Aegis.Core;
 using Aegis.Core.Data;
 using Jil;
 
 namespace Aegis.Pumps.Actions
 {
-    // TODO create an universal method with parameters:
-    // - event type (aegis event base type)
-    // - controller name (string)
-    // - action name (string)
-    // - standard requests method, url, headers
-    // - input data or null (JSON string serialized)
-    // - output data or null (JSON string serialized)
-    // Logic:
-    // - add to cache
-    // - before send, clean JSON (remove empty fields, blacklisted fields, modify fields - using regex?)
-    // - how recognize between executing and executed events? add postfix to the event (only "out" event?) i.e. "availbility" and "availbility-out"?
-
-    // TODO change Aegis filter:
-    // - replace enum with static readonly instance of class i.e public static readonly AegisEventType AegisAvaility = AegisEventType(AegisBaseEvent.Availa,input=true,output=false);
-    // - in the body just call eventType.Process(.....) data nad check flags to serialize input/ouput data etc.
     public class ActionsHub : IActionsHub
     {
         private readonly ActionIpEventNotify<AegisUniversalEvent> actionUniversal;
@@ -752,7 +736,6 @@ namespace Aegis.Pumps.Actions
             //this.actionPaymentMethods = new ActionIpEventNotify<AegisPaymentMethodsEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPaymentMethods);
             //this.actionDcc = new ActionIpEventNotify<AegisDccEvent>(client);
             //this.actionPayment = new ActionIpEventNotify<AegisPaymentEvent>(client);
-            // TODO payment2 and payment3 disable blocking mechanism?
             //this.actionPayment2 = new ActionIpEventNotify<AegisPayment2Event>(client);
             //this.actionPayment3 = new ActionIpEventNotify<AegisPayment3Event>(client);
             //this.actionPromoCodes = new ActionIpEventNotify<AegisPromoCodesEvent>(client, NewRelicInsightsEvents.Utils.ComponentNames.ActionPromoCodes);
@@ -827,8 +810,6 @@ namespace Aegis.Pumps.Actions
             //        });
         //}
 
-        // TODO log FlightKey(s)
-        // TODO log Flight executed, get booking and log fare and session key
         //public bool PostFlight(
         //    HttpHeaders requestHeaders,
         //    Uri requestUri,
@@ -853,7 +834,7 @@ namespace Aegis.Pumps.Actions
         //            });
         //}
 
-        // TODO log Refresh executed, get booking and log fare and session key
+
         //public bool GetRefresh(
         //    HttpHeaders requestHeaders,
         //    Uri requestUri,
@@ -1057,7 +1038,7 @@ namespace Aegis.Pumps.Actions
         //            });
         //}
 
-        // TODO log response headers too (at least session token)
+
         public bool ProcessEvent(
             string eventName,
             HttpHeaders requestHeaders,
@@ -1085,6 +1066,7 @@ namespace Aegis.Pumps.Actions
                     eventNameFinal,
                     this.ipHeaderNames,
                     requestHeaders,
+                    responseHeaders,
                     requestUri,
                     httpMethod,
                     controllerName,
