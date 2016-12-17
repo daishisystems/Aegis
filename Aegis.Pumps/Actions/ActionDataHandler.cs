@@ -697,6 +697,7 @@ namespace Aegis.Pumps.Actions
             { "cardid", ActionRemove },
             { "line", ActionRemove },
             { "phone", ActionRemove },
+            { "fax", ActionRemove },
             { "password", ActionRemove },
             { "url", ActionRemove },
             { "credential", ActionRemove },
