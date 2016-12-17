@@ -860,15 +860,15 @@ namespace Aegis.Pumps.Actions
         {
             // add IP address to data-pump
             var evnt = eventBuilder();
-            evnt.ApplicationName = AegisClient.ClientName;
-            evnt.ApplicationId = AegisClient.ClientId;
-            evnt.ApplicationVersion = AegisClient.ClientVersion;
-            evnt.ApplicationMachineName = AegisClient.ClientMachineName;
-            evnt.ApplicationEnvironment = AegisClient.ClientEnvironment;
-            evnt.ApplicationProject = AegisClient.ClientProject;
+            evnt.ApplicationName = AegisClient.ClientInfo.Name;
+            evnt.ApplicationId = AegisClient.ClientInfo.Id;
+            evnt.ApplicationVersion = AegisClient.ClientInfo.Version;
+            evnt.ApplicationMachineName = AegisClient.ClientInfo.MachineName;
+            evnt.ApplicationEnvironment = AegisClient.ClientInfo.Environment;
+            evnt.ApplicationProject = AegisClient.ClientInfo.Project;
             evnt.ApplicationControllerName = clientControllerName;
             evnt.ApplicationActionName = clientActionName;
-            evnt.AegisVersion = AegisClient.AegisVersion;
+            evnt.AegisVersion = AegisClient.ClientInfo.AegisVersion;
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
@@ -970,15 +970,15 @@ namespace Aegis.Pumps.Actions
             // TODO blacklist event - include payment info if available?
             var ipBlackListAegisEvent = new AegisBlackListEvent()
             {
-                ApplicationName = AegisClient.ClientName,
-                ApplicationId = AegisClient.ClientId,
-                ApplicationVersion = AegisClient.ClientVersion,
-                ApplicationMachineName = AegisClient.ClientMachineName,
-                ApplicationEnvironment = AegisClient.ClientEnvironment,
-                ApplicationProject = AegisClient.ClientProject,
+                ApplicationName = AegisClient.ClientInfo.Name,
+                ApplicationId = AegisClient.ClientInfo.Id,
+                ApplicationVersion = AegisClient.ClientInfo.Version,
+                ApplicationMachineName = AegisClient.ClientInfo.MachineName,
+                ApplicationEnvironment = AegisClient.ClientInfo.Environment,
+                ApplicationProject = AegisClient.ClientInfo.Project,
                 ApplicationControllerName = clientControllerName,
                 ApplicationActionName = clientActionName,
-                AegisVersion = AegisClient.AegisVersion,
+                AegisVersion = AegisClient.ClientInfo.AegisVersion,
                 ExperimentId = expId,
                 IpAddress = ipAddressString,
                 GroupId = groupId,

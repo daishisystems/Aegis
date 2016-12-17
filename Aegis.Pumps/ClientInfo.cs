@@ -676,207 +676,101 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentScheduler;
-using Aegis.Pumps.SchedulerJobs;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Aegis.Pumps
 {
-    public class SchedulerRegistry : Registry
+    public class ClientInfo
     {
-        public const string TestDisableSchedulerKey = "test_schedule_disabled";
-        public readonly List<Tuple<ClientJob, Schedule>> ScheduledItems;
-        private Dictionary<string, int> settingsIntervals;
+        private string name;
+        private string version;
+        private string environment;
+        private string project;
 
-        public SchedulerRegistry()
+        public string AegisVersion { get; private set; }
+
+        public string Name
         {
-            this.ScheduledItems = new List<Tuple<ClientJob, Schedule>>();
+            get { return this.name; }
+            set { Set(ref this.name, value?.ToLowerInvariant().Trim()); }
         }
 
-        public bool IsReloadRequired(Settings settings, SettingsOnlineClient settingsOnline)
+        public string Id { get; private set; }
+
+        public string Version
         {
-            if (this.settingsIntervals == null)
+            get { return this.version; }
+            set { Set(ref this.version, value?.ToLowerInvariant().Trim()); }
+        }
+
+        public string MachineName { get; private set; }
+
+        public string Environment
+        {
+            get { return this.environment; }
+            set { Set(ref this.environment, value?.ToUpperInvariant().Trim()); }
+        }
+
+        public string Project
+        {
+            get { return this.project; }
+            set { Set(ref this.project, value?.ToLowerInvariant().Trim()); }
+        }
+
+        public ClientInfo()
+        {
+            this.AegisVersion = "none";
+            this.name = "none";
+            this.Id = "none";
+            this.version = "none";
+            this.MachineName = "none";
+            this.environment = "none";
+            this.project = "none";
+        }
+
+        public void SetUp()
+        {
+            this.AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
+
+            // set ClientUniqueId with an unique id to recognize many instances
+            this.Id = GenerateClientId();
+
+            // set machine name if available
+            var machineName = System.Environment.MachineName;
+            if (string.IsNullOrWhiteSpace(machineName))
             {
-                return true;
+                machineName = $"UNKNOWN-{Guid.NewGuid():N}";
             }
 
-            var settingsIntervalsNew = this.GetSettings(settings, settingsOnline);
-            var isEqual = this.settingsIntervals.OrderBy(x => x.Key).Intersect(settingsIntervalsNew.OrderBy(x => x.Key)).Count() == this.settingsIntervals.Count;
-
-            return !isEqual;
+            this.MachineName = Uri.EscapeDataString(machineName);
         }
 
-        public static void RemoveAllAegisJobs()
+        private static void Set(ref string dst, string value)
         {
-            var jobNames = JobManager.AllSchedules.Where(s => s.Name.StartsWith(ClientJob.JobPrefix)).Select(s => s.Name);
-
-            foreach (var name in jobNames)
+            if (string.IsNullOrWhiteSpace(value?.Trim()))
             {
-                JobManager.RemoveJob(name);
-            }
-        }
-
-        public void Initialise(
-            AegisClient client,
-            bool isStartDelayNeeded,
-            string isSchedulingDisabled)
-        {
-            const int InitialStartDelay = 120; // in seconds
-            const int JobStartDelay = 90; // in seconds
-            const int MaxRandomDelay = 30; // in seconds
-
-            var initStartDelay = 5;
-            if (isStartDelayNeeded)
-            {
-                initStartDelay = InitialStartDelay;
+                return;
             }
 
-            // generate random start delay values
-            var delays = this.GenerateRandomDelays(AegisClient.ClientInfo.Id, MaxRandomDelay);
-
-            // disable running same job in parallel
-            this.NonReentrantAsDefault();
-
-            // jobs
-            this.settingsIntervals = this.GetSettings(client.Settings, client.SettingsOnline);
-
-            // add jobs
-            this.Add(
-                this.settingsIntervals,
-                new GetSettingsOnlineJob(client),
-                initStartDelay + delays[0]);
-
-            this.Add(
-                this.settingsIntervals,
-                new GetBlackListJob(client),
-                initStartDelay + JobStartDelay + delays[1]);
-
-            this.Add(
-                this.settingsIntervals,
-                new SendAegisEventsJob(client),
-                initStartDelay + JobStartDelay + delays[2]);
-
-            this.Add(
-                this.settingsIntervals,
-                new SendStatusJob(client),
-                initStartDelay + JobStartDelay + delays[3]);
-
-            // start schedulers
-            if (isSchedulingDisabled != TestDisableSchedulerKey)
-            {
-                JobManager.Initialize(this);
-            }
+            dst = Uri.EscapeDataString(value);
         }
 
-        public void ShutDown()
+        private static string GenerateClientId()
         {
-            foreach (var sched in this.ScheduledItems)
-            {
-                JobManager.RemoveJob(sched.Item2.Name);
-                sched.Item1.Stop(false);
-            }
+            Thread.Sleep(1);
 
-            this.ScheduledItems.Clear();
-            RemoveAllAegisJobs();
-        }
+            var guidStr = Guid.NewGuid().ToString("N");
+            var processStr = Process.GetCurrentProcess().Id.ToString("x6");
+            var threadStr = Thread.CurrentThread.ManagedThreadId.ToString("x4");
+            var timeStr = DateTime.UtcNow.Ticks.ToString("x4");
 
-        protected void Add(
-            Dictionary<string, int> intervals,
-            ClientJob self,
-            int startTimeDelay)
-        {
-            var sched = this.Schedule(self).WithName(self.JobName);
-            this.ScheduledItems.Add(Tuple.Create(self, sched));
+            var finalStr = guidStr.Substring(guidStr.Length - 4, 4) + "-" +
+                           processStr.Substring(processStr.Length - 4, 4) + "-" +
+                           threadStr.Substring(threadStr.Length - 2, 2) + "-" +
+                           timeStr.Substring(timeStr.Length - 2, 2);
 
-            sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-                .AndEvery(intervals[self.JobName])
-                .Seconds();
-        }
-
-        protected Dictionary<string, int> GetSettings(Settings settings, SettingsOnlineClient settingsOnline)
-        {
-            // for safety reason online settings value can't be higher than the following limit
-            const int LimitInSecs = 3600; // an hour
-
-            var result = new Dictionary<string, int>(settings.JobsIntervals);
-            foreach (var key in settings.JobsIntervals.Keys)
-            {
-                var interval = settingsOnline.GetJobInterval(key);
-                result[key] = GetWithLimit(interval, settings.JobsIntervals[key], LimitInSecs);
-            }
-
-            return result;
-        }
-
-        //public void ChangeSchedule(
-        //    AegisClient client, 
-        //    string jobName,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    // remove job
-        //    JobManager.RemoveJob(jobName);
-
-        //    var item = this.scheduledItems.Single(x => x.Item1.JobName == jobName);
-        //    this.scheduledItems.Remove(item);
-
-        //    // add job
-        //    JobManager.AddJob(item.Item1, s => this.Add(s.NonReentrant(), client, item.Item1, startTimeDelay, defaultInterval));
-        //}
-
-        //protected void Add(
-        //    AegisClient client,
-        //    ClientJob self,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    this.Add(
-        //        this.Schedule(self),
-        //        client,
-        //        self,
-        //        startTimeDelay,
-        //        defaultInterval);
-        //}
-
-        //protected void Add(
-        //    Schedule sched,
-        //    AegisClient client,
-        //    ClientJob self,
-        //    int startTimeDelay,
-        //    int defaultInterval)
-        //{
-        //    // for safety reason online settings value can't be higher than the following limit
-        //    const int LimitInSecs = 3600; // an hour
-
-        //    sched = sched.WithName(self.JobName);
-        //    this.scheduledItems.Add(Tuple.Create(self, sched));
-
-        //    sched.ToRunOnceAt(DateTime.Now.AddSeconds(startTimeDelay))
-        //        .AndEvery(
-        //            GetWithLimit(
-        //                client.SettingsOnline.GetJobInterval(self.JobName),
-        //                defaultInterval,
-        //                LimitInSecs))
-        //    .Seconds();
-        //}
-
-        protected static int GetWithLimit(int? primaryValue, int secondaryValue, int limit)
-        {
-            return primaryValue != null ? Math.Min(primaryValue.Value, limit) : secondaryValue;
-        }
-
-        protected List<int> GenerateRandomDelays(string clientId, int maxRandomValue)
-        {
-            var rnd = new Random(clientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
-
-            var delaysSet = new HashSet<int>();
-            while (delaysSet.Count < 4)
-            {
-                delaysSet.Add(rnd.Next(0, maxRandomValue / 2));
-            }
-
-            return delaysSet.OrderBy(x => 2 * x).ToList();
+            return Uri.EscapeDataString(finalStr);
         }
     }
 }

@@ -697,36 +697,36 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "applicationName")]
-        public string ApplicationName => AegisClient.ClientName;
+        public string ApplicationName => AegisClient.ClientInfo.Name;
 
         [JilDirective(Name = "applicationId")]
-        public string ApplicationId => AegisClient.ClientId;
+        public string ApplicationId => AegisClient.ClientInfo.Id;
 
         /// <summary>
         ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "applicationVersion")]
-        public string ApplicationVersion => AegisClient.ClientVersion;
+        public string ApplicationVersion => AegisClient.ClientInfo.Version;
 
         /// <summary>
         ///     <see cref="ApplicationEnvironment" /> is the friendly name of the deployment environment
         /// </summary>
         [JilDirective(Name = "applicationEnvironment")]
-        public string ApplicationEnvironment => AegisClient.ClientEnvironment;
+        public string ApplicationEnvironment => AegisClient.ClientInfo.Environment;
 
         /// <summary>
         ///     <see cref="ApplicationProject" /> is the friendly name of the application project
         /// </summary>
         [JilDirective(Name = "applicationProject")]
-        public string ApplicationProject => AegisClient.ClientProject;
+        public string ApplicationProject => AegisClient.ClientInfo.Project;
 
         /// <summary>
         ///     <see cref="AegisVersion" /> is the version of the Aegis in
         ///     which the error occurred.
         /// </summary>
         [JilDirective(Name = "aegisVersion")]
-        public string AegisVersion => AegisClient.AegisVersion;
+        public string AegisVersion => AegisClient.ClientInfo.AegisVersion;
 
         /// <summary>
         ///     <see cref="TimeStamp" /> is the UTC time at which the error occurred,
@@ -740,6 +740,6 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     the application is running.
         /// </summary>
         [JilDirective(Name = "machineName")]
-        public string MachineName => AegisClient.ClientMachineName;
+        public string MachineName => AegisClient.ClientInfo.MachineName;
     }
 }

@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -690,13 +691,10 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class AegisServiceClientTests
     {
-        private const string ClientName = "unit-test-client-name";
-        private const string ClientId = "unit-test-client-id";
-        private const string ClientVer = "111.0.333.41";
-        private const string ClientMachine = "unit-test-machine";
-        private const string ClientEnvironment = "unit-test-environment";
-        private const string ClientProject = "unit-test-project";
-        private const string AegisVer = "1.2.3.4.5";
+        private readonly ClientInfo clientInfo = new ClientInfo()
+        {
+            Environment = "unit-test-env", Name = "unit-test-name", Project = "unit-test-project", Version = "unit-test-version"
+        };
 
         [TestMethod]
         public void GetBlackList()
@@ -725,13 +723,7 @@ namespace Aegis.Pumps.Tests
             List<BlackListItem> resultData;
             DateTimeOffset? resultTimeStamp;
             mock.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                this.clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -742,15 +734,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(data.Count, resultData.Count);
             Assert.AreEqual(testUri, mock.MockInUri.Host);
 
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            this.CheckStandardUriParameter(mock.MockInUri.Query);
         }
 
         [TestMethod]
@@ -777,13 +761,7 @@ namespace Aegis.Pumps.Tests
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
             mock.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -800,15 +778,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.AreEqual(testUri, mock.MockInUri.Host);
 
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            var uriParams = this.CheckStandardUriParameter(mock.MockInUri.Query);
             Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
 
@@ -840,13 +810,7 @@ namespace Aegis.Pumps.Tests
             SettingsOnlineData resultData;
             DateTimeOffset? resultTimeStamp;
             mock.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -863,15 +827,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.AreEqual(testUri, mock.MockInUri.Host);
 
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            var uriParams = this.CheckStandardUriParameter(mock.MockInUri.Query);
             Assert.IsFalse(string.IsNullOrWhiteSpace(uriParams[AegisServiceClient.ParameterNames.SettingsKey]));
         }
 
@@ -895,13 +851,7 @@ namespace Aegis.Pumps.Tests
             var settingsOnline = new SettingsOnlineClient();
 
             mock.SendAegisEvents(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 testItems,
@@ -910,15 +860,7 @@ namespace Aegis.Pumps.Tests
 
             Assert.AreEqual(testUri, mock.MockInUri.Host);
 
-            var uriParams = HttpUtility.ParseQueryString(mock.MockInUri.Query);
-            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
-
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], ClientName);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], ClientId);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], ClientVer);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], ClientMachine);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], ClientEnvironment);
-            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], AegisVer);
+            var uriParams = this.CheckStandardUriParameter(mock.MockInUri.Query);
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountInRequest], testItems.Count.ToString());
             Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.CountAll], testAllItemsCount.ToString());
         }
@@ -960,13 +902,7 @@ namespace Aegis.Pumps.Tests
             var stopWatch = Stopwatch.StartNew();
 
             self.SendAegisEvents(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 new List<AegisBaseEvent>(events),
@@ -989,13 +925,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -1019,13 +949,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -1040,13 +964,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp2;
 
             var result2 = self.GetBlackListData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 timeStamp,
@@ -1071,13 +989,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetBlackListDataV2(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -1093,13 +1005,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp2;
 
             var result2 = self.GetBlackListDataV2(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 timeStamp,
@@ -1124,13 +1030,7 @@ namespace Aegis.Pumps.Tests
             DateTimeOffset? timeStamp;
 
             var result = self.GetSettingsOnlineData(
-                ClientName,
-                ClientId,
-                ClientVer,
-                ClientMachine,
-                ClientEnvironment,
-                ClientProject,
-                AegisVer,
+                clientInfo,
                 settings,
                 settingsOnline,
                 null,
@@ -1138,6 +1038,21 @@ namespace Aegis.Pumps.Tests
                 out timeStamp);
 
             Assert.IsTrue(result);
+        }
+
+        private NameValueCollection CheckStandardUriParameter(string query)
+        {
+            var uriParams = HttpUtility.ParseQueryString(query);
+            Assert.AreEqual(uriParams.AllKeys.Distinct().Count(), uriParams.AllKeys.Length);
+
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientName], this.clientInfo.Name);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientId], this.clientInfo.Id);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientVersion], this.clientInfo.Version);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientMachineName], this.clientInfo.MachineName);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientEnvironment], this.clientInfo.Environment);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.ClientProject], this.clientInfo.Project);
+            Assert.AreEqual(uriParams[AegisServiceClient.ParameterNames.AegisVersion], this.clientInfo.AegisVersion);
+            return uriParams;
         }
     }
 }

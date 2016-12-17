@@ -779,13 +779,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 DateTimeOffset? newTimeStamp;
 
                 var isUpdated = this.aegisServiceClient.GetSettingsOnlineData(
-                    AegisClient.ClientName,
-                    AegisClient.ClientId,
-                    AegisClient.ClientVersion,
-                    AegisClient.ClientMachineName,
-                    AegisClient.ClientEnvironment,
-                    AegisClient.ClientProject,
-                    AegisClient.AegisVersion,
+                    AegisClient.ClientInfo,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     this.ClientInstance.SettingsOnline.TimeStamp,

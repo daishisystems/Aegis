@@ -795,13 +795,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 var isCompressionEnabled = this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.EventsPostCompression);
 
                 this.aegisServiceClient.SendAegisEvents(
-                    AegisClient.ClientName,
-                    AegisClient.ClientId,
-                    AegisClient.ClientVersion,
-                    AegisClient.ClientMachineName,
-                    AegisClient.ClientEnvironment,
-                    AegisClient.ClientProject,
-                    AegisClient.AegisVersion,
+                    AegisClient.ClientInfo,
                     this.ClientInstance.Settings,
                     this.ClientInstance.SettingsOnline,
                     items,

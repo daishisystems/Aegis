@@ -751,13 +751,7 @@ namespace Aegis.Pumps.SchedulerJobs
             DateTimeOffset? newTimeStamp;
 
             var isUpdated = this.aegisServiceClient.GetBlackListData(
-                AegisClient.ClientName,
-                AegisClient.ClientId,
-                AegisClient.ClientVersion,
-                AegisClient.ClientMachineName,
-                AegisClient.ClientEnvironment,
-                AegisClient.ClientProject,
-                AegisClient.AegisVersion,
+                AegisClient.ClientInfo,
                 this.ClientInstance.Settings,
                 this.ClientInstance.SettingsOnline,
                 this.ClientInstance.BlackList.TimeStamp,
@@ -786,13 +780,7 @@ namespace Aegis.Pumps.SchedulerJobs
             DateTimeOffset? newTimeStamp;
 
             var isUpdated = this.aegisServiceClient.GetBlackListDataV2(
-                AegisClient.ClientName,
-                AegisClient.ClientId,
-                AegisClient.ClientVersion,
-                AegisClient.ClientMachineName,
-                AegisClient.ClientEnvironment,
-                AegisClient.ClientProject,
-                AegisClient.AegisVersion,
+                AegisClient.ClientInfo,
                 this.ClientInstance.Settings,
                 this.ClientInstance.SettingsOnline,
                 this.ClientInstance.BlackList.TimeStamp,

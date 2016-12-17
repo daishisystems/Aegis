@@ -718,13 +718,7 @@ namespace Aegis.Pumps
         }
 
         public bool GetBlackListData(
-            string clientName,
-            string clientId,
-            string clientVersion,
-            string clientMachineName,
-            string clientEnvironment,
-            string clientProject,
-            string aegisVersion,
+            ClientInfo clientInfo,
             Settings settings,
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
@@ -739,13 +733,13 @@ namespace Aegis.Pumps
                 ServiceNames.Blacklist,
                 new Dictionary<string, string>()
                     {
-                        { ParameterNames.ClientName, clientName },
-                        { ParameterNames.ClientId, clientId },
-                        { ParameterNames.ClientVersion, clientVersion },
-                        { ParameterNames.ClientMachineName, clientMachineName },
-                        { ParameterNames.ClientEnvironment, clientEnvironment },
-                        { ParameterNames.ClientProject, clientProject },
-                        { ParameterNames.AegisVersion, aegisVersion },
+                        { ParameterNames.ClientName, clientInfo.Name },
+                        { ParameterNames.ClientId, clientInfo.Id },
+                        { ParameterNames.ClientVersion, clientInfo.Version },
+                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
+                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
+                        { ParameterNames.ClientProject, clientInfo.Project },
+                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
                     });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(
@@ -775,13 +769,7 @@ namespace Aegis.Pumps
         }
 
         public bool GetBlackListDataV2(
-            string clientName,
-            string clientId,
-            string clientVersion,
-            string clientMachineName,
-            string clientEnvironment,
-            string clientProject,
-            string aegisVersion,
+            ClientInfo clientInfo,
             Settings settings,
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
@@ -792,13 +780,13 @@ namespace Aegis.Pumps
             data = null;
             var uriParameters = new Dictionary<string, string>()
                     {
-                        { ParameterNames.ClientName, clientName },
-                        { ParameterNames.ClientId, clientId },
-                        { ParameterNames.ClientVersion, clientVersion },
-                        { ParameterNames.ClientMachineName, clientMachineName },
-                        { ParameterNames.ClientEnvironment, clientEnvironment },
-                        { ParameterNames.ClientProject, clientProject },
-                        { ParameterNames.AegisVersion, aegisVersion }
+                        { ParameterNames.ClientName, clientInfo.Name },
+                        { ParameterNames.ClientId, clientInfo.Id },
+                        { ParameterNames.ClientVersion, clientInfo.Version },
+                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
+                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
+                        { ParameterNames.ClientProject, clientInfo.Project },
+                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
                     };
 
             if (versionStamps != null && versionStamps.Count > 0)
@@ -840,13 +828,7 @@ namespace Aegis.Pumps
         }
 
         public bool GetSettingsOnlineData(
-            string clientName,
-            string clientId,
-            string clientVersion,
-            string clientMachineName,
-            string clientEnvironment,
-            string clientProject,
-            string aegisVersion,
+            ClientInfo clientInfo,
             Settings settings,
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
@@ -856,7 +838,7 @@ namespace Aegis.Pumps
         {
             data = null;
 
-            var keyValue = $"{settings.AegisServiceSettingsOnlineKey}-{clientName}";
+            var keyValue = $"{settings.AegisServiceSettingsOnlineKey}-{clientInfo.Name}";
 
             var uriService = this.CreateUri(
                 settings,
@@ -865,13 +847,13 @@ namespace Aegis.Pumps
                 new Dictionary<string, string>()
                     {
                         { ParameterNames.SettingsKey, keyValue },
-                        { ParameterNames.ClientName, clientName },
-                        { ParameterNames.ClientId, clientId },
-                        { ParameterNames.ClientVersion, clientVersion },
-                        { ParameterNames.ClientMachineName, clientMachineName },
-                        { ParameterNames.ClientEnvironment, clientEnvironment },
-                        { ParameterNames.ClientProject, clientProject },
-                        { ParameterNames.AegisVersion, aegisVersion }
+                        { ParameterNames.ClientName, clientInfo.Name },
+                        { ParameterNames.ClientId, clientInfo.Id },
+                        { ParameterNames.ClientVersion, clientInfo.Version },
+                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
+                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
+                        { ParameterNames.ClientProject, clientInfo.Project },
+                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
                     },
                 forcedAegisServiceUri);
 
@@ -906,13 +888,7 @@ namespace Aegis.Pumps
         }
 
         public void SendAegisEvents(
-            string clientName,
-            string clientId,
-            string clientVersion,
-            string clientMachineName,
-            string clientEnvironment,
-            string clientProject,
-            string aegisVersion,
+            ClientInfo clientInfo,
             Settings settings,
             SettingsOnlineClient settingsOnline,
             List<AegisBaseEvent> items,
@@ -925,13 +901,13 @@ namespace Aegis.Pumps
                 ServiceNames.AegisEvents,
                 new Dictionary<string, string>()
                     {
-                        { ParameterNames.ClientName, clientName },
-                        { ParameterNames.ClientId, clientId },
-                        { ParameterNames.ClientVersion, clientVersion },
-                        { ParameterNames.ClientMachineName, clientMachineName },
-                        { ParameterNames.ClientEnvironment, clientEnvironment },
-                        { ParameterNames.ClientProject, clientProject },
-                        { ParameterNames.AegisVersion, aegisVersion },
+                        { ParameterNames.ClientName, clientInfo.Name },
+                        { ParameterNames.ClientId, clientInfo.Id },
+                        { ParameterNames.ClientVersion, clientInfo.Version },
+                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
+                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
+                        { ParameterNames.ClientProject, clientInfo.Project },
+                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
                         { ParameterNames.CountInRequest, items.Count.ToString() },
                         { ParameterNames.CountAll, allItemsCount.ToString() }
                     });

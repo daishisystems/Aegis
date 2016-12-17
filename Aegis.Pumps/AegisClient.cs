@@ -677,8 +677,6 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Threading;
 using Daishi.NewRelic.Insights;
 using Aegis.Core;
 using Aegis.Pumps.Actions;
@@ -693,13 +691,7 @@ namespace Aegis.Pumps
         private static volatile AegisClient instanceClient;
 
         public static AegisClient Instance => instanceClient;
-        public static string ClientName { get; private set; }
-        public static string ClientId { get; private set; }
-        public static string ClientVersion { get; private set; }
-        public static string ClientMachineName { get; private set; }
-        public static string ClientEnvironment { get; private set; }
-        public static string ClientProject { get; private set; }
-        public static string AegisVersion { get; private set; }
+        public static readonly ClientInfo ClientInfo = new ClientInfo();
         public static DateTimeOffset InitializationTime { get; private set; }
 
         public static bool IsInitialised => Instance != null;
@@ -780,33 +772,15 @@ namespace Aegis.Pumps
             lock (lockInit)
             {
                 InitializationTime = DateTimeOffset.UtcNow;
-                AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
-                // TODO set to none/unknown if parameter is empty or null
-                ClientName = string.Empty;
-                ClientId = string.Empty;
-                ClientVersion = string.Empty;
-                ClientMachineName = string.Empty;
-                ClientEnvironment = string.Empty;
-                ClientProject = string.Empty;
-
+              
                 // set safely names
                 try
                 {
-                    ClientName = Uri.EscapeDataString(clientName?.ToLowerInvariant().Trim() ?? Guid.NewGuid().ToString("N"));
-                    ClientVersion = Uri.EscapeDataString(clientVersion?.ToLowerInvariant().Trim() ?? string.Empty);
-                    ClientMachineName = Uri.EscapeDataString($"UNKNOWN-{Guid.NewGuid().ToString("N")}");
-                    ClientEnvironment = Uri.EscapeDataString(clientEnvironment?.ToUpperInvariant() ?? string.Empty);
-                    ClientProject = Uri.EscapeDataString(clientProject?.ToLowerInvariant().Trim() ?? string.Empty);
-
-                    // set ClientUniqueId with an unique id to recognize many instances
-                    ClientId = GenerateClientId();
-
-                    // set machine name if available
-                    var machineName = Environment.MachineName;
-                    if (!string.IsNullOrWhiteSpace(machineName))
-                    {
-                        ClientMachineName = Uri.EscapeDataString(machineName);
-                    }
+                    ClientInfo.SetUp();
+                    ClientInfo.Name = clientName;
+                    ClientInfo.Version = clientVersion;
+                    ClientInfo.Environment = clientEnvironment;
+                    ClientInfo.Project = clientProject;
                 }
                 catch (Exception exception)
                 {
@@ -1044,23 +1018,6 @@ namespace Aegis.Pumps
 
             // start scheduled tasks
             Instance.Scheduler.Initialise(Instance, true, settings.IsJobSchedulingDisabled);
-        }
-
-        private static string GenerateClientId()
-        {
-            Thread.Sleep(1);
-
-            var guidStr = Guid.NewGuid().ToString("N");
-            var processStr = Process.GetCurrentProcess().Id.ToString("x6");
-            var threadStr = Thread.CurrentThread.ManagedThreadId.ToString("x4");
-            var timeStr = DateTime.UtcNow.Ticks.ToString("x4");
-
-            var finalStr = guidStr.Substring(guidStr.Length - 4, 4) + "-" +
-                           processStr.Substring(processStr.Length - 4, 4) + "-" +
-                           threadStr.Substring(threadStr.Length - 2, 2) + "-" +
-                           timeStr.Substring(timeStr.Length - 2, 2);
-
-            return Uri.EscapeDataString(finalStr);
         }
     }
 }
