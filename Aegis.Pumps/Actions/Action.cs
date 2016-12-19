@@ -770,18 +770,6 @@ namespace Aegis.Pumps.Actions
                                     v.Substring(0, Math.Max(lengthLimit - CutPostfix.Length, 0)) + CutPostfix).ToList());
         }
 
-        protected Dictionary<string, List<string>> GetAllHttpHeaders(
-            HttpHeaders headers,
-            string allowedPrefix,
-            int lengthLimit)
-        {
-            return headers?.Where(x => x.Key.StartsWith(allowedPrefix, StringComparison.OrdinalIgnoreCase)).ToDictionary(
-                x => x.Key,
-                x => x.Value.Select(v => v.Length <= lengthLimit ?
-                                    v :
-                                    v.Substring(0, Math.Max(lengthLimit - CutPostfix.Length, 0)) + CutPostfix).ToList());
-        }
-
         protected string GetHttpHeaderValue(string headerName, NameValueCollection headers)
         {
             var values = headers.GetValues(headerName);

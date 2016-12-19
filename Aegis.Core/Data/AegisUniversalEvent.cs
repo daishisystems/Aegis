@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System.Collections.Generic;
 using Jil;
 
 namespace Aegis.Core.Data
@@ -682,6 +683,13 @@ namespace Aegis.Core.Data
     public class AegisUniversalEvent : AegisBaseIpEvent
     {
         public override string EventType { get; set; }
+
+        [JilDirective(Name = "iex")]
+        public bool? IsOutputException { get; set; }
+
+        /// <summary>Headers in HTTP response</summary>
+        [JilDirective(Name = "hpHeadersRsp")]
+        public Dictionary<string, List<string>> HttpHeadersResponse { get; set; }
 
         [JilDirective(Name = "d")]
         public string Data { get; set; }

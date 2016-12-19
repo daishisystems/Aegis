@@ -1048,6 +1048,7 @@ namespace Aegis.Pumps.Actions
             string actionName,
             object data,
             bool isOutput = false,
+            bool isOutputException = false,
             HttpHeaders responseHeaders = null)
         {
             string dataStr = null;
@@ -1066,7 +1067,6 @@ namespace Aegis.Pumps.Actions
                     eventNameFinal,
                     this.ipHeaderNames,
                     requestHeaders,
-                    responseHeaders,
                     requestUri,
                     httpMethod,
                     controllerName,
@@ -1075,7 +1075,9 @@ namespace Aegis.Pumps.Actions
                     {
                         EventType = eventNameFinal,
                         DataKey = dataKey,
-                        DataRaw = dataStr
+                        DataRaw = dataStr,
+                        IsOutputException = isOutputException ? true : (bool?)null,
+                        HttpHeadersResponse = ActionsUtils.GetAllHttpHeaders(responseHeaders, "X-", 256)
                     });
         }
 
@@ -1088,6 +1090,7 @@ namespace Aegis.Pumps.Actions
             string actionName,
             object data,
             bool isOutput = false,
+            bool isOutputException = false,
             HttpHeaders responseHeaders = null)
         {
             return this.ProcessEvent(
@@ -1099,6 +1102,7 @@ namespace Aegis.Pumps.Actions
                 actionName,
                 data,
                 isOutput,
+                isOutputException,
                 responseHeaders);
         }
     }

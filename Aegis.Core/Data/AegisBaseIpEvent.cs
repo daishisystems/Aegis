@@ -721,10 +721,6 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "hpHeadersRst")]
         public Dictionary<string, List<string>> HttpHeadersRest { get; set; }
 
-        /// <summary>Headers in HTTP response</summary>
-        [JilDirective(Name = "hpHeadersRsp")]
-        public Dictionary<string, List<string>> HttpHeadersResponse { get; set; }
-
         public override string ToString()
         {
             return $"Event '{this.EventType}' with IP address '{this.IpAddress}' from '{this.ApplicationMachineName}' in '{this.ApplicationEnvironment}'";

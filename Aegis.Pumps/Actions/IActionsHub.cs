@@ -695,6 +695,7 @@ namespace Aegis.Pumps.Actions
             string actionName,
             object data,
             bool isOutput = false,
+            bool isOutputException = false,
             HttpHeaders responseHeaders = null);
 
         bool ProcessEvent(
@@ -706,6 +707,7 @@ namespace Aegis.Pumps.Actions
             string actionName,
             object data,
             bool isOutput = false,
+            bool isOutputException = false,
             HttpHeaders responseHeaders = null);
     }
 }
