@@ -1192,6 +1192,15 @@ namespace Aegis.Pumps.Tests
                     Assert.IsTrue(evntbaseIp.HttpHeadersRest.Count > 0, evntbaseIp.EventType);
                 }
 
+                var evntUnivesal = evnt as AegisUniversalEvent;
+                if (evntUnivesal != null)
+                {
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntUnivesal.EventType), evntUnivesal.EventType);
+                    Assert.IsFalse(evntUnivesal.IsDataRawProcessed, evntUnivesal.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntUnivesal.DataKey), evntUnivesal.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntUnivesal.DataRaw), evntUnivesal.EventType);
+                }
+
                 var paymentEvents = new[] 
                 {
                     AegisBaseEvent.EventTypes.Payment,
@@ -1310,6 +1319,8 @@ namespace Aegis.Pumps.Tests
                                                                 "controller", "action", new object[] { "aaa", "bbbb","ccc"}),
                 () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
                                                                 "controller", "action", new object[] { "zzz", "eeebbbb","cccfff"}),
+                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
+                                                                "controller2", "action2", new  { a = "zzz", b = 7, c = new { d = "aaa"} }),
             };
 
             return new[]
