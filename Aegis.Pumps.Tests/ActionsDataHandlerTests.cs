@@ -713,6 +713,15 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
+        public void CheckDuplicatedFields()
+        {
+            var testObj = new { phone = 7, mail = "bag", accountname = new { phone = 14, mail = "muuu", accountname = "zzzz", d = "ooo" } };
+
+            var self = new ActionsDataHandler();
+            this.DoTest(self, testObj, "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"X$DEL$X\",\"mail\":\"unknown$vOb8qbFEtb6+QEesCBa+x5eqgX7sav1Hqxssdi93HQA=\"},\"mail\":\"unknown$wBgBm2qLAatYaM9L6NsyenVJrgMgJUi5/80mccTCtiQ=\"}");
+        }
+
+        [TestMethod]
         public void CheckRemove()
         {
             var testObj1 = new { a = 7, BlaBlaExpirationBumBum = "bla", e = "bag" };

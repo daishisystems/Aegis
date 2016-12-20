@@ -742,7 +742,7 @@ namespace Aegis.Pumps.Actions
             var dataJson = JSON.SerializeDynamic(data, Options.IncludeInherited);
 
             // build dictionary of fields and theirs actions
-            var fields = GetAllFieldsFromJson(dataJson);
+            var fields = GetAllFieldsFromJson(dataJson).Distinct();
             var resultAction = new Dictionary<string, Func<AegisClient, string, string>>();
 
             foreach (var field in fields)
