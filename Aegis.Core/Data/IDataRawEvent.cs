@@ -679,120 +679,18 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    /// <summary>
-    ///     AegisBaseEvent represents a simple structure that is designed to encapsulate
-    ///     user-specific metadata that the Aegis platform can aggregate and process in
-    ///     order to identify patterns in traffic.
-    /// </summary>
-    public abstract class AegisBaseEvent
+    public interface IDataRawEvent
     {
-        public static class EventTypes
-        {
-            public const string Availability = "availability";
-            public const string Bag = "bag";
-            public const string Blacklist = "blacklist";
-            public const string Booking = "booking";
-            public const string Calendar = "calendar";
-            public const string Configurations = "configurations";
-            public const string Dcc = "dcc";
-            public const string Extras = "extras";
-            public const string Fast = "fast";
-            public const string Fees = "fees";
-            public const string Flight = "flight";
-            public const string Payment = "payment";
-            public const string Payment2 = "payment2";
-            public const string Payment3 = "payment3";
-            public const string PaymentMethods = "paymentMethods";
-            public const string Price = "price";
-            public const string QuickAdd = "quickAdd";
-            public const string Refresh = "refresh";
-            public const string Resource = "resource";
-            public const string Seat = "seat";
-            public const string PromoCodes = "promoCodes";
-            public const string HttpOptions = "httpOptions";
+        [JilDirective(Name = "d")]
+        string Data { get; set; }
 
-            // Mdot events
-            public const string MdotAccount = "mdotAccount";
-            public const string MdotAccountLogIn = "mdotAccountLogIn";
-            public const string MdotAccountSignUp = "mdotAccountSignUp";
-            public const string MdotAvailability = "mdotAvailability";
-            public const string MdotBag = "mdotBag";
-            public const string MdotBooking = "mdotBooking";
-            public const string MdotCheckout = "mdotCheckout";
-            public const string MdotFast = "mdotFast";
-            public const string MdotFlight = "mdotFlight";
-            public const string MdotPayment = "mdotPayment";
-            public const string MdotPaymentPrepareForPay = "mdotPaymentPrepareForPay";
-            public const string MdotPaymentPay = "mdotPaymentPay";
-            public const string MdotPaymentPayIn = "mdotPaymentPayIn";
-            public const string MdotPriceBreakdown = "mdotPriceBreakdown";
-            public const string MdotSeat = "mdotSeat";
+        [JilDirective(Ignore = true)]
+        string DataKey { get; set; }
 
-            public static string GetInputEventName(string name)
-            {
-                return name;
-            }
+        [JilDirective(Ignore = true)]
+        string DataRaw { get; set; }
 
-            public static string GetOutputEventName(string name)
-            {
-                return $"{name}-out";
-            }
-        }
-
-        [JilDirective(Name = "e")]
-        public abstract string EventType { get; set; }
-
-        /// <summary>Time is a string-based translation of the event time.</summary>
-        /// <remarks>It is recommended to translate times to ISO 8601 format.</remarks>
-        [JilDirective(Name = "t")]
-        public string Time { get; set; }
-
-        /// <summary>
-        ///     <see cref="ApplicationName" /> is the friendly name of the application in
-        ///     which the error occurred.
-        /// </summary>
-        [JilDirective(Name = "appN")]
-        public string ApplicationName { get; set; }
-
-        [JilDirective(Name = "appI")]
-        public string ApplicationId { get; set; }
-
-        /// <summary>
-        ///     <see cref="ApplicationVersion" /> is the friendly name of the application in
-        ///     which the error occurred.
-        /// </summary>
-        [JilDirective(Name = "appV")]
-        public string ApplicationVersion { get; set; }
-
-        [JilDirective(Name = "appM")]
-        public string ApplicationMachineName { get; set; }
-
-        [JilDirective(Name = "appE")]
-        public string ApplicationEnvironment { get; set; }
-
-        [JilDirective(Name = "appP")]
-        public string ApplicationProject { get; set; }
-
-        [JilDirective(Name = "appC")]
-        public string ApplicationControllerName { get; set; }
-
-        [JilDirective(Name = "appA")]
-        public string ApplicationActionName { get; set; }
-
-        /// <summary>
-        ///     <see cref="AegisVersion" /> is the version of the Aegis
-        /// </summary>
-        [JilDirective(Name = "aegisV")]
-        public string AegisVersion { get; set; }
-
-        public override string ToString()
-        {
-            return $"Event '{this.EventType}' from '{this.ApplicationMachineName}' in '{this.ApplicationEnvironment}'";
-        }
-
-        public virtual IDataRawEvent GetIDataRawEvent()
-        {
-            return null;
-        }
+        [JilDirective(Ignore = true)]
+        bool IsDataRawProcessed { get; set; }
     }
 }

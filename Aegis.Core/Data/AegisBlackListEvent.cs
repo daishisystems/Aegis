@@ -679,7 +679,7 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisBlackListEvent : AegisBaseIpEvent
+    public class AegisBlackListEvent : AegisBaseIpEvent, IDataRawEvent
     {
         public override string EventType
         {
@@ -696,11 +696,24 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "isS")]
         public bool IsSimulated { get; set; }
 
-        /// <summary>
-        ///     Country of the black-listed IP address that has attempted
-        ///     access.
-        /// </summary>
         [JilDirective(Name = "c")]
         public string Country { get; set; }
+
+        [JilDirective(Name = "d")]
+        public string Data { get; set; }
+
+        [JilDirective(Ignore = true)]
+        public string DataKey { get; set; }
+
+        [JilDirective(Ignore = true)]
+        public string DataRaw { get; set; }
+
+        [JilDirective(Ignore = true)]
+        public bool IsDataRawProcessed { get; set; }
+
+        public override IDataRawEvent GetIDataRawEvent()
+        {
+            return this;
+        }
     }
 }

@@ -680,7 +680,7 @@ using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class AegisUniversalEvent : AegisBaseIpEvent
+    public class AegisUniversalEvent : AegisBaseIpEvent, IDataRawEvent
     {
         public override string EventType { get; set; }
 
@@ -702,5 +702,10 @@ namespace Aegis.Core.Data
 
         [JilDirective(Ignore = true)]
         public bool IsDataRawProcessed { get; set; }
+
+        public override IDataRawEvent GetIDataRawEvent()
+        {
+            return this;
+        }
     }
 }

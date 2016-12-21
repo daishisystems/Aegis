@@ -839,7 +839,8 @@ namespace Aegis.Pumps.Tests
                                 {
                                     new AegisAvailabilityEvent(),
                                     new AegisBagEvent(),
-                                    new AegisCalendarEvent()
+                                    new AegisCalendarEvent(),
+                                    new AegisUniversalEvent() { EventType = AegisBaseEvent.EventTypes.Availability }
                                 };
 
             // create mock object
@@ -879,7 +880,8 @@ namespace Aegis.Pumps.Tests
                 new AegisBagEvent(),
                 new AegisConfigurationsEvent(),
                 new AegisAvailabilityEvent(),
-                new AegisAvailabilityEvent()
+                new AegisAvailabilityEvent(),
+                new AegisUniversalEvent() { EventType = AegisBaseEvent.EventTypes.Availability }
             };
 
             foreach (var ev in events)

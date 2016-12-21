@@ -774,21 +774,21 @@ namespace Aegis.Pumps.SchedulerJobs
                     return true;
                 }
 
-                // process universal events
+                // process data raw events
                 foreach (var item in items)
                 {
-                    var itemUniversal = item as AegisUniversalEvent;
-                    if (itemUniversal == null || itemUniversal.IsDataRawProcessed == true)
+                    var itemDataRaw = item.GetIDataRawEvent();
+                    if (itemDataRaw == null || itemDataRaw.IsDataRawProcessed)
                     {
                         continue;
                     }
 
-                    itemUniversal.Data = this.ClientInstance.ActionsDataHandler.ProcessData(
+                    itemDataRaw.Data = this.ClientInstance.ActionsDataHandler.ProcessData(
                         this.ClientInstance,
-                        itemUniversal.DataKey,
-                        itemUniversal.DataRaw);
+                        itemDataRaw.DataKey,
+                        itemDataRaw.DataRaw);
 
-                    itemUniversal.IsDataRawProcessed = true;
+                    itemDataRaw.IsDataRawProcessed = true;
                 }
 
                 // send

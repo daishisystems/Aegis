@@ -684,7 +684,7 @@ using Aegis.Core.Data;
 namespace Aegis.Pumps.Actions
 {
     public class ActionIpEventNotify<T> : Action 
-        where T : AegisBaseIpEvent
+        where T : AegisUniversalEvent
     {
         private readonly bool isBlockingMechanismEnabled;
         private readonly HashSet<string> ignoredHttpHeaders = new HashSet<string>()
@@ -768,7 +768,6 @@ namespace Aegis.Pumps.Actions
             }
 
             // get common data
-            // TODO add X-AUTH-TOKEN header?
             httpMethod = httpMethod?.ToLowerInvariant();
             var groupId = CryptUtils.ComputeGroupId(ipAddresses);
             var currentTime = DateTime.UtcNow;
@@ -791,9 +790,11 @@ namespace Aegis.Pumps.Actions
                 }
 
                 // run notification part
+                T evnt = null;
+
                 if (!isNotificationSettingsDisabled)
                 {
-                    this.DoRunNotification(
+                    evnt = this.DoRunNotification(
                         eventTypeName,
                         expId,
                         ipAddress.ToString(),
@@ -815,6 +816,7 @@ namespace Aegis.Pumps.Actions
                 if (this.isBlockingMechanismEnabled && isBlockingSettingsEnabled)
                 {
                     isBlocked |= this.DoRunBlocking(
+                                            evnt,
                                             eventTypeName,
                                             expId,
                                             ipAddress.ToString(),
@@ -835,7 +837,7 @@ namespace Aegis.Pumps.Actions
             return isBlocked;
         }
 
-        private void DoRunNotification(
+        private T DoRunNotification(
             string eventTypeName,
             int? expId,
             string ipAddressString,
@@ -882,11 +884,15 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicClient,
                     eventTypeName,
                     null,
-                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
+                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}",
+                    true);
             }
+
+            return evnt;
         }
 
         private bool DoRunBlocking(
+            T evnt,
             string eventTypeName,
             int? expId,
             string ipAddressString,
@@ -943,7 +949,6 @@ namespace Aegis.Pumps.Actions
 
             // log the malicious event to NewRelic
             // TODO use currentTime variable in this newrelic event
-            // TODO blacklist event - include payment info if available?
             var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
             {
                 SourceEventType = eventTypeName,
@@ -960,8 +965,7 @@ namespace Aegis.Pumps.Actions
             this.Client.NewRelicClient.AddNewRelicInsightEvent(ipBlackListEvent);
 
             // send blacklisted ip to the service
-            // TODO blacklist event - include payment info if available?
-            var ipBlackListAegisEvent = new AegisBlackListEvent()
+            var ipBlackListAegisEvent = new AegisBlackListEvent
             {
                 ApplicationName = AegisClient.ClientInfo.Name,
                 ApplicationId = AegisClient.ClientInfo.Id,
@@ -986,9 +990,12 @@ namespace Aegis.Pumps.Actions
                 HttpSessionToken = httpSessionToken,
                 HttpHeadersRest = httpHeadersRest,
                 HttpPath = requestUri.PathAndQuery,
-                Time = currentTime.ToString("O")
+                Time = currentTime.ToString("O"),
+                DataKey = evnt.DataKey,
+                DataRaw = evnt.DataRaw
             };
 
+            // add to memory cache
             var isCacheFull = this.Client.AegisEventCache.Add(ipBlackListAegisEvent);
             if (isCacheFull)
             {
@@ -996,7 +1003,8 @@ namespace Aegis.Pumps.Actions
                     this.Client.NewRelicClient,
                     eventTypeName,
                     null,
-                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}");
+                    $"AegisEventCache is full! Number of items is {this.Client.AegisEventCache.Count()}",
+                    true);
             }
 
             // return info whether to block or not
