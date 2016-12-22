@@ -689,6 +689,7 @@ namespace Aegis.Pumps.Actions
     public abstract class Action
     {
         protected const string CutPostfix = "[CUT]";
+        protected const string HeaderSeparator = "|";
         protected readonly AegisClient Client;
 
         protected Action(AegisClient client)
@@ -778,7 +779,7 @@ namespace Aegis.Pumps.Actions
                 return null;
             }
 
-            return string.Join(";", values);
+            return string.Join(HeaderSeparator, values);
         }
 
         protected string GetHttpHeaderValue(string headerName, HttpHeaders headers, int lengthLimit = 0)
@@ -789,7 +790,7 @@ namespace Aegis.Pumps.Actions
                 return null;
             }
 
-            var result = string.Join(";", values);
+            var result = string.Join(HeaderSeparator, values);
             if (lengthLimit > 0 && result.Length > lengthLimit)
             {
                 return result.Substring(0, Math.Max(lengthLimit - CutPostfix.Length, 0)) + CutPostfix;
