@@ -677,6 +677,7 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -723,7 +724,8 @@ namespace Aegis.Pumps
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
             out List<BlackListItem> data,
-            out DateTimeOffset? timeStamp)
+            out DateTimeOffset? timeStamp,
+            out long? connectionTime)
         {
             data = null;
 
@@ -732,15 +734,15 @@ namespace Aegis.Pumps
                 settingsOnline,
                 ServiceNames.Blacklist,
                 new Dictionary<string, string>()
-                    {
-                        { ParameterNames.ClientName, clientInfo.Name },
-                        { ParameterNames.ClientId, clientInfo.Id },
-                        { ParameterNames.ClientVersion, clientInfo.Version },
-                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
-                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
-                        { ParameterNames.ClientProject, clientInfo.Project },
-                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
-                    });
+                {
+                    {ParameterNames.ClientName, clientInfo.Name},
+                    {ParameterNames.ClientId, clientInfo.Id},
+                    {ParameterNames.ClientVersion, clientInfo.Version},
+                    {ParameterNames.ClientMachineName, clientInfo.MachineName},
+                    {ParameterNames.ClientEnvironment, clientInfo.Environment},
+                    {ParameterNames.ClientProject, clientInfo.Project},
+                    {ParameterNames.AegisVersion, clientInfo.AegisVersion},
+                });
 
             var httpRequestMetadata = this.CreateHttpRequestMetadata(
                 settings,
@@ -750,8 +752,20 @@ namespace Aegis.Pumps
 
             // get string data from service
             string dataString;
+            bool result;
+            var stopWatch = Stopwatch.StartNew();
 
-            if (!this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp))
+            try
+            {
+                result = this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp);
+            }
+            finally
+            {
+                stopWatch.Stop();
+                connectionTime = stopWatch.ElapsedMilliseconds;
+            }
+
+            if (!result)
             {
                 return false;
             }
@@ -775,19 +789,20 @@ namespace Aegis.Pumps
             DateTimeOffset? requestTimeStamp,
             List<uint> versionStamps,
             out List<BlackListSet> data,
-            out DateTimeOffset? timeStamp)
+            out DateTimeOffset? timeStamp,
+            out long? connectionTime)
         {
             data = null;
             var uriParameters = new Dictionary<string, string>()
-                    {
-                        { ParameterNames.ClientName, clientInfo.Name },
-                        { ParameterNames.ClientId, clientInfo.Id },
-                        { ParameterNames.ClientVersion, clientInfo.Version },
-                        { ParameterNames.ClientMachineName, clientInfo.MachineName },
-                        { ParameterNames.ClientEnvironment, clientInfo.Environment },
-                        { ParameterNames.ClientProject, clientInfo.Project },
-                        { ParameterNames.AegisVersion, clientInfo.AegisVersion },
-                    };
+            {
+                {ParameterNames.ClientName, clientInfo.Name},
+                {ParameterNames.ClientId, clientInfo.Id},
+                {ParameterNames.ClientVersion, clientInfo.Version},
+                {ParameterNames.ClientMachineName, clientInfo.MachineName},
+                {ParameterNames.ClientEnvironment, clientInfo.Environment},
+                {ParameterNames.ClientProject, clientInfo.Project},
+                {ParameterNames.AegisVersion, clientInfo.AegisVersion},
+            };
 
             if (versionStamps != null && versionStamps.Count > 0)
             {
@@ -809,8 +824,21 @@ namespace Aegis.Pumps
 
             // get string data from service
             string dataString;
+            bool result;
 
-            if (!this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp))
+            var stopWatch = Stopwatch.StartNew();
+
+            try
+            {
+                result = this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp);
+            }
+            finally 
+            {
+                stopWatch.Stop();
+                connectionTime = stopWatch.ElapsedMilliseconds;
+            }
+
+            if (!result)
             {
                 return false;
             }

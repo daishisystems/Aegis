@@ -797,7 +797,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             string componentName,
             Exception exception,
             string customExceptionMessage = null,
-            bool noDuplicateLastSent = false)
+            bool noDuplicateLastSent = false,
+            AegisErrorEvent customEvent = null)
         {
             try
             {
@@ -805,19 +806,11 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 ProcessNewRelicExceptions(newRelicInsightsClient);
 
                 // create event
-                var errMessage = customExceptionMessage ?? exception?.ToString();
-                if (customExceptionMessage != null && exception != null)
-                {
-                    errMessage = $"{customExceptionMessage}\n{exception}";
-                }
-
-                var newRelicInsightsAegisEvent =
-                    new AegisErrorEvent()
-                    {
-                        ComponentName = componentName,
-                        ErrorMessage = errMessage,
-                        InnerErrorMessage = exception?.InnerException?.ToString() ?? string.Empty
-                    };
+                var newRelicInsightsAegisEvent = customEvent ?? new AegisErrorEvent();
+                newRelicInsightsAegisEvent.ComponentName = componentName;
+                newRelicInsightsAegisEvent.Message = customExceptionMessage;
+                newRelicInsightsAegisEvent.ErrorMessage = exception?.ToString();
+                newRelicInsightsAegisEvent.InnerErrorMessage = exception?.InnerException?.ToString();
 
                 // add event
                 this.AddEvent(
@@ -827,6 +820,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                     noDuplicateLastSent,
                     this.GetMessageHash(
                         newRelicInsightsAegisEvent.ComponentName,
+                        newRelicInsightsAegisEvent.Message,
                         newRelicInsightsAegisEvent.ErrorMessage,
                         newRelicInsightsAegisEvent.InnerErrorMessage));
             }
@@ -903,9 +897,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             this.CleanOldLastSent(lastSent);
         }
 
-        private string GetMessageHash(string msg1, string msg2, string msg3 = null)
+        private string GetMessageHash(string msg1, string msg2, string msg3 = null, string msg4 = null)
         {
-            return $"{msg1}${msg2}${msg3}";
+            return $"{msg1}${msg2}${msg3}${msg4}";
         }
 
         private bool CheckLastSent(ConcurrentDictionary<string, DateTime> lastSent, string messageHash)

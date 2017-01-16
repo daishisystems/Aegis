@@ -685,6 +685,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     /// </summary>
     public class AegisErrorEvent : ClientEvent
     {
+        [JilDirective(Name = "message")]
+        public string Message { get; set; }
+
         /// <summary>
         ///     <see cref="ErrorMessage" /> is the friendly message pertaining to the
         ///     underlying <see cref="Exception" />.

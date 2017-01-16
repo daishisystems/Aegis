@@ -684,7 +684,7 @@ namespace Aegis.Pumps
         public static class Features
         {
             public const string BlackListDownloadV2 = "BlackListDownloadV2";
-            public const string EventsPostCompression = "EventsPostCompression";
+            public const string EventsPostCompressionDisabled = "EventsPostCompressionDisabled";
         }
 
         public SettingsOnlineData Data { get; private set; }

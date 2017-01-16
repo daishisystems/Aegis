@@ -677,7 +677,6 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
@@ -732,37 +731,13 @@ namespace Aegis.Pumps.SchedulerJobs
                 // get settings online data
                 this.GetSettingsOnlineData(null);
             }
-            catch (TaskCanceledException exception)
+            catch (Exception exception)
             {
-                // TODO if there is an error change scheduler to run this job faster
-                // rather than waiting standard interval time
-
                 if (this.IsShuttingDown)
                 {
                     return;
                 }
 
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
@@ -817,29 +792,13 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance.SettingsChangeNotification();
                 return true;
             }
-            catch (TaskCanceledException exception)
-            {
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,
-                        exception,
-                        "Request timeout.");
-                }
-            }
             catch (Exception exception)
             {
+                if (this.IsShuttingDown)
+                {
+                    return false;
+                }
+
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
                     NewRelicInsightsEvents.Utils.ComponentNames.JobGetSettingsOnline,

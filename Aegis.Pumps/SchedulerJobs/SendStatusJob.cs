@@ -676,9 +676,7 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Aegis.Core.Data;
 using Aegis.Pumps.NewRelicInsightsEvents;
 
 namespace Aegis.Pumps.SchedulerJobs
@@ -705,20 +703,19 @@ namespace Aegis.Pumps.SchedulerJobs
                 // TODO add counter - EventsSentConsqutieveFailure
                 // TODO total sent events, parse ip events error, number since last status?
 
-                var currentTime = DateTime.UtcNow;
-                var statusEvent = new AegisStatusEvent();
-                statusEvent.BlackListConsecutiveDownloadError = this.ClientInstance.Status.BlackListConsecutiveDownloadError;
-                statusEvent.BlackListItemsCount = this.ClientInstance.BlackList.GetItemsCount();
-                statusEvent.BlackListLastSucessfulCheck = this.GetElapsedTime(currentTime, this.ClientInstance.Status.BlackListLastSucessfulCheck);
-                statusEvent.BlackListTimeStamp = this.ClientInstance.BlackList.TimeStamp?.ToString("o");
+                //var currentTime = DateTime.UtcNow;
+                var statusEvent = this.ClientInstance.Status.CreatEvent();
 
-                statusEvent.AegisEventsCacheCount = this.ClientInstance.AegisEventCache.Count();
-                statusEvent.SettingsOnlineTimeStamp = this.ClientInstance.SettingsOnline.TimeStamp?.ToString("o");
+                this.ClientInstance.Status.FillEvent(
+                    statusEvent,
+                    this.ClientInstance.BlackList,
+                    this.ClientInstance.AegisEventCache,
+                    this.ClientInstance.SettingsOnline);
 
                 this.ClientInstance.NewRelicUtils.AddNotification(
                     this.ClientInstance.NewRelicClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
-                    $"Status: {currentTime.ToString("o")}",
+                    Utils.ComponentNames.JobSendStatus,
+                    $"Status: {DateTime.UtcNow:o}",
                     customEvent: statusEvent);
             }
             catch (Exception exception)
@@ -730,19 +727,9 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 this.ClientInstance.NewRelicUtils.AddException(
                 this.ClientInstance.NewRelicClient,
-                NewRelicInsightsEvents.Utils.ComponentNames.JobSendStatus,
+                Utils.ComponentNames.JobSendStatus,
                 exception);
             }
-        }
-
-        private int? GetElapsedTime(DateTimeOffset current, DateTimeOffset? time)
-        {
-            if (time == null)
-            {
-                return null;
-            }
-
-            return (int)current.Subtract(time.Value).TotalSeconds;
         }
     }
 }

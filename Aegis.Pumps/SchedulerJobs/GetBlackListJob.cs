@@ -677,8 +677,8 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Aegis.Core.Data;
+using Aegis.Pumps.NewRelicInsightsEvents;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
@@ -705,7 +705,6 @@ namespace Aegis.Pumps.SchedulerJobs
         {
             try
             {
-                // TODO GetBlackListJob - measure http requests time? same for all other requests?
                 // if job is disabled
                 if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
                 {
@@ -713,7 +712,9 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // run logic V2 if enabled
-                if (this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.BlackListDownloadV2))
+                if (
+                    this.ClientInstance.SettingsOnline.IsFeatureEnabled(
+                        SettingsOnlineClient.Features.BlackListDownloadV2))
                 {
                     this.ProcessBlackListV2();
                     return;
@@ -724,7 +725,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
             catch (Exception exception)
             {
-                if (this.IsShuttingDown && exception is TaskCanceledException)
+                if (this.IsShuttingDown)
                 {
                     return;
                 }
@@ -734,13 +735,22 @@ namespace Aegis.Pumps.SchedulerJobs
                     this.ClientInstance.Status.BlackListConsecutiveDownloadError++;
                 }
 
+                // create extended error
+                var evnt = new AegisErrorAndStatusEvent();
+
+                this.ClientInstance?.Status.FillEvent(
+                    evnt,
+                    this.ClientInstance.BlackList,
+                    this.ClientInstance.AegisEventCache,
+                    this.ClientInstance.SettingsOnline);
+
                 this.ClientInstance?.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobGetBlackList,
+                    Utils.ComponentNames.JobGetBlackList,
                     exception,
-                    $"consecutiveDownloadError={this.ClientInstance?.Status?.BlackListConsecutiveDownloadError} " +
-                    $"lastSucessfulCheck={this.ClientInstance?.Status?.BlackListLastSucessfulCheck?.ToString("O")} " +
-                    $"blacklistTimeStamp={this.ClientInstance?.BlackList?.TimeStamp?.ToString("O")}");
+                    "Failed to download blacklist",
+                    true,
+                    customEvent: evnt);
             }
         }
 
@@ -749,17 +759,32 @@ namespace Aegis.Pumps.SchedulerJobs
             // get blacklist data
             List<BlackListItem> blackListData;
             DateTimeOffset? newTimeStamp;
+            long? connectionTime = null;
+            bool isUpdated;
 
-            var isUpdated = this.aegisServiceClient.GetBlackListData(
-                AegisClient.ClientInfo,
-                this.ClientInstance.Settings,
-                this.ClientInstance.SettingsOnline,
-                this.ClientInstance.BlackList.TimeStamp,
-                out blackListData,
-                out newTimeStamp);
+            try
+            {
+                isUpdated = this.aegisServiceClient.GetBlackListData(
+                    AegisClient.ClientInfo,
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
+                    this.ClientInstance.BlackList.TimeStamp,
+                    out blackListData,
+                    out newTimeStamp,
+                    out connectionTime);
+            }
+            catch
+            {
+                if (connectionTime != null)
+                {
+                    this.ClientInstance.Status.BlackListDownloadTime = connectionTime.Value;
+                }
+
+                throw;
+            }
 
             // update successful timestamp
-            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTimeOffset.UtcNow;
+            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
 
             // if data hasn't changed
             if (!isUpdated)
@@ -769,6 +794,8 @@ namespace Aegis.Pumps.SchedulerJobs
             }
 
             // set new data
+            this.ClientInstance.Status.BlackListDownloadTime = connectionTime;
+
             this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
             this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }
@@ -778,18 +805,33 @@ namespace Aegis.Pumps.SchedulerJobs
             // get blacklist data
             List<BlackListSet> blackListData;
             DateTimeOffset? newTimeStamp;
+            long? connectionTime = null;
+            bool isUpdated;
 
-            var isUpdated = this.aegisServiceClient.GetBlackListDataV2(
-                AegisClient.ClientInfo,
-                this.ClientInstance.Settings,
-                this.ClientInstance.SettingsOnline,
-                this.ClientInstance.BlackList.TimeStamp,
-                this.ClientInstance.BlackList.GetVersionStamps(),
-                out blackListData,
-                out newTimeStamp);
+            try
+            {
+                isUpdated = this.aegisServiceClient.GetBlackListDataV2(
+                    AegisClient.ClientInfo,
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
+                    this.ClientInstance.BlackList.TimeStamp,
+                    this.ClientInstance.BlackList.GetVersionStamps(),
+                    out blackListData,
+                    out newTimeStamp,
+                    out connectionTime);
+            }
+            catch
+            {
+                if (connectionTime != null)
+                {
+                    this.ClientInstance.Status.BlackListDownloadTime = connectionTime.Value;
+                }
+
+                throw;
+            }
 
             // update successful timestamp
-            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTimeOffset.UtcNow;
+            this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
 
             // if data hasn't changed
             if (!isUpdated)
@@ -799,6 +841,8 @@ namespace Aegis.Pumps.SchedulerJobs
             }
 
             // set new data
+            this.ClientInstance.Status.BlackListDownloadTime = connectionTime;
+
             this.ClientInstance.BlackList.SetNewDataV2(blackListData, newTimeStamp);
             this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }

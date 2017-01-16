@@ -679,8 +679,11 @@ using Jil;
 
 namespace Aegis.Pumps.NewRelicInsightsEvents
 {
-    public class AegisStatusEvent : AegisNotificationEvent
+    public class AegisStatusEvent : AegisNotificationEvent, IAegisStatusEvent
     {
+        [JilDirective(Name = "blackListDownloadTime")]
+        public long? BlackListDownloadTime { get; set; }
+
         [JilDirective(Name = "blackListConsecutiveDownloadError")]
         public int? BlackListConsecutiveDownloadError { get; set; }
 
@@ -695,6 +698,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 
         [JilDirective(Name = "aegisEventsCacheCount")]
         public int? AegisEventsCacheCount { get; set; }
+
+        [JilDirective(Name = "aegisEventsCacheLastSucessfulSent")]
+        public int? AegisEventsCacheLastSucessfulSent { get; set; }
+
+        [JilDirective(Name = "aegisEventsCacheLastSentTime")]
+        public long? AegisEventsCacheLastSentTime { get; set; }
 
         [JilDirective(Name = "settingsOnlineTimeStamp")]
         public string SettingsOnlineTimeStamp { get; set; }

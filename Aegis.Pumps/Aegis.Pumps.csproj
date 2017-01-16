@@ -75,8 +75,10 @@
     <Compile Include="AegisClient.cs" />
     <Compile Include="ClientInfo.cs" />
     <Compile Include="CompressUtils.cs" />
+    <Compile Include="NewRelicInsightsEvents\AegisErrorAndStatusEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisNotificationEvent.cs" />
     <Compile Include="NewRelicInsightsEvents\AegisStatusEvent.cs" />
+    <Compile Include="NewRelicInsightsEvents\IAegisStatusEvent.cs" />
     <Compile Include="SchedulerJobs\ClientJob.cs" />
     <Compile Include="SchedulerJobs\GetBlackListJob.cs" />
     <Compile Include="SchedulerJobs\GetSettingsOnlineJob.cs" />

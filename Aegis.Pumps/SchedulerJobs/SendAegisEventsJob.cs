@@ -677,15 +677,15 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Aegis.Core.Data;
+using Aegis.Pumps.NewRelicInsightsEvents;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
     internal class SendAegisEventsJob : ClientJob
     {
         private readonly AegisServiceClient aegisServiceClient;
-        private DateTimeOffset lastSucessfulSent;
 
         public SendAegisEventsJob(AegisClient client) : base(client, "SendAegisEventsJob")
         {
@@ -704,21 +704,23 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // execute sending data
                 var count = this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisEventsCacheBatchSize, 
+                    this.ClientInstance.Settings.AegisEventsCacheBatchSize,
                     this.OnPublishEvents);
 
                 // if there was an error
                 if (count < 0)
                 {
                     // remove old items
-                    var removedCount = this.ClientInstance.AegisEventCache.RemoveOldItems(this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
+                    var removedCount =
+                        this.ClientInstance.AegisEventCache.RemoveOldItems(
+                            this.ClientInstance.Settings.AegisEventsTimeToLiveInHours);
 
                     // notify NewRelic if anything was removed
                     if (removedCount > 0)
                     {
                         this.ClientInstance.NewRelicUtils.AddException(
                             this.ClientInstance.NewRelicClient,
-                            NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                            Utils.ComponentNames.JobSendAegisEvents,
                             null,
                             $"Removed too old events: {removedCount}",
                             true);
@@ -728,39 +730,18 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // update successful timestamp
-                this.lastSucessfulSent = DateTimeOffset.UtcNow;
+                this.ClientInstance.Status.SendAegisEventsLastSucessfulSent = DateTime.UtcNow;
             }
-            catch (TaskCanceledException exception)
+            catch (Exception exception)
             {
                 if (this.IsShuttingDown)
                 {
                     return;
                 }
 
-                if (exception.CancellationToken.IsCancellationRequested)
-                {
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception);
-                }
-                else
-                {
-                    // If the exception.CancellationToken.IsCancellationRequested is false,
-                    // then the exception likely occurred due to HTTPClient.Timeout exceeding.
-                    // Add a custom message in order to ensure that tasks are not canceled.
-                    this.ClientInstance.NewRelicUtils.AddException(
-                        this.ClientInstance.NewRelicClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
-                        exception,
-                        "Request timeout.");
-                }
-            }
-            catch (Exception exception)
-            {
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                    Utils.ComponentNames.JobSendAegisEvents,
                     exception);
             }
         }
@@ -791,16 +772,29 @@ namespace Aegis.Pumps.SchedulerJobs
                     itemDataRaw.IsDataRawProcessed = true;
                 }
 
-                // send
-                var isCompressionEnabled = this.ClientInstance.SettingsOnline.IsFeatureEnabled(SettingsOnlineClient.Features.EventsPostCompression);
+                // get compressions settings
+                var isCompressionEnabled =
+                    !this.ClientInstance.SettingsOnline.IsFeatureEnabled(
+                        SettingsOnlineClient.Features.EventsPostCompressionDisabled);
 
-                this.aegisServiceClient.SendAegisEvents(
-                    AegisClient.ClientInfo,
-                    this.ClientInstance.Settings,
-                    this.ClientInstance.SettingsOnline,
-                    items,
-                    allEventsCount,
-                    isCompressionEnabled);
+                // send
+                var stopWatch = Stopwatch.StartNew();
+
+                try
+                {
+                    this.aegisServiceClient.SendAegisEvents(
+                        AegisClient.ClientInfo,
+                        this.ClientInstance.Settings,
+                        this.ClientInstance.SettingsOnline,
+                        items,
+                        allEventsCount,
+                        isCompressionEnabled);
+                }
+                finally 
+                {
+                    stopWatch.Stop();
+                    this.ClientInstance.Status.SendAegisEventsLastSentTime = stopWatch.ElapsedMilliseconds;
+                }
 
                 return true;
             }
@@ -811,12 +805,23 @@ namespace Aegis.Pumps.SchedulerJobs
                     return false;
                 }
 
+                // create extended error
+                var evnt = new AegisErrorAndStatusEvent();
+                evnt.AegisEventsToSend = items.Count;
+
+                this.ClientInstance.Status.FillEvent(
+                    evnt,
+                    this.ClientInstance.BlackList,
+                    this.ClientInstance.AegisEventCache,
+                    this.ClientInstance.SettingsOnline);
+
                 this.ClientInstance.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.JobSendAegisEvents,
+                    Utils.ComponentNames.JobSendAegisEvents,
                     exception,
-                    $"eventsToSend={items.Count} allEventsCount={allEventsCount} lastSucessfulSent={this.lastSucessfulSent.ToString("O")}",
-                    true);
+                    "Aegis events send failed",
+                    true,
+                    customEvent: evnt);
             }
 
             return false;

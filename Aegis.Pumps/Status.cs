@@ -676,17 +676,55 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Aegis.Pumps.NewRelicInsightsEvents;
 
 namespace Aegis.Pumps
 {
     public class Status
     {
+        public long? BlackListDownloadTime { get; set; }
+
         public int BlackListConsecutiveDownloadError { get; set; }
 
-        public DateTimeOffset? BlackListLastSucessfulCheck { get; set; }
+        public DateTime? BlackListLastSucessfulCheck { get; set; }
+
+        public DateTime? SendAegisEventsLastSucessfulSent { get; set; }
+
+        public long? SendAegisEventsLastSentTime { get; set; }
+
+        public AegisStatusEvent CreatEvent()
+        {
+            return new AegisStatusEvent();
+        }
+
+        public void FillEvent(
+            IAegisStatusEvent evnt,
+            BlackListClient blackList, 
+            AegisEventCacheClient aegisEventCache, 
+            SettingsOnlineClient settingsOnline)
+        {
+            var currentTime = DateTime.UtcNow;
+            evnt.BlackListDownloadTime = this.BlackListDownloadTime;
+            evnt.BlackListConsecutiveDownloadError = this.BlackListConsecutiveDownloadError;
+            evnt.BlackListItemsCount = blackList.GetItemsCount();
+            evnt.BlackListLastSucessfulCheck = GetElapsedTime(currentTime, this.BlackListLastSucessfulCheck);
+            evnt.BlackListTimeStamp = blackList.TimeStamp?.ToString("o");
+
+            evnt.AegisEventsCacheLastSucessfulSent = GetElapsedTime(currentTime, this.SendAegisEventsLastSucessfulSent);
+            evnt.AegisEventsCacheLastSentTime = this.SendAegisEventsLastSentTime;
+
+            evnt.AegisEventsCacheCount = aegisEventCache.Count();
+            evnt.SettingsOnlineTimeStamp = settingsOnline.TimeStamp?.ToString("o");
+        }
+
+        private static int? GetElapsedTime(DateTime current, DateTime? time)
+        {
+            if (time == null)
+            {
+                return null;
+            }
+
+            return (int)current.Subtract(time.Value).TotalSeconds;
+        }
     }
 }
