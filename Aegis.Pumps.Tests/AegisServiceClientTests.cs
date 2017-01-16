@@ -693,7 +693,10 @@ namespace Aegis.Pumps.Tests
     {
         private readonly ClientInfo clientInfo = new ClientInfo()
         {
-            Environment = "unit-test-env", Name = "unit-test-name", Project = "unit-test-project", Version = "unit-test-version"
+            Environment = "unit-test-env",
+            Name = "unit-test-name",
+            Project = "unit-test-project",
+            Version = "unit-test-version"
         };
 
         [TestMethod]
@@ -703,10 +706,10 @@ namespace Aegis.Pumps.Tests
 
             // create data
             var data = new List<BlackListItem>()
-                           {
-                               new BlackListItem() { IpAddressRaw = "192.168.0.1" },
-                               new BlackListItem() { IpAddressRaw = "192.168.0.2" },
-                           };
+            {
+                new BlackListItem() {IpAddressRaw = "192.168.0.1"},
+                new BlackListItem() {IpAddressRaw = "192.168.0.2"},
+            };
             var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 
 
@@ -717,7 +720,7 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://" + testUri, new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
 
             List<BlackListItem> resultData;
@@ -743,8 +746,8 @@ namespace Aegis.Pumps.Tests
             // create data
             var data = new SettingsOnlineData();
             data.Blacklist = new SettingsOnlineData.BlackListData();
-            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
-            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
+            data.Blacklist.CountriesBlock = new HashSet<string> {"a", "b", "c"};
+            data.Blacklist.CountriesSimulate = new HashSet<string> {"a", "b", "c"};
 
             var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 
@@ -755,7 +758,7 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://" + testUri, new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
 
             SettingsOnlineData resultData;
@@ -788,8 +791,8 @@ namespace Aegis.Pumps.Tests
             // create data
             var data = new SettingsOnlineData();
             data.Blacklist = new SettingsOnlineData.BlackListData();
-            data.Blacklist.CountriesBlock = new HashSet<string> { "a", "b", "c" };
-            data.Blacklist.CountriesSimulate = new HashSet<string> { "a", "b", "c" };
+            data.Blacklist.CountriesBlock = new HashSet<string> {"a", "b", "c"};
+            data.Blacklist.CountriesSimulate = new HashSet<string> {"a", "b", "c"};
 
             var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
 
@@ -800,7 +803,7 @@ namespace Aegis.Pumps.Tests
             mock.MockOutData = dataJson;
 
             var testUri = "test.bla.com";
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://" + testUri, new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
 
             var settingsData = new SettingsOnlineData();
@@ -836,19 +839,19 @@ namespace Aegis.Pumps.Tests
         {
             // create data
             var testItems = new List<AegisBaseEvent>()
-                                {
-                                    new AegisAvailabilityEvent(),
-                                    new AegisBagEvent(),
-                                    new AegisCalendarEvent(),
-                                    new AegisUniversalEvent() { EventType = AegisBaseEvent.EventTypes.Availability }
-                                };
+            {
+                new AegisAvailabilityEvent(),
+                new AegisBagEvent(),
+                new AegisCalendarEvent(),
+                new AegisUniversalEvent() {EventType = AegisBaseEvent.EventTypes.Availability}
+            };
 
             // create mock object
             var mock = new MockAegisServiceClient();
 
             var testUri = "test.bla.com";
             var testAllItemsCount = 99;
-            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://" + testUri, new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
 
             mock.SendAegisEvents(
@@ -942,7 +945,7 @@ namespace Aegis.Pumps.Tests
         [Ignore]
         public void GetBlackList2xTimesFromTheRealCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
@@ -982,7 +985,7 @@ namespace Aegis.Pumps.Tests
         [Ignore]
         public void GetBlackListV2TwoTimesFromTheRealCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
@@ -1024,7 +1027,7 @@ namespace Aegis.Pumps.Tests
         [Ignore]
         public void GetSettingsFromTheRealCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] { "NS_CLIENT_IP" });
+            var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 

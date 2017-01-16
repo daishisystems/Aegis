@@ -691,16 +691,20 @@ namespace Aegis.Pumps.Actions
         private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
         {
             { "expiration", ActionRemove },
+            { "expirydate", ActionRemove },
+            { "dob", ActionRemove },
             { "accountname", ActionRemove },
             { "accname", ActionRemove },
             { "verificationcode", ActionRemove },
             { "cardid", ActionRemove },
+            { "docnumber", ActionRemove },
             { "line", ActionRemove },
             { "phone", ActionRemove },
             { "fax", ActionRemove },
             { "password", ActionRemove },
             { "url", ActionRemove },
             { "credential", ActionRemove },
+            { "addresss", ActionRemove },
 
             { "^first$", ActionRemove },
             { "^last$", ActionRemove },
