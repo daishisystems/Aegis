@@ -706,7 +706,12 @@ namespace Aegis.Pumps
     public class AegisEventCacheClient
     {
         /// <summary>Events is an in-memory cache of <see cref="AegisEvent" /> instances.</summary>
-        private readonly MemoryCache<AegisBaseEvent> events = new MemoryCache<AegisBaseEvent>(1000000);
+        private readonly MemoryCache<AegisBaseEvent> events;
+
+        public AegisEventCacheClient(int limit)
+        {
+            this.events = new MemoryCache<AegisBaseEvent>(limit);
+        }
 
         /// <summary>
         /// Get estimated number of elements in the cache

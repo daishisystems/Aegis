@@ -729,7 +729,7 @@ namespace Aegis.Pumps
             this.SettingsOnline = new SettingsOnlineClient();
             this.Status = new Status();
             this.BlackList = new BlackListClient();
-            this.AegisEventCache = new AegisEventCacheClient();
+            this.AegisEventCache = new AegisEventCacheClient(settings.AegisEventsCacheLimit);
             this.ActionsDataHandler = new ActionsDataHandler();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
             //this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
