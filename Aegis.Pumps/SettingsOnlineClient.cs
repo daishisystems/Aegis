@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Linq;
 
 namespace Aegis.Pumps
 {

@@ -690,7 +690,8 @@ namespace Aegis.Pumps.Tests
         public void CheckNullInput()
         {
             var self = new ActionsDataHandler();
-            var key = self.AddData(null, null, null);
+            string dataType;
+            var key = self.AddData(null, null, null, out dataType);
             Assert.IsNull(self.ProcessData(null, key, null));
         }
 
@@ -779,7 +780,8 @@ namespace Aegis.Pumps.Tests
             var stopWatch1 = Stopwatch.StartNew();
             var stopWatch2 = Stopwatch.StartNew();
 
-            var key = self.AddData(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), data);
+            string dataType;
+            var key = self.AddData(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), data, out dataType);
 
             var dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
 

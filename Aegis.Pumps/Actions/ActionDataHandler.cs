@@ -727,8 +727,11 @@ namespace Aegis.Pumps.Actions
         public string AddData(
             string controllerName,
             string actionName,
-            object data)
+            object data,
+            out string dataTypeFullName)
         {
+            dataTypeFullName = null;
+
             // ignore null data
             if (ReferenceEquals(data, null))
             {
@@ -736,7 +739,9 @@ namespace Aegis.Pumps.Actions
             }
 
             // check if checked this data
-            var key = $"{controllerName}${actionName}${data.GetType().FullName}";
+            dataTypeFullName = data.GetType().FullName;
+
+            var key = $"{controllerName}${actionName}${dataTypeFullName}";
             if (this.cache.ContainsKey(key))
             {
                 return key;
@@ -744,6 +749,12 @@ namespace Aegis.Pumps.Actions
 
             // serialize
             var dataJson = JSON.SerializeDynamic(data, Options.IncludeInherited);
+            // TODO remove empty containers i.e. 
+            // "Extras": [] 
+            // "SegSsrs": [[],[]]
+            // "SegSeats": [null,null]
+            // "blabla" : {}
+            // probably run pre-final clearing using constant regex to remove such fields?
 
             // build dictionary of fields and theirs actions
             var fields = GetAllFieldsFromJson(dataJson).Distinct();

@@ -691,6 +691,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "hpHeadersRsp")]
         public Dictionary<string, List<string>> HttpHeadersResponse { get; set; }
 
+        [JilDirective(Name = "dt")]
+        public string DataType { get; set; }
+
         [JilDirective(Name = "d")]
         public string Data { get; set; }
 
