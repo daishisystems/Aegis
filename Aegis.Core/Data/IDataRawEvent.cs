@@ -681,11 +681,11 @@ namespace Aegis.Core.Data
 {
     public interface IDataRawEvent
     {
+        [JilDirective(Name = "dt")]
+        string DataType { get; set; }
+
         [JilDirective(Name = "d")]
         string Data { get; set; }
-
-        [JilDirective(Ignore = true)]
-        string DataKey { get; set; }
 
         [JilDirective(Ignore = true)]
         string DataRaw { get; set; }

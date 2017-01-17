@@ -766,7 +766,6 @@ namespace Aegis.Pumps.SchedulerJobs
 
                     itemDataRaw.Data = this.ClientInstance.ActionsDataHandler.ProcessData(
                         this.ClientInstance,
-                        itemDataRaw.DataKey,
                         itemDataRaw.DataRaw);
 
                     itemDataRaw.IsDataRawProcessed = true;

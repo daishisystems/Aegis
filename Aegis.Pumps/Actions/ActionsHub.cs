@@ -1052,17 +1052,13 @@ namespace Aegis.Pumps.Actions
             HttpHeaders responseHeaders = null)
         {
             string dataStr = null;
+            string dataTypeFullName = null;
             if (data != null)
             {
+                dataTypeFullName = data.GetType().FullName;
+
                 dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
             }
-
-            string dataTypeFullName;
-            var dataKey = this.client.ActionsDataHandler.AddData(
-                controllerName, 
-                actionName, 
-                data,
-                out dataTypeFullName);
 
             var eventNameFinal = isOutput
                 ? AegisBaseEvent.EventTypes.GetOutputEventName(eventName)
@@ -1079,7 +1075,6 @@ namespace Aegis.Pumps.Actions
                     () => new AegisUniversalEvent()
                     {
                         EventType = eventNameFinal,
-                        DataKey = dataKey,
                         DataRaw = dataStr,
                         DataType = dataTypeFullName,
                         IsOutputException = isOutputException ? true : (bool?)null,

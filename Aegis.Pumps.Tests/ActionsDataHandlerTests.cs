@@ -675,7 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Aegis.Pumps.Actions;
 using Jil;
@@ -686,13 +686,28 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class ActionsDataHandlerTests
     {
+        public class Test2
+        {
+            public string My2PhoneNumber;
+            public string My2Mail;
+        }
+
+        public class Test1
+        {
+            public string PhoneNumber;
+            public int Field1;
+            public Test2 Class1;
+            public List<Test2> OtherClasses;
+            public List<string> Collection1;
+            public List<int?> Collection2;
+            public List<List<int?>> Collection3;
+        }
+
         [TestMethod]
         public void CheckNullInput()
         {
             var self = new ActionsDataHandler();
-            string dataType;
-            var key = self.AddData(null, null, null, out dataType);
-            Assert.IsNull(self.ProcessData(null, key, null));
+            Assert.IsNull(self.ProcessData(null, null));
         }
 
         [TestMethod]
@@ -772,23 +787,62 @@ namespace Aegis.Pumps.Tests
             this.DoTest(self, testObj1, "{\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
         }
 
+        [TestMethod]
+        public void CheckSameClassWithDifferentObjectsInsterted()
+        {
+            var testObj1 = new Test1() { PhoneNumber = "123123213" };
+            var testObj2 = new Test1();
+            testObj2.OtherClasses = new List<Test2>();
+            testObj2.OtherClasses.Add(new Test2() { My2Mail = "mymail@bla.com", My2PhoneNumber = "123123213" });
+            testObj2.OtherClasses.Add(new Test2() { My2Mail = "mymail2@bla.com", My2PhoneNumber = "555555555" });
+
+            var name = "CheckAllActions2";
+            var self = new ActionsDataHandler();
+            this.DoTest(self, testObj1, "{\"Field1\":0,\"PhoneNumber\":\"X$DEL$X\"}", name, name);
+            this.DoTest(self, testObj2, "{\"Field1\":0,\"OtherClasses\":[{\"My2Mail\":\"bla.com$YTtpdlvZ7gy+dNT6dkThh55eP5WOso+EvCtp9VDdJ3s=\",\"My2PhoneNumber\":\"X$DEL$X\"},{\"My2Mail\":\"bla.com$7gZxEtAXa7JIOY5XCDzc/5+CWL0R/nXzCJnvuOjK0rY=\",\"My2PhoneNumber\":\"X$DEL$X\"}]}", name, name);
+        }
+
+        [TestMethod]
+        public void CheckRemovalOfEmptyCollections()
+        {
+            var testObj1 = new Test1() { Field1 = 44 };
+            testObj1.Class1 = new Test2();
+            testObj1.OtherClasses = new List<Test2>();
+            testObj1.Collection1 = new List<string>();
+            testObj1.Collection2 = new List<int?>();
+            testObj1.Collection3 = new List<List<int?>>() { new List<int?>(), new List<int?>() };
+
+            var testObj2 = new Test1() { Field1 = 55 };
+            testObj2.Class1 = new Test2();
+            testObj2.OtherClasses = new List<Test2>();
+            testObj2.Collection1 = new List<string>() {null};
+            testObj2.Collection2 = new List<int?>() {null};
+            testObj2.Collection3 = new List<List<int?>>() {new List<int?>(), new List<int?>() { 1, 2}, null, new List<int?>()};
+
+            var self = new ActionsDataHandler();
+            this.DoTest(self, testObj1, "{\"Field1\":44}");
+            this.DoTest(self, testObj2, "{\"Field1\":55,\"Collection3\":[[],[1,2],null,[]]}");
+        }
+
         public void DoTest(
             ActionsDataHandler self, 
             object data,
-            string expected)
+            string expected,
+            string controllerName = null,
+            string actionName = null)
         {
             var stopWatch1 = Stopwatch.StartNew();
             var stopWatch2 = Stopwatch.StartNew();
-
-            string dataType;
-            var key = self.AddData(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), data, out dataType);
 
             var dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
 
             stopWatch2.Stop();
             var stopWatch3 = Stopwatch.StartNew();
 
-            Assert.AreEqual(expected, self.ProcessData(null, key, dataStr));
+            var result = self.ProcessData(null, dataStr);
+            Debug.WriteLine($"ProcessData result: {result}");
+
+            Assert.AreEqual(expected, result);
 
             stopWatch1.Stop();
             stopWatch2.Stop();

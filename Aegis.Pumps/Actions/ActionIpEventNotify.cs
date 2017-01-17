@@ -991,7 +991,7 @@ namespace Aegis.Pumps.Actions
                 HttpHeadersRest = httpHeadersRest,
                 HttpPath = requestUri.PathAndQuery,
                 Time = currentTime.ToString("O"),
-                DataKey = evnt.DataKey,
+                DataType = evnt.DataType,
                 DataRaw = evnt.DataRaw
             };
 

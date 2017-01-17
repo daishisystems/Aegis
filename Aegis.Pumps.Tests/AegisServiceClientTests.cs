@@ -845,7 +845,7 @@ namespace Aegis.Pumps.Tests
                 new AegisAvailabilityEvent(),
                 new AegisBagEvent(),
                 new AegisCalendarEvent(),
-                new AegisUniversalEvent() {EventType = AegisBaseEvent.EventTypes.Availability, Data = "zzz", DataKey = ""}
+                new AegisUniversalEvent() {EventType = AegisBaseEvent.EventTypes.Availability, Data = "zzz", DataType = "ggg"}
             };
 
             // create mock object

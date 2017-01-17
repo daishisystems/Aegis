@@ -1197,7 +1197,7 @@ namespace Aegis.Pumps.Tests
                 {
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntUnivesal.EventType), evntUnivesal.EventType);
                     Assert.IsFalse(evntUnivesal.IsDataRawProcessed, evntUnivesal.EventType);
-                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntUnivesal.DataKey), evntUnivesal.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntUnivesal.DataType), evntUnivesal.EventType);
                     Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntUnivesal.DataRaw), evntUnivesal.EventType);
                 }
 

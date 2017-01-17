@@ -699,11 +699,11 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "c")]
         public string Country { get; set; }
 
+        [JilDirective(Name = "dt")]
+        public string DataType { get; set; }
+
         [JilDirective(Name = "d")]
         public string Data { get; set; }
-
-        [JilDirective(Ignore = true)]
-        public string DataKey { get; set; }
 
         [JilDirective(Ignore = true)]
         public string DataRaw { get; set; }

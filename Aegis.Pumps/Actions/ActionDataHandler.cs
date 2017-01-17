@@ -681,8 +681,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Aegis.Core;
-using Aegis.Core.Data;
-using Jil;
 
 namespace Aegis.Pumps.Actions
 {
@@ -720,109 +718,90 @@ namespace Aegis.Pumps.Actions
             { "creditcard", ActionAccountNumber },
         };
 
-        private readonly ConcurrentDictionary<string, ActionsDataHandlerItem> cache = new ConcurrentDictionary<string, ActionsDataHandlerItem>();
-        private static readonly Regex RegexFields = new Regex("\"(\\w+)\"\\s*:\\s*((\".*?\")|(\\w+))", 
+        private readonly HashSet<string> ignoredValues = new HashSet<string>();
+
+        private readonly ConcurrentDictionary<string, Func<AegisClient, string, string>> cache = 
+            new ConcurrentDictionary<string, Func<AegisClient, string, string>>();
+
+        private static readonly Regex RegexFields = new Regex("\"(\\w+)\"\\s*:\\s*((\".*?\")|(\\w+)|{}\\s*,?|\\[((\\[\\],?)|null,?)*\\]\\s*,?)", 
                                                         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        public string AddData(
-            string controllerName,
-            string actionName,
-            object data,
-            out string dataTypeFullName)
+        public ActionsDataHandler()
         {
-            dataTypeFullName = null;
-
-            // ignore null data
-            if (ReferenceEquals(data, null))
+            foreach (var item in new []{ "{}", "[]", "[[]]", "[[],[]]", "[null]", "[null,null]" })
             {
-                return null;
+                this.ignoredValues.Add(item);
+                this.ignoredValues.Add(item + ",");
             }
-
-            // check if checked this data
-            dataTypeFullName = data.GetType().FullName;
-
-            var key = $"{controllerName}${actionName}${dataTypeFullName}";
-            if (this.cache.ContainsKey(key))
-            {
-                return key;
-            }
-
-            // serialize
-            var dataJson = JSON.SerializeDynamic(data, Options.IncludeInherited);
-            // TODO remove empty containers i.e. 
-            // "Extras": [] 
-            // "SegSsrs": [[],[]]
-            // "SegSeats": [null,null]
-            // "blabla" : {}
-            // probably run pre-final clearing using constant regex to remove such fields?
-
-            // build dictionary of fields and theirs actions
-            var fields = GetAllFieldsFromJson(dataJson).Distinct();
-            var resultAction = new Dictionary<string, Func<AegisClient, string, string>>();
-
-            foreach (var field in fields)
-            {
-                var fieldExtended = $"^{field}$";
-                var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
-                if (string.IsNullOrEmpty(found.Key))
-                {
-                    continue;
-                }
-
-                resultAction.Add(field, found.Value);
-            }
-
-            // add to dictionary
-            ActionsDataHandlerItem item = null;
-
-            if (resultAction.Count > 0)
-            {
-                item = new ActionsDataHandlerItem(resultAction, BuildRegex(resultAction.Keys));
-            }
-
-            this.cache.AddOrUpdate(key, item, (k, old) => item);
-            return key;
         }
 
         public string ProcessData(
             AegisClient client,
-            string key,
             string json)
         {
-            // if key is empty
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(json))
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            var jsonNew = RegexFields.Replace(json, (m) => this.MatchField(client, m));
+            if (jsonNew == json)
             {
                 return json;
             }
 
-            // check if there are any actions
-            ActionsDataHandlerItem item;
-            if (!this.cache.TryGetValue(key, out item) || item == null)
-            {
-                return json;
-            }
-
-            // run actions
-            return item.Process(client, json);
+            return jsonNew.Replace(",}", "}");
         }
 
-        public static Regex BuildRegex(IEnumerable<string> texts)
+        private string MatchField(AegisClient client, Match match)
         {
-            var regexText = "\"(" + string.Join("|", texts) + ")\"\\s*:\\s*((\".*?\")|(\\w+))";
-            return new Regex(regexText, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            var key = match.Groups[1].Value;
+            var value = match.Groups[2].Value;
+
+            if (value.StartsWith("\""))
+            {
+                value = value.Substring(1, value.Length - 2);
+            }
+
+            // check value if need to be removed
+            if (this.ignoredValues.Contains(value))
+            {
+                return string.Empty;
+            }
+
+            // get action
+            var action = this.GetAction(key.ToLowerInvariant());
+            if (action == null)
+            {
+                return match.Value;
+            }
+
+            return $"\"{key}\":\"{action(client, value)}\"";
         }
 
-        public static IEnumerable<string> GetAllFieldsFromJson(string json)
+        private Func<AegisClient, string, string> GetAction(string field)
         {
-            foreach (Match match in RegexFields.Matches(json))
+            // check cache
+            Func<AegisClient, string, string> action;
+            if (this.cache.TryGetValue(field, out action))
             {
-                if (match.Groups.Count < 2 || match.Groups[1].Success == false)
-                {
-                    continue;
-                }
-
-                yield return match.Groups[1].Value.ToLowerInvariant();
+                return action;
             }
+
+            // find action
+            var fieldExtended = $"^{field}$";
+            var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
+
+            // no action available
+            if (string.IsNullOrEmpty(found.Key))
+            {
+                this.cache.AddOrUpdate(field, (Func<AegisClient, string, string>)null, (k, v) => null);
+                return null;
+            }
+
+            // add action to the cache
+            this.cache.AddOrUpdate(field, found.Value, (k, v) => found.Value);
+            return found.Value;
         }
 
         public static string ActionRemove(AegisClient client, string text)
