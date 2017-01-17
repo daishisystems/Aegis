@@ -1183,6 +1183,7 @@ namespace Aegis.Pumps.Tests
                 {
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.GroupId), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.IpAddress), evntbaseIp.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.SessionId), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpUserAgent), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpReferer), evntbaseIp.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntbaseIp.HttpAcceptLanguage), evntbaseIp.EventType);
@@ -1282,7 +1283,7 @@ namespace Aegis.Pumps.Tests
                 //                                null, null, null, null, null),
                 //() => AegisClient.GetActionsHub().HttpOptions(requestHeadersNameValue, requestUri, httpMethod),
                 () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
-                                                                null, null, null)
+                                                               "unitSessionId", null, null, null)
             };
 
 
@@ -1315,11 +1316,11 @@ namespace Aegis.Pumps.Tests
                 //                                "customer-id", "1234567890", "p-method-code", "city",
                 //                                "country", "postal", "email@host.com", "info1", "info2"),
                 //() => AegisClient.GetActionsHub().HttpOptions(requestHeadersNameValue, requestUri, httpMethod),
-                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
+                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "unitSessionId",
                                                                 "controller", "action", new object[] { "aaa", "bbbb","ccc"}),
-                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
+                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "unitSessionId",
                                                                 "controller", "action", new object[] { "zzz", "eeebbbb","cccfff"}),
-                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod,
+                () => AegisClient.GetActionsHub().ProcessEvent("unitTestEvent", requestHeaders, requestUri, httpMethod, "unitSessionId",
                                                                 "controller2", "action2", new  { a = "zzz", b = 7, c = new { d = "aaa"} }),
             };
 

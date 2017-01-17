@@ -693,6 +693,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "g")]
         public string GroupId { get; set; }
 
+        [JilDirective(Name = "sid")]
+        public string SessionId { get; set; }
+
         /// <summary>Path is the URI path from which the event metadata originated.</summary>
         [JilDirective(Name = "p")]
         public string HttpPath { get; set; }

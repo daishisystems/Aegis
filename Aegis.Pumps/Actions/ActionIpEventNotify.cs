@@ -703,6 +703,7 @@ namespace Aegis.Pumps.Actions
             HttpHeaders requestHeaders,
             Uri requestUri,
             string httpMethod,
+            string sessionId,
             string clientControllerName,
             string clientActionName,
             Func<T> eventBuilder)
@@ -717,6 +718,7 @@ namespace Aegis.Pumps.Actions
                     clientControllerName,
                     clientActionName,
                     httpMethod,
+                    sessionId,
                     eventBuilder);
             }
             catch (Exception exception)
@@ -738,6 +740,7 @@ namespace Aegis.Pumps.Actions
             string clientControllerName,
             string clientActionName,
             string httpMethod,
+            string sessionId,
             Func<T> eventBuilder)
         {
             // is current action disabled
@@ -803,6 +806,7 @@ namespace Aegis.Pumps.Actions
                         requestUri,
                         clientControllerName,
                         clientActionName,
+                        sessionId,
                         httpMethod,
                         httpUserAgent,
                         httpReferer,
@@ -825,6 +829,7 @@ namespace Aegis.Pumps.Actions
                                             requestUri,
                                             clientControllerName,
                                             clientActionName,
+                                            sessionId,
                                             httpMethod,
                                             httpUserAgent,
                                             httpReferer,
@@ -846,6 +851,7 @@ namespace Aegis.Pumps.Actions
             Uri requestUri,
             string clientControllerName,
             string clientActionName,
+            string sessionId,
             string httpMethod,
             string httpUserAgent,
             string httpReferer,
@@ -868,6 +874,7 @@ namespace Aegis.Pumps.Actions
             evnt.ExperimentId = expId;
             evnt.IpAddress = ipAddressString;
             evnt.GroupId = groupId;
+            evnt.SessionId = sessionId;
             evnt.HttpMethod = httpMethod;
             evnt.HttpUserAgent = httpUserAgent;
             evnt.HttpReferer = httpReferer;
@@ -901,6 +908,7 @@ namespace Aegis.Pumps.Actions
             Uri requestUri,
             string clientControllerName,
             string clientActionName,
+            string sessionId,
             string httpMethod,
             string httpUserAgent,
             string httpReferer,
@@ -983,6 +991,7 @@ namespace Aegis.Pumps.Actions
                 IsSimulated = isSimulated,
                 SourceEventType = eventTypeName,
                 Country = blackItem.Country,
+                SessionId = sessionId,
                 HttpMethod = httpMethod,
                 HttpUserAgent = httpUserAgent,
                 HttpReferer = httpReferer,
