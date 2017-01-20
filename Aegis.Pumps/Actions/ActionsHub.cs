@@ -1095,7 +1095,7 @@ namespace Aegis.Pumps.Actions
             object data,
             bool isOutput = false,
             bool isOutputException = false,
-            HttpHeaders responseHeaders = null)
+            NameValueCollection responseHeaders = null)
         {
             return this.ProcessEvent(
                 eventName,
@@ -1108,7 +1108,7 @@ namespace Aegis.Pumps.Actions
                 data,
                 isOutput,
                 isOutputException,
-                responseHeaders);
+                ActionsUtils.GetAsHttpHeaders(responseHeaders));
         }
     }
 }

@@ -748,6 +748,11 @@ namespace Aegis.Pumps.Actions
 
         public static HttpHeaders GetAsHttpHeaders(NameValueCollection headersCollection)
         {
+            if (headersCollection == null)
+            {
+                return null;
+            }
+
             var headers = new MyHttpHeaders();
 
             foreach (var key in headersCollection.AllKeys)
