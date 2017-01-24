@@ -695,6 +695,7 @@ namespace Aegis.Core.Data
             public const string Calendar = "calendar";
             public const string Configurations = "configurations";
             public const string Dcc = "dcc";
+            public const string DccFake = "dccFake";
             public const string Extras = "extras";
             public const string Fast = "fast";
             public const string Fees = "fees";
