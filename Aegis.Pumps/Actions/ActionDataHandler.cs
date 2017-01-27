@@ -691,8 +691,8 @@ namespace Aegis.Pumps.Actions
             { "expiration", ActionRemove },
             { "expirydate", ActionRemove },
             { "dob", ActionRemove },
-            { "accountname", ActionRemove },
-            { "accname", ActionRemove },
+            { "accountname", ActionRemove }, // TODO hash account name
+            { "accname", ActionRemove }, // TODO hash account name
             { "verificationcode", ActionRemove },
             { "cardid", ActionRemove },
             { "docnumber", ActionRemove },

@@ -676,348 +676,243 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Specialized;
-using Daishi.NewRelic.Insights;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Aegis.Core;
-using Aegis.Pumps.Actions;
-using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace Aegis.Pumps
+namespace Aegis.Pumps.Actions
 {
-    public class AegisClient // TODO create interface for that for easier testing
+    public class ActionsDataHandler2
     {
-        private static readonly object lockInit = new object();
-
-        private static volatile AegisClient instanceClient;
-
-        public static AegisClient Instance => instanceClient;
-        public static readonly ClientInfo ClientInfo = new ClientInfo();
-        public static DateTimeOffset InitializationTime { get; private set; }
-
-        public static bool IsInitialised => Instance != null;
-
-        public INewRelicInsightsClient NewRelicClient { get; private set; }
-        public Settings Settings { get; private set; }
-
-        public readonly NewRelicInsightsEvents.Utils NewRelicUtils;
-        public readonly Status Status;
-        public readonly SettingsOnlineClient SettingsOnline;
-        public readonly BlackListClient BlackList;
-        public readonly AegisEventCacheClient AegisEventCache;
-        public readonly ActionsDataHandler2 ActionsDataHandler;
-        public readonly ActionsHub ActionsHub;
-        //public readonly ActionsHubMdot ActionsHubMdot;
-        public SchedulerRegistry Scheduler { get; private set; }
-
-        private AegisClient(
-            INewRelicInsightsClient newRelicInsightsClient, 
-            Settings settings)
+        private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
         {
-            if (newRelicInsightsClient == null)
-            {
-                throw new ArgumentNullException(nameof(newRelicInsightsClient));
-            }
+            { "expiration", ActionRemove },
+            { "expirydate", ActionRemove },
+            { "dob", ActionRemove },
+            { "accountname", ActionRemove }, // TODO hash account name
+            { "accname", ActionRemove }, // TODO hash account name
+            { "verificationcode", ActionRemove },
+            { "cardid", ActionRemove },
+            { "docnumber", ActionRemove },
+            { "line", ActionRemove },
+            { "phone", ActionRemove },
+            { "fax", ActionRemove },
+            { "password", ActionRemove },
+            { "url", ActionRemove },
+            { "credential", ActionRemove },
+            { "addresss", ActionRemove },
 
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
+            { "^first$", ActionRemove },
+            { "^last$", ActionRemove },
+            { "^middle$", ActionRemove },
+            { "^suffix$", ActionRemove },
+            { "^title$", ActionRemove },
+            { "^fullname$", ActionRemove },
 
-            this.NewRelicClient = newRelicInsightsClient;
-            this.NewRelicUtils = new NewRelicInsightsEvents.Utils();
-            this.Settings = settings;
-            this.SettingsOnline = new SettingsOnlineClient();
-            this.Status = new Status();
-            this.BlackList = new BlackListClient();
-            this.AegisEventCache = new AegisEventCacheClient(settings.AegisEventsCacheLimit);
-            this.ActionsDataHandler = new ActionsDataHandler2();
-            this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
-            //this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
-            this.Scheduler = new SchedulerRegistry();
-        }
+            { "mail", ActionMail },
 
-        private void Reload(
-            INewRelicInsightsClient newRelicInsightsClient,
-            Settings settings)
+            { "accountnumber", ActionAccountNumber },
+            { "accnum", ActionAccountNumber },
+            { "creditcard", ActionAccountNumber },
+        };
+
+        private readonly ConcurrentDictionary<string, Func<AegisClient, string, string>> cache = 
+            new ConcurrentDictionary<string, Func<AegisClient, string, string>>();
+
+        public string ProcessData(
+            AegisClient client,
+            string json)
         {
-            if (newRelicInsightsClient == null)
-            {
-                throw new ArgumentNullException(nameof(newRelicInsightsClient));
-            }
-
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-
-            this.NewRelicClient = newRelicInsightsClient;
-            this.Settings = settings;
-            this.ActionsHub.SetHttpIpHeaders(settings.HttpIpHeaderNames);
-            //this.ActionsHubMdot.SetHttpIpHeaders(settings.HttpIpHeaderNames);
-
-            // scheduler reload
-            this.SchedulerReload(true);
-        }
-
-        /// <summary>
-        /// Set basic Aegis information. Throws exceptions.
-        /// </summary>
-        public static void SetUp(
-            INewRelicInsightsClient newRelicInsightsClient,
-            string clientName,
-            string clientVersion,
-            string clientEnvironment,
-            string clientProject)
-        {
-            lock (lockInit)
-            {
-                InitializationTime = DateTimeOffset.UtcNow;
-              
-                // set safely names
-                try
-                {
-                    ClientInfo.SetUp();
-                    ClientInfo.Name = clientName;
-                    ClientInfo.Version = clientVersion;
-                    ClientInfo.Environment = clientEnvironment;
-                    ClientInfo.Project = clientProject;
-                }
-                catch (Exception exception)
-                {
-                    // log but do not re-throw
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        newRelicInsightsClient,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                        exception);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Initialise client. Throws exceptions.
-        /// </summary>
-        /// <returns></returns>
-        public static bool Initialise(
-            INewRelicInsightsClient newRelicInsightsClient, 
-            Settings settings)
-        {
-            // initialise and do proper cleanup in case of problems
-            try
-            {
-                lock (lockInit)
-                {
-                    // TODO report initialization
-                    if (IsInitialised)
-                    {
-                        Instance.Reload(newRelicInsightsClient, settings);
-                        return true;
-                    }
-
-                    DoInitialise(newRelicInsightsClient, settings);
-
-                    // success - class initialised
-                    return true;
-                }
-            }
-            catch (Exception exception)
-            {
-                NewRelicInsightsEvents.Utils.UploadException(
-                    newRelicInsightsClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                    exception);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Initialise client. Throws exceptions.
-        /// </summary>
-        /// <returns></returns>
-        public static bool InitialiseAll(
-            NameValueCollection appSettings,
-            string applicationVersionKey,
-            string netscalerClientHeader)
-        {
-            try
-            {
-                // is Aegis enabled
-                if (!AegisHelper.IsEnabledInConfigFile(appSettings, "AegisIsEnabled"))
-                {
-                    return false;
-                }
-
-                // initialize NewRelicInsightsClient
-                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.AccountID = appSettings["NewRelicInsightsAccountID"];
-                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.APIKey = appSettings["NewRelicInsightsAPIKey"];
-                NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.URI = new Uri(appSettings["NewRelicInsightsURI"]);
-
-                var webProxy = appSettings["Proxy"];
-
-                if (!string.IsNullOrEmpty(webProxy))
-                {
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseWebProxy = true;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.WebProxy = new WebProxy(webProxy);
-                }
-
-                var newRelicInsightsNonDefaultTimeout = appSettings["NewRelicInsightsNonDefaultTimeout"];
-
-                if (!string.IsNullOrEmpty(newRelicInsightsNonDefaultTimeout))
-                {
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.UseNonDefaultTimeout = true;
-                    NewRelicInsightsClient.Instance.NewRelicInsightsMetadata.NonDefaultTimeout =
-                        new TimeSpan(0, 0, int.Parse(newRelicInsightsNonDefaultTimeout));
-                }
-
-                NewRelicInsightsClient.Instance.Initialise();
-
-                // setup client
-                AegisClient.SetUp(
-                    NewRelicInsightsClient.Instance,
-                    appSettings["AegisApplicationName"],
-                    applicationVersionKey,
-                    //appSettings[dotrez.common.constants.Application.VersionKey],
-                    appSettings["AegisDeploymentEnvironment"],
-                    appSettings["AegisApplicationProject"]);
-
-                // create Aegis client settings
-                var aegisSettings = Settings.Initialise(
-                    NewRelicInsightsClient.Instance,
-                    appSettings["Proxy"],
-                    appSettings["AegisWebNonDefaultTimeout"],
-                    appSettings["AegisServiceUri"],
-                    new[]
-                    {
-                        //dotrez.common.constants.Application.NetscalerClientHeader,
-                        "NS_CLIENT_IP",
-                        netscalerClientHeader,
-                        "REMOTE_ADDR"
-                    });
-
-                // initialize Aegis client
-                return AegisClient.Initialise(NewRelicInsightsClient.Instance, aegisSettings);
-            }
-            catch (Exception exception)
-            {
-                if (NewRelicInsightsClient.Instance.HasStarted)
-                {
-                    NewRelicInsightsEvents.Utils.UploadException(
-                        NewRelicInsightsClient.Instance,
-                        NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                        exception);
-                }
-                throw;
-            }
-        }
-
-        public static void ShutDown()
-        {
-            // do nothing if not initialised
-            if (!IsInitialised)
-            {
-                return;
-            }
-
-            // TODO flush data (events)
-            // TODO provide public flush method called when Application_End is executed
-
-            // set to non-initialised state
-            var self = Instance;
-            instanceClient = null;
-
-            // stop schedulers and clean all data (final data release leave to the GC)
-            self.Scheduler?.ShutDown();
-            self.BlackList?.CleanUp();
-
-            // flush NewRelic events
-            self.NewRelicClient?.UploadAllCachedEvents();
-        }
-
-        public static IActionsHub GetActionsHub()
-        {
-            // ignore on non initialized
-            if (!IsInitialised)
+            if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
             }
 
-            // initialized
-            return Instance.ActionsHub;
+            var jsonData = JToken.Parse(json);
+
+            // go through json and check all fields
+            //JsonWalkNode(client, jsonData, null, this.OnProperty);
+            var nodesToDelete = new List<JToken>();
+
+            do
+            {
+                nodesToDelete.Clear();
+
+                //Console.WriteLine($"type={jsonData.Type} json={jsonData.ToString()}");
+
+                JsonWalkNode(client, jsonData, nodesToDelete, null, this.OnProperty);
+
+                foreach (var token in nodesToDelete)
+                {
+                    //Console.WriteLine(token.ToString());
+                    //Console.WriteLine($"type={token.Type} json={token.ToString()}");
+                    token.Remove();
+                }
+
+            } while (nodesToDelete.Count > 0);
+
+
+
+            return jsonData.ToString(Formatting.None);
         }
 
-        //public static IActionsHubMdot GetActionsHubMdot()
-        //{
-        //    // ignore on non initialized
-        //    if (!IsInitialised)
-        //    {
-        //        return null;
-        //    }
-
-        //    // initialized
-        //    return Instance.ActionsHubMdot;
-        //}
-
-        public static void ReportError(string message, bool noDuplicateRecent = false)
+        private void OnProperty(AegisClient client, JProperty property, List<JToken> nodesToDelete)
         {
-            if (!IsInitialised)
+            var val = property.Value;
+            if (val.Type != JTokenType.String &&
+                val.Type != JTokenType.Integer &&
+                val.Type != JTokenType.Float &&
+                val.Type != JTokenType.Date &&
+                val.Type != JTokenType.TimeSpan)
             {
                 return;
             }
 
-            Instance.NewRelicUtils.AddException(
-                Instance.NewRelicClient,
-                NewRelicInsightsEvents.Utils.ComponentNames.ClientReportError,
-                null,
-                message,
-                noDuplicateRecent);
-        }
+            var key = property.Name.ToLowerInvariant();
 
-        public void SettingsChangeNotification()
-        {
-            this.SchedulerReload(false);
-        }
-
-        private void SchedulerReload(bool isStartDelayNeeded)
-        {
-            if (this.Scheduler?.IsReloadRequired(this.Settings, this.SettingsOnline) == false)
+            // get action
+            var action = this.GetAction(key);
+            if (action == null)
             {
                 return;
             }
 
-            try
+            //var val = property.Value;
+            if (val.Type == JTokenType.String &&
+                string.IsNullOrEmpty(val.Value<string>()))
             {
-                // shutdown scheduler
-                this.Scheduler?.ShutDown();
-
-                // remove all old Aegis jobs
-                SchedulerRegistry.RemoveAllAegisJobs();
-            }
-            catch (Exception exception)
-            {
-                this.NewRelicUtils.AddException(
-                    this.NewRelicClient,
-                    NewRelicInsightsEvents.Utils.ComponentNames.ClientInitialisation,
-                    exception);
+                //property.Value.Remove();
+                //nodesToDelete.Add(property);
+                return;
             }
 
-            // start new scheduler
-            this.Scheduler = new SchedulerRegistry();
-            this.Scheduler.Initialise(Instance, isStartDelayNeeded, null);
+            var value = val.Value<string>();
+            var valueNewStr = action(client, value);
+            var valueNew = JToken.FromObject(valueNewStr);
+
+            property.Value.Replace(valueNew);
         }
 
-        private static void DoInitialise(
-            INewRelicInsightsClient newRelicInsightsClient,
-            Settings settings)
+        private static void JsonWalkNode(
+            AegisClient client,
+            JToken node,
+            List<JToken> nodesToDelete,
+            Action<AegisClient, JObject, List<JToken>> actionOnObject = null,
+            Action<AegisClient, JProperty, List<JToken>> actionProperty = null)
         {
-            var self = new AegisClient(newRelicInsightsClient, settings);
+            if (node.Type == JTokenType.Null)
+            {
+                //node.Remove();
+                nodesToDelete.Add(node);
+                return;
+            }
 
-            // remove all old Aegis jobs
-            SchedulerRegistry.RemoveAllAegisJobs();
+            if (node.Type == JTokenType.Property ||
+                node.Type == JTokenType.Object ||
+                node.Type == JTokenType.Array)
+            {
+                if (!node.HasValues && node.Parent != null)
+                {
+                    if (node.Parent.Type == JTokenType.Property)
+                    { 
+                        nodesToDelete.Add(node.Parent);
+                    }
+                    else
+                    {
+                        nodesToDelete.Add(node);
+                    }
+                }
+            }
 
-            // assign object to the instance
-            instanceClient = self;
+            if (node.Type == JTokenType.Array)
+            {
+                //if (!node.HasValues && node.Parent != null)
+                //{
+                //    node.Remove();
+                //    return;
+                //}
 
-            // start scheduled tasks
-            Instance.Scheduler.Initialise(Instance, true, settings.IsJobSchedulingDisabled);
+                foreach (var child in node.Children())
+                {
+                    JsonWalkNode(client, child, nodesToDelete, actionOnObject, actionProperty);
+                }
+
+                return;
+            }
+
+            if (node.Type != JTokenType.Object)
+            {
+                return;
+            }
+
+            //if (!node.HasValues)
+            //{
+            //    node.Remove();
+            //    return;
+            //}
+
+            actionOnObject?.Invoke(client, (JObject)node, nodesToDelete);
+
+            foreach (JProperty child in node.Children<JProperty>())
+            {
+                actionProperty?.Invoke(client, child, nodesToDelete);
+
+                JsonWalkNode(client, child.Value, nodesToDelete, actionOnObject, actionProperty);
+            }
+        }
+
+        private Func<AegisClient, string, string> GetAction(string field)
+        {
+            // check cache
+            Func<AegisClient, string, string> action;
+            if (this.cache.TryGetValue(field, out action))
+            {
+                return action;
+            }
+
+            // find action
+            var fieldExtended = $"^{field}$";
+            var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
+
+            // no action available
+            if (string.IsNullOrEmpty(found.Key))
+            {
+                this.cache.AddOrUpdate(field, (Func<AegisClient, string, string>)null, (k, v) => null);
+                return null;
+            }
+
+            // add action to the cache
+            this.cache.AddOrUpdate(field, found.Value, (k, v) => found.Value);
+            return found.Value;
+        }
+
+        public static string ActionRemove(AegisClient client, string text)
+        {
+            return "X$DEL$X";
+        }
+
+        public static string ActionMail(AegisClient client, string text)
+        {
+            string mailHost, mailHash;
+
+            ActionsUtils.ParseEmail(
+                client,
+                nameof(ActionsDataHandler2),
+                text,
+                out mailHost,
+                out mailHash);
+
+            return mailHash;
+        }
+
+        public static string ActionAccountNumber(AegisClient client, string text)
+        {
+            var textTruncated = ActionsUtils.TruncateCardAccountNumber(text);
+            return CryptUtils.HashAccountNumber(textTruncated);
         }
     }
 }

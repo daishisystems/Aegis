@@ -706,17 +706,17 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void CheckNullInput()
         {
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             Assert.IsNull(self.ProcessData(null, null));
         }
 
         [TestMethod]
         public void CheckEmptyData()
         {
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, string.Empty, "\"\"");
             this.DoTest(self, new string[0], "[]");
-            this.DoTest(self, new string[1], "[null]");
+            this.DoTest(self, new string[1], "[]");
         }
 
         [TestMethod]
@@ -724,7 +724,7 @@ namespace Aegis.Pumps.Tests
         {
             var testObj = new { a = 7, e = "bag" };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj, "{\"a\":7,\"e\":\"bag\"}");
         }
 
@@ -733,7 +733,7 @@ namespace Aegis.Pumps.Tests
         {
             var testObj = new { phone = 7, mail = "bag", accountname = new { phone = 14, mail = "muuu", accountname = "zzzz", d = "ooo" } };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj, "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"X$DEL$X\",\"mail\":\"unknown$vOb8qbFEtb6+QEesCBa+x5eqgX7sav1Hqxssdi93HQA=\"},\"mail\":\"unknown$wBgBm2qLAatYaM9L6NsyenVJrgMgJUi5/80mccTCtiQ=\"}");
         }
 
@@ -745,11 +745,20 @@ namespace Aegis.Pumps.Tests
             var testObj3 = new { a = 7, Expiration = 1, e = "bag" };
             var testObj4 = new { a = 7, First = "bla", FirstNumber = "eye" };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaBlaExpirationBumBum\":\"X$DEL$X\"}");
             this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Expiration\":\"X$DEL$X\"}");
             this.DoTest(self, testObj3, "{\"Expiration\":\"X$DEL$X\",\"a\":7,\"e\":\"bag\"}");
             this.DoTest(self, testObj4, "{\"a\":7,\"FirstNumber\":\"eye\",\"First\":\"X$DEL$X\"}");
+        }
+
+        [TestMethod]
+        public void CheckRemoveWithEscapeStringInJson()
+        {
+            var testObj1 = new { a = 7, Line1 = "John \\\"Smith", FirstNumber = "eye" };
+
+            var self = new ActionsDataHandler2();
+            this.DoTest(self, testObj1, "{\"a\":7,\"FirstNumber\":\"eye\",\"Line1\":\"X$DEL$X\"}");
         }
 
         [TestMethod]
@@ -759,7 +768,7 @@ namespace Aegis.Pumps.Tests
             var testObj2 = new { a = 7, Mail = "john@smith.com", e = "bag" };
             var testObj3 = new { a = 7, Mail = 3, e = "bag" };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
             this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
             this.DoTest(self, testObj3, "{\"Mail\":\"unknown$TgdAhWK+24tgzgXB3s/jrRa3IjCWfeAfZAt+Rym0n84=\",\"a\":7,\"e\":\"bag\"}");
@@ -772,7 +781,7 @@ namespace Aegis.Pumps.Tests
             var testObj2 = new { a = 7, AccountNumber = "1234567890", e = "bag" };
             var testObj3 = new { a = 7, AccountNumber = 1234567890, e = "bag" };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaAccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
             this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
             this.DoTest(self, testObj3, "{\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"a\":7,\"e\":\"bag\"}");
@@ -783,7 +792,7 @@ namespace Aegis.Pumps.Tests
         {
             var testObj1 = new { Mail = "john@smith.com", AccountNumberBum = "1234567890", Expiration = "bla" };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
         }
 
@@ -791,13 +800,17 @@ namespace Aegis.Pumps.Tests
         public void CheckSameClassWithDifferentObjectsInsterted()
         {
             var testObj1 = new Test1() { PhoneNumber = "123123213" };
-            var testObj2 = new Test1();
-            testObj2.OtherClasses = new List<Test2>();
-            testObj2.OtherClasses.Add(new Test2() { My2Mail = "mymail@bla.com", My2PhoneNumber = "123123213" });
-            testObj2.OtherClasses.Add(new Test2() { My2Mail = "mymail2@bla.com", My2PhoneNumber = "555555555" });
+            var testObj2 = new Test1
+            {
+                OtherClasses = new List<Test2>
+                {
+                    new Test2() {My2Mail = "mymail@bla.com", My2PhoneNumber = "123123213"},
+                    new Test2() {My2Mail = "mymail2@bla.com", My2PhoneNumber = "555555555"}
+                }
+            };
 
             var name = "CheckAllActions2";
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"Field1\":0,\"PhoneNumber\":\"X$DEL$X\"}", name, name);
             this.DoTest(self, testObj2, "{\"Field1\":0,\"OtherClasses\":[{\"My2Mail\":\"bla.com$YTtpdlvZ7gy+dNT6dkThh55eP5WOso+EvCtp9VDdJ3s=\",\"My2PhoneNumber\":\"X$DEL$X\"},{\"My2Mail\":\"bla.com$7gZxEtAXa7JIOY5XCDzc/5+CWL0R/nXzCJnvuOjK0rY=\",\"My2PhoneNumber\":\"X$DEL$X\"}]}", name, name);
         }
@@ -805,27 +818,33 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void CheckRemovalOfEmptyCollections()
         {
-            var testObj1 = new Test1() { Field1 = 44 };
-            testObj1.Class1 = new Test2();
-            testObj1.OtherClasses = new List<Test2>();
-            testObj1.Collection1 = new List<string>();
-            testObj1.Collection2 = new List<int?>();
-            testObj1.Collection3 = new List<List<int?>>() { new List<int?>(), new List<int?>() };
+            var testObj1 = new Test1
+            {
+                Field1 = 44,
+                Class1 = new Test2(),
+                OtherClasses = new List<Test2>(),
+                Collection1 = new List<string>(),
+                Collection2 = new List<int?>(),
+                Collection3 = new List<List<int?>>() {new List<int?>(), new List<int?>()}
+            };
 
-            var testObj2 = new Test1() { Field1 = 55 };
-            testObj2.Class1 = new Test2();
-            testObj2.OtherClasses = new List<Test2>();
-            testObj2.Collection1 = new List<string>() {null};
-            testObj2.Collection2 = new List<int?>() {null};
-            testObj2.Collection3 = new List<List<int?>>() {new List<int?>(), new List<int?>() { 1, 2}, null, new List<int?>()};
+            var testObj2 = new Test1
+            {
+                Field1 = 55,
+                Class1 = new Test2(),
+                OtherClasses = new List<Test2>(),
+                Collection1 = new List<string>() {null},
+                Collection2 = new List<int?>() {null},
+                Collection3 = new List<List<int?>>() {new List<int?>(), new List<int?>() {1, 2}, null, new List<int?>()}
+            };
 
-            var self = new ActionsDataHandler();
+            var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"Field1\":44}");
-            this.DoTest(self, testObj2, "{\"Field1\":55,\"Collection3\":[[],[1,2],null,[]]}");
+            this.DoTest(self, testObj2, "{\"Field1\":55,\"Collection3\":[[1,2]]}");
         }
 
         public void DoTest(
-            ActionsDataHandler self, 
+            ActionsDataHandler2 self,
             object data,
             string expected,
             string controllerName = null,
@@ -837,19 +856,22 @@ namespace Aegis.Pumps.Tests
             var dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
 
             stopWatch2.Stop();
+            Debug.WriteLine($"JSON: {dataStr}");
+
             var stopWatch3 = Stopwatch.StartNew();
 
             var result = self.ProcessData(null, dataStr);
-            Debug.WriteLine($"ProcessData result: {result}");
-
-            Assert.AreEqual(expected, result);
 
             stopWatch1.Stop();
             stopWatch2.Stop();
             stopWatch3.Stop();
+
+            Debug.WriteLine($"ProcessData result: {result}");
+            Assert.AreEqual(expected, result);
+
             Debug.WriteLine($"DoTest stopWatch1={stopWatch1.ElapsedMilliseconds} ms  " +
                             $"stopWatch2={stopWatch2.ElapsedMilliseconds} ms  " +
-                            $"stopWatch3={stopWatch3.ElapsedMilliseconds} ms");
+                            $"stopWatch3={stopWatch3.ElapsedMilliseconds} ms  ");
         }
     }
 }
