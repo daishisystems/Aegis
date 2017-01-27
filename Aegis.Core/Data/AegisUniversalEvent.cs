@@ -703,6 +703,9 @@ namespace Aegis.Core.Data
         [JilDirective(Ignore = true)]
         public bool IsDataRawProcessed { get; set; }
 
+        [JilDirective(Ignore = true)]
+        public bool IsDataRawProcessDisabled { get; set; }
+
         public override IDataRawEvent GetIDataRawEvent()
         {
             return this;

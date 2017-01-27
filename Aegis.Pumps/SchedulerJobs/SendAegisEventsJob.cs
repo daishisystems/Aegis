@@ -756,6 +756,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // process data raw events
+                // TODO measure time of this
                 foreach (var item in items)
                 {
                     var itemDataRaw = item.GetIDataRawEvent();
@@ -764,10 +765,15 @@ namespace Aegis.Pumps.SchedulerJobs
                         continue;
                     }
 
-                    itemDataRaw.Data = this.ClientInstance.ActionsDataHandler.ProcessData(
-                        this.ClientInstance,
-                        itemDataRaw.DataRaw);
+                    var processedData = itemDataRaw.DataRaw;
+                    if (!itemDataRaw.IsDataRawProcessDisabled)
+                    {
+                        processedData = this.ClientInstance.ActionsDataHandler.ProcessData(
+                                                this.ClientInstance,
+                                                itemDataRaw.DataRaw);
+                    }
 
+                    itemDataRaw.Data = processedData;
                     itemDataRaw.IsDataRawProcessed = true;
                 }
 
@@ -781,6 +787,7 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 try
                 {
+                    // TODO get and save to satus size (in bytes) of send data
                     this.aegisServiceClient.SendAegisEvents(
                         AegisClient.ClientInfo,
                         this.ClientInstance.Settings,

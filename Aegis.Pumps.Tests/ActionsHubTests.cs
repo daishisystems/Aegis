@@ -1193,6 +1193,16 @@ namespace Aegis.Pumps.Tests
                     Assert.IsTrue(evntbaseIp.HttpHeadersRest.Count > 0, evntbaseIp.EventType);
                 }
 
+                var evntIDataRaw = evnt as IDataRawEvent;
+                if (evntIDataRaw != null)
+                {
+                    Assert.IsFalse(evntIDataRaw.IsDataRawProcessed, evnt.EventType);
+                    Assert.IsFalse(evntIDataRaw.IsDataRawProcessDisabled, evnt.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntIDataRaw.DataType), evnt.EventType);
+                    Assert.AreEqual(isTestParamsNull, string.IsNullOrWhiteSpace(evntIDataRaw.DataRaw), evnt.EventType);
+                    Assert.IsTrue(string.IsNullOrWhiteSpace(evntIDataRaw.Data), evnt.EventType);
+                }
+
                 var evntUnivesal = evnt as AegisUniversalEvent;
                 if (evntUnivesal != null)
                 {

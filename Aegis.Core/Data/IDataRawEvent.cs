@@ -692,5 +692,8 @@ namespace Aegis.Core.Data
 
         [JilDirective(Ignore = true)]
         bool IsDataRawProcessed { get; set; }
+
+        [JilDirective(Ignore = true)]
+        bool IsDataRawProcessDisabled { get; set; }
     }
 }

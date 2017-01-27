@@ -705,7 +705,6 @@ namespace Aegis.Pumps.Actions
             this.ipHeaderNames = httpIpHeaderNames.ToList();
         }
 
-        // TODO provide flag to optionally dsiable data handler i.e. for availability
         public bool ProcessEvent(
             string eventName,
             HttpHeaders requestHeaders,
@@ -717,7 +716,8 @@ namespace Aegis.Pumps.Actions
             object data,
             bool isOutput = false,
             bool isOutputException = false,
-            HttpHeaders responseHeaders = null)
+            HttpHeaders responseHeaders = null,
+            bool sensitiveDataCheck = true)
         {
             string dataStr = null;
             string dataTypeFullName = null;
@@ -746,6 +746,7 @@ namespace Aegis.Pumps.Actions
                         EventType = eventNameFinal,
                         DataRaw = dataStr,
                         DataType = dataTypeFullName,
+                        IsDataRawProcessDisabled = !sensitiveDataCheck,
                         IsOutputException = isOutputException ? true : (bool?)null,
                         HttpHeadersResponse = ActionsUtils.GetAllHttpHeaders(responseHeaders, "X-", 256)
                     });
@@ -762,7 +763,8 @@ namespace Aegis.Pumps.Actions
             object data,
             bool isOutput = false,
             bool isOutputException = false,
-            NameValueCollection responseHeaders = null)
+            NameValueCollection responseHeaders = null,
+            bool sensitiveDataCheck = true)
         {
             return this.ProcessEvent(
                 eventName,
@@ -775,7 +777,8 @@ namespace Aegis.Pumps.Actions
                 data,
                 isOutput,
                 isOutputException,
-                ActionsUtils.GetAsHttpHeaders(responseHeaders));
+                ActionsUtils.GetAsHttpHeaders(responseHeaders),
+                sensitiveDataCheck);
         }
     }
 }
