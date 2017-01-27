@@ -676,153 +676,101 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Aegis.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Aegis.Pumps.Actions
 {
-    public class ActionsDataHandler2
+    public class ActionsDataHandlerActions
     {
-        private readonly ActionsDataHandlerActions actions = new ActionsDataHandlerActions();
-
-        public string ProcessData(
-            AegisClient client,
-            string json)
+        private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
         {
-            if (string.IsNullOrWhiteSpace(json))
+            { "expiration", ActionRemove },
+            { "expirydate", ActionRemove },
+            { "dob", ActionRemove },
+            { "accountname", ActionRemove }, // TODO hash account name
+            { "accname", ActionRemove }, // TODO hash account name
+            { "verificationcode", ActionRemove },
+            { "cardid", ActionRemove },
+            { "docnumber", ActionRemove },
+            { "line", ActionRemove },
+            { "phone", ActionRemove },
+            { "fax", ActionRemove },
+            { "password", ActionRemove },
+            { "url", ActionRemove },
+            { "credential", ActionRemove },
+            { "addresss", ActionRemove },
+
+            { "^first$", ActionRemove },
+            { "^last$", ActionRemove },
+            { "^middle$", ActionRemove },
+            { "^suffix$", ActionRemove },
+            { "^title$", ActionRemove },
+            { "^fullname$", ActionRemove },
+
+            { "mail", ActionMail },
+
+            { "accountnumber", ActionAccountNumber },
+            { "accnum", ActionAccountNumber },
+            { "creditcard", ActionAccountNumber },
+        };
+
+        private readonly ConcurrentDictionary<string, Func<AegisClient, string, string>> cache =
+            new ConcurrentDictionary<string, Func<AegisClient, string, string>>();
+
+        public Func<AegisClient, string, string> GetAction(string field)
+        {
+            // check cache
+            Func<AegisClient, string, string> action;
+            if (this.cache.TryGetValue(field, out action))
             {
+                return action;
+            }
+
+            // find action
+            var fieldExtended = $"^{field}$";
+            var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
+
+            // no action available
+            if (string.IsNullOrEmpty(found.Key))
+            {
+                this.cache.AddOrUpdate(field, (Func<AegisClient, string, string>)null, (k, v) => null);
                 return null;
             }
 
-            var jsonData = JToken.Parse(json);
-
-            var nodesToDelete = new List<JToken>();
-
-            do
-            {
-                nodesToDelete.Clear();
-
-                //Console.WriteLine($"type={jsonData.Type} json={jsonData.ToString()}");
-
-                // go through json and check all fields
-                JsonWalkNode(client, jsonData, nodesToDelete, null, this.OnProperty);
-
-                foreach (var token in nodesToDelete)
-                {
-                    //Console.WriteLine(token.ToString());
-                    //Console.WriteLine($"type={token.Type} json={token.ToString()}");
-                    token.Remove();
-                }
-
-            } while (nodesToDelete.Count > 0);
-
-            return jsonData.ToString(Formatting.None);
+            // add action to the cache
+            this.cache.AddOrUpdate(field, found.Value, (k, v) => found.Value);
+            return found.Value;
         }
 
-        private void OnProperty(AegisClient client, JProperty property, List<JToken> nodesToDelete)
+        public static string ActionRemove(AegisClient client, string text)
         {
-            var val = property.Value;
-            if (val.Type != JTokenType.String &&
-                val.Type != JTokenType.Integer &&
-                val.Type != JTokenType.Float &&
-                val.Type != JTokenType.Date &&
-                val.Type != JTokenType.TimeSpan)
-            {
-                return;
-            }
-
-            var key = property.Name.ToLowerInvariant();
-
-            // get action
-            var action = this.actions.GetAction(key);
-            if (action == null)
-            {
-                return;
-            }
-
-            //var val = property.Value;
-            if (val.Type == JTokenType.String &&
-                string.IsNullOrEmpty(val.Value<string>()))
-            {
-                //property.Value.Remove();
-                //nodesToDelete.Add(property);
-                return;
-            }
-
-            var value = val.Value<string>();
-            var valueNewStr = action(client, value);
-            var valueNew = JToken.FromObject(valueNewStr);
-
-            property.Value.Replace(valueNew);
+            return "X$DEL$X";
         }
 
-        private static void JsonWalkNode(
-            AegisClient client,
-            JToken node,
-            List<JToken> nodesToDelete,
-            Action<AegisClient, JObject, List<JToken>> actionOnObject = null,
-            Action<AegisClient, JProperty, List<JToken>> actionProperty = null)
+        public static string ActionMail(AegisClient client, string text)
         {
-            if (node.Type == JTokenType.Null)
-            {
-                //node.Remove();
-                nodesToDelete.Add(node);
-                return;
-            }
+            string mailHost, mailHash;
 
-            if (node.Type == JTokenType.Property ||
-                node.Type == JTokenType.Object ||
-                node.Type == JTokenType.Array)
-            {
-                if (!node.HasValues && node.Parent != null)
-                {
-                    if (node.Parent.Type == JTokenType.Property)
-                    { 
-                        nodesToDelete.Add(node.Parent);
-                    }
-                    else
-                    {
-                        nodesToDelete.Add(node);
-                    }
-                }
-            }
+            ActionsUtils.ParseEmail(
+                client,
+                nameof(ActionsDataHandler2),
+                text,
+                out mailHost,
+                out mailHash);
 
-            if (node.Type == JTokenType.Array)
-            {
-                //if (!node.HasValues && node.Parent != null)
-                //{
-                //    node.Remove();
-                //    return;
-                //}
+            return mailHash;
+        }
 
-                foreach (var child in node.Children())
-                {
-                    JsonWalkNode(client, child, nodesToDelete, actionOnObject, actionProperty);
-                }
-
-                return;
-            }
-
-            if (node.Type != JTokenType.Object)
-            {
-                return;
-            }
-
-            //if (!node.HasValues)
-            //{
-            //    node.Remove();
-            //    return;
-            //}
-
-            actionOnObject?.Invoke(client, (JObject)node, nodesToDelete);
-
-            foreach (var child in node.Children<JProperty>())
-            {
-                actionProperty?.Invoke(client, child, nodesToDelete);
-
-                JsonWalkNode(client, child.Value, nodesToDelete, actionOnObject, actionProperty);
-            }
+        public static string ActionAccountNumber(AegisClient client, string text)
+        {
+            var textTruncated = ActionsUtils.TruncateCardAccountNumber(text);
+            return CryptUtils.HashAccountNumber(textTruncated);
         }
     }
 }

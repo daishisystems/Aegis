@@ -675,53 +675,15 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Aegis.Core;
 
 namespace Aegis.Pumps.Actions
 {
     public class ActionsDataHandler
     {
-        private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
-        {
-            { "expiration", ActionRemove },
-            { "expirydate", ActionRemove },
-            { "dob", ActionRemove },
-            { "accountname", ActionRemove }, // TODO hash account name
-            { "accname", ActionRemove }, // TODO hash account name
-            { "verificationcode", ActionRemove },
-            { "cardid", ActionRemove },
-            { "docnumber", ActionRemove },
-            { "line", ActionRemove },
-            { "phone", ActionRemove },
-            { "fax", ActionRemove },
-            { "password", ActionRemove },
-            { "url", ActionRemove },
-            { "credential", ActionRemove },
-            { "addresss", ActionRemove },
-
-            { "^first$", ActionRemove },
-            { "^last$", ActionRemove },
-            { "^middle$", ActionRemove },
-            { "^suffix$", ActionRemove },
-            { "^title$", ActionRemove },
-            { "^fullname$", ActionRemove },
-
-            { "mail", ActionMail },
-
-            { "accountnumber", ActionAccountNumber },
-            { "accnum", ActionAccountNumber },
-            { "creditcard", ActionAccountNumber },
-        };
-
+        private readonly ActionsDataHandlerActions actions = new ActionsDataHandlerActions();
         private readonly HashSet<string> ignoredValues = new HashSet<string>();
-
-        private readonly ConcurrentDictionary<string, Func<AegisClient, string, string>> cache = 
-            new ConcurrentDictionary<string, Func<AegisClient, string, string>>();
 
         private static readonly Regex RegexFields = new Regex("\"(\\w+)\"\\s*:\\s*((\".*?\")|(\\w+)|{}\\s*,?|\\[((\\[\\],?)|null,?)*\\]\\s*,?)", 
                                                         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
@@ -770,63 +732,13 @@ namespace Aegis.Pumps.Actions
             }
 
             // get action
-            var action = this.GetAction(key.ToLowerInvariant());
+            var action = this.actions.GetAction(key.ToLowerInvariant());
             if (action == null)
             {
                 return match.Value;
             }
 
             return $"\"{key}\":\"{action(client, value)}\"";
-        }
-
-        private Func<AegisClient, string, string> GetAction(string field)
-        {
-            // check cache
-            Func<AegisClient, string, string> action;
-            if (this.cache.TryGetValue(field, out action))
-            {
-                return action;
-            }
-
-            // find action
-            var fieldExtended = $"^{field}$";
-            var found = this.actionWords.FirstOrDefault(x => fieldExtended.Contains(x.Key));
-
-            // no action available
-            if (string.IsNullOrEmpty(found.Key))
-            {
-                this.cache.AddOrUpdate(field, (Func<AegisClient, string, string>)null, (k, v) => null);
-                return null;
-            }
-
-            // add action to the cache
-            this.cache.AddOrUpdate(field, found.Value, (k, v) => found.Value);
-            return found.Value;
-        }
-
-        public static string ActionRemove(AegisClient client, string text)
-        {
-            return "X$DEL$X";
-        }
-
-        public static string ActionMail(AegisClient client, string text)
-        {
-            string mailHost, mailHash;
-
-            ActionsUtils.ParseEmail(
-                client,
-                nameof(ActionsDataHandler),
-                text,
-                out mailHost,
-                out mailHash);
-
-            return mailHash;
-        }
-
-        public static string ActionAccountNumber(AegisClient client, string text)
-        {
-            var textTruncated = ActionsUtils.TruncateCardAccountNumber(text);
-            return CryptUtils.HashAccountNumber(textTruncated);
         }
     }
 }
