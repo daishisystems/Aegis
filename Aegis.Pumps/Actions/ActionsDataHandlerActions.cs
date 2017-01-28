@@ -693,7 +693,7 @@ namespace Aegis.Pumps.Actions
             { "accountname", ActionRemove }, // TODO hash account name
             { "accname", ActionRemove }, // TODO hash account name
             { "verificationcode", ActionRemove },
-            { "cardid", ActionRemove },
+            { "cardid", ActionRemove }, // TODO isn't same as account number?
             { "docnumber", ActionRemove },
             { "line", ActionRemove },
             { "phone", ActionRemove },
@@ -708,7 +708,9 @@ namespace Aegis.Pumps.Actions
             { "^middle$", ActionRemove },
             { "^suffix$", ActionRemove },
             { "^title$", ActionRemove },
-            { "^fullname$", ActionRemove },
+            { "firstname", ActionRemove },
+            { "lastname", ActionRemove },
+            { "fullname", ActionRemove },
 
             { "mail", ActionMail },
 

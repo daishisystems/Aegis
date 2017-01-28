@@ -744,12 +744,14 @@ namespace Aegis.Pumps.Tests
             var testObj2 = new { a = 7, Expiration = "bla", e = "bag" };
             var testObj3 = new { a = 7, Expiration = 1, e = "bag" };
             var testObj4 = new { a = 7, First = "bla", FirstNumber = "eye" };
+            var testObj5 = new { FirstName = "bla", FullName = "eye", LastName = "sss", Title = "ss" };
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaBlaExpirationBumBum\":\"X$DEL$X\"}");
             this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Expiration\":\"X$DEL$X\"}");
             this.DoTest(self, testObj3, "{\"Expiration\":\"X$DEL$X\",\"a\":7,\"e\":\"bag\"}");
             this.DoTest(self, testObj4, "{\"a\":7,\"FirstNumber\":\"eye\",\"First\":\"X$DEL$X\"}");
+            this.DoTest(self, testObj5, "{\"Title\":\"X$DEL$X\",\"LastName\":\"X$DEL$X\",\"FullName\":\"X$DEL$X\",\"FirstName\":\"X$DEL$X\"}");
         }
 
         [TestMethod]
