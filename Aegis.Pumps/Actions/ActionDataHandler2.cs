@@ -697,7 +697,6 @@ namespace Aegis.Pumps.Actions
             }
 
             // TODO add functionality to remove useless json code (i.e. mdot)
-            // TODO clean code
             var jsonData = JToken.Parse(json);
 
             var nodesToDelete = new List<JToken>();
@@ -705,16 +704,10 @@ namespace Aegis.Pumps.Actions
             do
             {
                 nodesToDelete.Clear();
-
-                //Console.WriteLine($"type={jsonData.Type} json={jsonData.ToString()}");
-
-                // go through json and check all fields
                 JsonWalkNode(client, timeStamp, jsonData, nodesToDelete, this.OnProperty);
 
                 foreach (var token in nodesToDelete)
                 {
-                    //Console.WriteLine(token.ToString());
-                    //Console.WriteLine($"type={token.Type} json={token.ToString()}");
                     token.Remove();
                 }
 
@@ -766,12 +759,10 @@ namespace Aegis.Pumps.Actions
             DateTime timeStamp,
             JToken node,
             List<JToken> nodesToDelete,
-            //Action<AegisClient, JObject, List<JToken>> actionOnObject = null,
             Action<AegisClient, DateTime, JProperty, List<JToken>> actionProperty = null)
         {
             if (node.Type == JTokenType.Null)
             {
-                //node.Remove();
                 nodesToDelete.Add(node);
                 return;
             }
@@ -795,15 +786,8 @@ namespace Aegis.Pumps.Actions
 
             if (node.Type == JTokenType.Array)
             {
-                //if (!node.HasValues && node.Parent != null)
-                //{
-                //    node.Remove();
-                //    return;
-                //}
-
                 foreach (var child in node.Children())
                 {
-                    //JsonWalkNode(client, child, nodesToDelete, actionOnObject, actionProperty);
                     JsonWalkNode(client, timeStamp, child, nodesToDelete, actionProperty);
                 }
 
@@ -815,20 +799,11 @@ namespace Aegis.Pumps.Actions
                 return;
             }
 
-            //if (!node.HasValues)
-            //{
-            //    node.Remove();
-            //    return;
-            //}
-
-            //actionOnObject?.Invoke(client, (JObject)node, nodesToDelete);
-
             foreach (var child in node.Children<JProperty>())
             {
                 actionProperty?.Invoke(client, timeStamp, child, nodesToDelete);
 
                 JsonWalkNode(client, timeStamp, child.Value, nodesToDelete, actionProperty);
-                //JsonWalkNode(client, child.Value, nodesToDelete, actionOnObject, actionProperty);
             }
         }
     }
