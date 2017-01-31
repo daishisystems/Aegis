@@ -710,7 +710,7 @@ namespace Aegis.Pumps
 
         public AegisEventCacheClient(int limit)
         {
-            this.events = new MemoryCache<AegisBaseEvent>(limit);
+            this.events = new MemoryCache<AegisBaseEvent>(limit, (int)(0.1 * limit));
         }
 
         /// <summary>
@@ -738,15 +738,12 @@ namespace Aegis.Pumps
             return this.events.Add(evnt);
         }
 
-        /// <summary>Relay persists the underlying cache to a Cloud service for processing.</summary>
-        /// <param name="batchSize">
-        ///     <see cref="batchSize" /> determines the number of
-        ///     <see cref="AegisEvent" /> instances to publish per batch.
-        /// </param>
-        /// <param name="processorFunc">Function to process items</param>
-        public int RelayEvents(int batchSize, Func<List<AegisBaseEvent>, int, bool> processorFunc)
+        public int RelayEvents(
+            int batchSizeSoft,
+            int batchSizeHard, 
+            Func<List<AegisBaseEvent>, int, bool> processorFunc)
         {
-            return this.events.Process(batchSize, processorFunc);
+            return this.events.Process(batchSizeSoft, batchSizeHard, processorFunc);
         }
 
         public int RemoveOldItems(int limitInHours)

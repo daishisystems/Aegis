@@ -1125,7 +1125,7 @@ namespace Aegis.Pumps.Tests
                     // new number of events
                     Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
 
-                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, (e, a) => this.RunActionsCheckEvents(e, a, isTestParamsNull));
+                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, 100, (e, a) => this.RunActionsCheckEvents(e, a, isTestParamsNull));
 
                     if (!isWamUp)
                     {

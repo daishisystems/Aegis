@@ -685,13 +685,15 @@ namespace Aegis.Core
     public class MemoryCache<T>
     {
         private readonly int countLimit;
+        private readonly int countToBatchHardLimit;
         private readonly ConcurrentQueue<T> data = new ConcurrentQueue<T>();
         private readonly List<T> dataToProcess = new List<T>();
         private readonly object lockProcess = new object();
 
-        public MemoryCache(int countLimit)
+        public MemoryCache(int countLimit, int countToBatchHardLimit = 0)
         {
             this.countLimit = countLimit;
+            this.countToBatchHardLimit = countToBatchHardLimit > 0 ? countToBatchHardLimit : countLimit;
         }
 
         /// <summary>
@@ -722,18 +724,11 @@ namespace Aegis.Core
             return false;
         }
 
-        /// <summary>
-        ///     Process cached data. This is lock-like method and only one publishing
-        ///     is allowed at the time. Adding new items is never blocked.
-        /// </summary>
-        /// <param name="batchSize">Maximum number of items to process</param>
-        /// <param name="processorFunc">Function to process data</param>
-        /// <returns>Number of processed items</returns>
-        public int Process(int batchSize, Func<List<T>, int, bool> processorFunc)
+        public int Process(int batchSizeSoft, int batchSizeHard, Func<List<T>, int, bool> processorFunc)
         {
             lock (this.lockProcess)
             {
-                return this.DoProcess(batchSize, processorFunc);
+                return this.DoProcess(batchSizeSoft, batchSizeHard, processorFunc);
             }
         }
 
@@ -782,8 +777,15 @@ namespace Aegis.Core
             }
         }
 
-        private int DoProcess(int batchSize, Func<List<T>, int, bool> processorFunc)
+        private int DoProcess(int batchSizeSoft, int batchSizeHard, Func<List<T>, int, bool> processorFunc)
         {
+            // set batch size
+            var batchSize = batchSizeSoft;
+            if (this.data.Count >= this.countToBatchHardLimit)
+            {
+                batchSize = batchSizeHard;
+            }
+
             // add items to process
             while (this.dataToProcess.Count < batchSize)
             {

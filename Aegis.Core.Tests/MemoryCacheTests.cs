@@ -695,6 +695,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 5,
+                5,
                 (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
@@ -716,6 +717,7 @@ namespace Aegis.Core.Tests
             TestListAux(self, 5, testData.Skip(15).Take(5), true);
 
             self.Process(
+                5,
                 5,
                 (lst, allItemsCount) =>
                 {
@@ -745,6 +747,7 @@ namespace Aegis.Core.Tests
 
             self.Process(
                 10,
+                10,
                 (lst, allItemsCount) =>
                 {
                     Assert.Fail("Cache should be empty");
@@ -768,6 +771,7 @@ namespace Aegis.Core.Tests
             TestListAux(self, 50, testData.Skip(22), true);
 
             self.Process(
+                5,
                 5,
                 (lst, allItemsCount) =>
                 {
@@ -822,6 +826,7 @@ namespace Aegis.Core.Tests
             var expectedLst = expected.ToList();
 
             self.Process(
+                batchCount,
                 batchCount,
                 (lst, allItemsCount) =>
                 {

@@ -985,7 +985,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, AegisClient.Instance.AegisEventCache.Count());
-            AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
+            AegisClient.Instance.AegisEventCache.RelayEvents(1000, 1000, this.DoCheckAegisEvents);
 
             // shutdown
             AegisClient.ShutDown();
@@ -1049,7 +1049,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, AegisClient.Instance.AegisEventCache.Count());
-            AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
+            AegisClient.Instance.AegisEventCache.RelayEvents(1000, 1000, this.DoCheckAegisEvents);
 
             // shutdown
             AegisClient.ShutDown();
@@ -1115,7 +1115,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result == true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, AegisClient.Instance.AegisEventCache.Count());
-            AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
+            AegisClient.Instance.AegisEventCache.RelayEvents(1000, 1000, this.DoCheckAegisEvents);
 
             // shutdown
             AegisClient.ShutDown();
@@ -1182,7 +1182,7 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, AegisClient.Instance.AegisEventCache.Count());
-            AegisClient.Instance.AegisEventCache.RelayEvents(1000, this.DoCheckAegisEvents);
+            AegisClient.Instance.AegisEventCache.RelayEvents(1000, 1000, this.DoCheckAegisEvents);
 
             // shutdown
             AegisClient.ShutDown();

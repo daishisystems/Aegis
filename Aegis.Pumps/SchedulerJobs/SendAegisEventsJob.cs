@@ -704,7 +704,8 @@ namespace Aegis.Pumps.SchedulerJobs
 
                 // execute sending data
                 var count = this.ClientInstance.AegisEventCache.RelayEvents(
-                    this.ClientInstance.Settings.AegisEventsCacheBatchSize,
+                    this.ClientInstance.Settings.AegisEventsCacheBatchSizeSoft,
+                    this.ClientInstance.Settings.AegisEventsCacheBatchSizeHard,
                     this.OnPublishEvents);
 
                 // if there was an error
