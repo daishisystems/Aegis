@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -699,6 +700,7 @@ namespace Aegis.Pumps.Actions
 
         public string ProcessData(
             AegisClient client,
+            DateTime timeStamp,
             string json)
         {
             if (string.IsNullOrWhiteSpace(json))
@@ -706,7 +708,7 @@ namespace Aegis.Pumps.Actions
                 return null;
             }
 
-            var jsonNew = RegexFields.Replace(json, (m) => this.MatchField(client, m));
+            var jsonNew = RegexFields.Replace(json, (m) => this.MatchField(client, m, timeStamp));
             if (jsonNew == json)
             {
                 return json;
@@ -715,7 +717,7 @@ namespace Aegis.Pumps.Actions
             return jsonNew.Replace(",}", "}");
         }
 
-        private string MatchField(AegisClient client, Match match)
+        private string MatchField(AegisClient client, Match match, DateTime timeStamp)
         {
             var key = match.Groups[1].Value;
             var value = match.Groups[2].Value;
@@ -738,7 +740,7 @@ namespace Aegis.Pumps.Actions
                 return match.Value;
             }
 
-            return $"\"{key}\":\"{action(client, value)}\"";
+            return $"\"{key}\":\"{action(client, value, timeStamp)}\"";
         }
     }
 }

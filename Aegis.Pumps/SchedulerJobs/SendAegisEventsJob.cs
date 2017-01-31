@@ -770,6 +770,7 @@ namespace Aegis.Pumps.SchedulerJobs
                     {
                         processedData = this.ClientInstance.ActionsDataHandler.ProcessData(
                                                 this.ClientInstance,
+                                                DateTime.Parse(item.Time), 
                                                 itemDataRaw.DataRaw);
                     }
 

@@ -696,7 +696,9 @@ namespace Aegis.Pumps.Actions
         public static void ParseEmail(
             AegisClient client, 
             string componentName, 
-            string email, 
+            string email,
+            byte[] dataKey,
+            string dataKeyVersion,
             out string mailHost, 
             out string mailHash)
         {
@@ -728,7 +730,7 @@ namespace Aegis.Pumps.Actions
             }
 
             // hash mail
-            mailHash = CryptUtils.HashMail(mailAddr, mailHost);
+            mailHash = CryptUtils.HashMail(mailAddr, mailHost, dataKey, dataKeyVersion);
         }
 
         public static string TruncateCardAccountNumber(string account)
@@ -743,7 +745,7 @@ namespace Aegis.Pumps.Actions
                 return account;
             }
 
-            return account.Substring(0, 6) + "".PadLeft(account.Length - 10, 'x') + account.Substring(account.Length - 4, 4);
+            return account.Substring(0, 6) + "".PadLeft(account.Length - 10, 'X') + account.Substring(account.Length - 4, 4);
         }
 
         public static HttpHeaders GetAsHttpHeaders(NameValueCollection headersCollection)

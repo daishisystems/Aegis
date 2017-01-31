@@ -706,7 +706,6 @@ namespace Aegis.Pumps
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly ActionsDataHandler2 ActionsDataHandler;
         public readonly ActionsHub ActionsHub;
-        //public readonly ActionsHubMdot ActionsHubMdot;
         public SchedulerRegistry Scheduler { get; private set; }
 
         private AegisClient(
@@ -767,7 +766,8 @@ namespace Aegis.Pumps
             string clientName,
             string clientVersion,
             string clientEnvironment,
-            string clientProject)
+            string clientProject,
+            string clientDataKey)
         {
             lock (lockInit)
             {
@@ -781,6 +781,7 @@ namespace Aegis.Pumps
                     ClientInfo.Version = clientVersion;
                     ClientInfo.Environment = clientEnvironment;
                     ClientInfo.Project = clientProject;
+                    ClientInfo.DataKey = clientDataKey;
                 }
                 catch (Exception exception)
                 {
@@ -871,13 +872,13 @@ namespace Aegis.Pumps
                 NewRelicInsightsClient.Instance.Initialise();
 
                 // setup client
-                AegisClient.SetUp(
+                SetUp(
                     NewRelicInsightsClient.Instance,
                     appSettings["AegisApplicationName"],
                     applicationVersionKey,
-                    //appSettings[dotrez.common.constants.Application.VersionKey],
                     appSettings["AegisDeploymentEnvironment"],
-                    appSettings["AegisApplicationProject"]);
+                    appSettings["AegisApplicationProject"],
+                    appSettings["AegisDataKey"]);
 
                 // create Aegis client settings
                 var aegisSettings = Settings.Initialise(
@@ -887,14 +888,13 @@ namespace Aegis.Pumps
                     appSettings["AegisServiceUri"],
                     new[]
                     {
-                        //dotrez.common.constants.Application.NetscalerClientHeader,
                         "NS_CLIENT_IP",
                         netscalerClientHeader,
                         "REMOTE_ADDR"
                     });
 
                 // initialize Aegis client
-                return AegisClient.Initialise(NewRelicInsightsClient.Instance, aegisSettings);
+                return Initialise(NewRelicInsightsClient.Instance, aegisSettings);
             }
             catch (Exception exception)
             {

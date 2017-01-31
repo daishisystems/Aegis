@@ -78,6 +78,7 @@
     <Compile Include="AegisServiceClientTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
     <Compile Include="AegisClientTests.cs" />
+    <Compile Include="ClientInfoTests.cs" />
     <Compile Include="Mocks\MockAegisServiceClient.cs" />
     <Compile Include="Mocks\MockHttpHeaders.cs" />
     <Compile Include="Mocks\MockNewRelicInsightsClient.cs" />

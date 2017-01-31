@@ -685,21 +685,21 @@ namespace Aegis.Pumps.Actions
 {
     public class ActionsDataHandlerActions
     {
-        private readonly Dictionary<string, Func<AegisClient, string, string>> actionWords = new Dictionary<string, Func<AegisClient, string, string>>()
+        public delegate string OnAction(AegisClient client, string text, DateTime timeStamp);
+
+        private readonly Dictionary<string, OnAction> actionWords = new Dictionary<string, OnAction>()
         {
             { "expiration", ActionRemove },
             { "expirydate", ActionRemove },
             { "dob", ActionRemove },
-            { "accountname", ActionRemove }, // TODO hash account name
-            { "accname", ActionRemove }, // TODO hash account name
+            { "accountname", ActionAccountName },
+            { "accname", ActionAccountName },
             { "verificationcode", ActionRemove },
-            { "cardid", ActionRemove }, // TODO isn't same as account number?
             { "docnumber", ActionRemove },
             { "line", ActionRemove },
             { "phone", ActionRemove },
             { "fax", ActionRemove },
             { "password", ActionRemove },
-            { "url", ActionRemove },
             { "credential", ActionRemove },
             { "addresss", ActionRemove },
 
@@ -711,7 +711,6 @@ namespace Aegis.Pumps.Actions
             { "firstname", ActionRemove },
             { "lastname", ActionRemove },
             { "fullname", ActionRemove },
-
             { "mail", ActionMail },
 
             { "accountnumber", ActionAccountNumber },
@@ -719,13 +718,12 @@ namespace Aegis.Pumps.Actions
             { "creditcard", ActionAccountNumber },
         };
 
-        private readonly ConcurrentDictionary<string, Func<AegisClient, string, string>> cache =
-            new ConcurrentDictionary<string, Func<AegisClient, string, string>>();
+        private readonly ConcurrentDictionary<string, OnAction> cache = new ConcurrentDictionary<string, OnAction>();
 
-        public Func<AegisClient, string, string> GetAction(string field)
+        public OnAction GetAction(string field)
         {
             // check cache
-            Func<AegisClient, string, string> action;
+            OnAction action;
             if (this.cache.TryGetValue(field, out action))
             {
                 return action;
@@ -738,7 +736,7 @@ namespace Aegis.Pumps.Actions
             // no action available
             if (string.IsNullOrEmpty(found.Key))
             {
-                this.cache.AddOrUpdate(field, (Func<AegisClient, string, string>)null, (k, v) => null);
+                this.cache.AddOrUpdate(field, (OnAction)null, (k, v) => null);
                 return null;
             }
 
@@ -747,29 +745,45 @@ namespace Aegis.Pumps.Actions
             return found.Value;
         }
 
-        public static string ActionRemove(AegisClient client, string text)
+        public static string ActionRemove(AegisClient client, string text, DateTime timeStamp)
         {
             return "X$DEL$X";
         }
 
-        public static string ActionMail(AegisClient client, string text)
+        public static string ActionMail(AegisClient client, string text, DateTime timeStamp)
         {
+            var keyInfo = AegisClient.ClientInfo.GetDataKey(timeStamp);
+
             string mailHost, mailHash;
 
             ActionsUtils.ParseEmail(
                 client,
                 nameof(ActionsDataHandler2),
                 text,
+                keyInfo.Item1, 
+                keyInfo.Item2,
                 out mailHost,
                 out mailHash);
 
             return mailHash;
         }
 
-        public static string ActionAccountNumber(AegisClient client, string text)
+        public static string ActionAccountNumber(AegisClient client, string text, DateTime timeStamp)
         {
             var textTruncated = ActionsUtils.TruncateCardAccountNumber(text);
             return CryptUtils.HashAccountNumber(textTruncated);
+        }
+
+        public static string ActionAccountName(AegisClient client, string text, DateTime timeStamp)
+        {
+            text = text?.ToLowerInvariant().Trim();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            var keyInfo = AegisClient.ClientInfo.GetDataKey(timeStamp);
+            return CryptUtils.HashWithKey(text, keyInfo.Item1, keyInfo.Item2);
         }
     }
 }

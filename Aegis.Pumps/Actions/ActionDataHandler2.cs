@@ -688,6 +688,7 @@ namespace Aegis.Pumps.Actions
 
         public string ProcessData(
             AegisClient client,
+            DateTime timeStamp,
             string json)
         {
             if (string.IsNullOrWhiteSpace(json))
@@ -695,6 +696,8 @@ namespace Aegis.Pumps.Actions
                 return null;
             }
 
+            // TODO add functionality to remove useless json code (i.e. mdot)
+            // TODO clean code
             var jsonData = JToken.Parse(json);
 
             var nodesToDelete = new List<JToken>();
@@ -706,7 +709,7 @@ namespace Aegis.Pumps.Actions
                 //Console.WriteLine($"type={jsonData.Type} json={jsonData.ToString()}");
 
                 // go through json and check all fields
-                JsonWalkNode(client, jsonData, nodesToDelete, null, this.OnProperty);
+                JsonWalkNode(client, timeStamp, jsonData, nodesToDelete, this.OnProperty);
 
                 foreach (var token in nodesToDelete)
                 {
@@ -720,7 +723,11 @@ namespace Aegis.Pumps.Actions
             return jsonData.ToString(Formatting.None);
         }
 
-        private void OnProperty(AegisClient client, JProperty property, List<JToken> nodesToDelete)
+        private void OnProperty(
+            AegisClient client, 
+            DateTime timeStamp,
+            JProperty property, 
+            List<JToken> nodesToDelete)
         {
             var val = property.Value;
             if (val.Type != JTokenType.String &&
@@ -728,6 +735,12 @@ namespace Aegis.Pumps.Actions
                 val.Type != JTokenType.Float &&
                 val.Type != JTokenType.Date &&
                 val.Type != JTokenType.TimeSpan)
+            {
+                return;
+            }
+
+            if (val.Type == JTokenType.String &&
+                string.IsNullOrEmpty(val.Value<string>()))
             {
                 return;
             }
@@ -741,17 +754,8 @@ namespace Aegis.Pumps.Actions
                 return;
             }
 
-            //var val = property.Value;
-            if (val.Type == JTokenType.String &&
-                string.IsNullOrEmpty(val.Value<string>()))
-            {
-                //property.Value.Remove();
-                //nodesToDelete.Add(property);
-                return;
-            }
-
             var value = val.Value<string>();
-            var valueNewStr = action(client, value);
+            var valueNewStr = action(client, value, timeStamp);
             var valueNew = JToken.FromObject(valueNewStr);
 
             property.Value.Replace(valueNew);
@@ -759,10 +763,11 @@ namespace Aegis.Pumps.Actions
 
         private static void JsonWalkNode(
             AegisClient client,
+            DateTime timeStamp,
             JToken node,
             List<JToken> nodesToDelete,
-            Action<AegisClient, JObject, List<JToken>> actionOnObject = null,
-            Action<AegisClient, JProperty, List<JToken>> actionProperty = null)
+            //Action<AegisClient, JObject, List<JToken>> actionOnObject = null,
+            Action<AegisClient, DateTime, JProperty, List<JToken>> actionProperty = null)
         {
             if (node.Type == JTokenType.Null)
             {
@@ -798,7 +803,8 @@ namespace Aegis.Pumps.Actions
 
                 foreach (var child in node.Children())
                 {
-                    JsonWalkNode(client, child, nodesToDelete, actionOnObject, actionProperty);
+                    //JsonWalkNode(client, child, nodesToDelete, actionOnObject, actionProperty);
+                    JsonWalkNode(client, timeStamp, child, nodesToDelete, actionProperty);
                 }
 
                 return;
@@ -815,13 +821,14 @@ namespace Aegis.Pumps.Actions
             //    return;
             //}
 
-            actionOnObject?.Invoke(client, (JObject)node, nodesToDelete);
+            //actionOnObject?.Invoke(client, (JObject)node, nodesToDelete);
 
             foreach (var child in node.Children<JProperty>())
             {
-                actionProperty?.Invoke(client, child, nodesToDelete);
+                actionProperty?.Invoke(client, timeStamp, child, nodesToDelete);
 
-                JsonWalkNode(client, child.Value, nodesToDelete, actionOnObject, actionProperty);
+                JsonWalkNode(client, timeStamp, child.Value, nodesToDelete, actionProperty);
+                //JsonWalkNode(client, child.Value, nodesToDelete, actionOnObject, actionProperty);
             }
         }
     }

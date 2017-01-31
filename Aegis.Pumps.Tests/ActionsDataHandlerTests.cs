@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Aegis.Pumps.Actions;
@@ -707,7 +708,7 @@ namespace Aegis.Pumps.Tests
         public void CheckNullInput()
         {
             var self = new ActionsDataHandler2();
-            Assert.IsNull(self.ProcessData(null, null));
+            Assert.IsNull(self.ProcessData(null, DateTime.UtcNow, null));
         }
 
         [TestMethod]
@@ -734,7 +735,8 @@ namespace Aegis.Pumps.Tests
             var testObj = new { phone = 7, mail = "bag", accountname = new { phone = 14, mail = "muuu", accountname = "zzzz", d = "ooo" } };
 
             var self = new ActionsDataHandler2();
-            this.DoTest(self, testObj, "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"X$DEL$X\",\"mail\":\"unknown$vOb8qbFEtb6+QEesCBa+x5eqgX7sav1Hqxssdi93HQA=\"},\"mail\":\"unknown$wBgBm2qLAatYaM9L6NsyenVJrgMgJUi5/80mccTCtiQ=\"}");
+            this.DoTest(self, testObj,
+                "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"+B55TA==$4$my_version$1\",\"mail\":\"unknown$7xF2Qw==$4$my_version$1$2\"},\"mail\":\"unknown$4AVk$3$my_version$1$2\"}");
         }
 
         [TestMethod]
@@ -771,31 +773,43 @@ namespace Aegis.Pumps.Tests
             var testObj3 = new { a = 7, Mail = 3, e = "bag" };
 
             var self = new ActionsDataHandler2();
-            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
-            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
-            this.DoTest(self, testObj3, "{\"Mail\":\"unknown$TgdAhWK+24tgzgXB3s/jrRa3IjCWfeAfZAt+Rym0n84=\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
+            this.DoTest(self, testObj3, "{\"Mail\":\"unknown$sQ==$1$my_version$1$2\",\"a\":7,\"e\":\"bag\"}");
         }
 
         [TestMethod]
         public void CheckAccountNumber()
         {
-            var testObj1 = new { a = 7, BlaAccountNumberBum = "1234567890", e = "bag" };
-            var testObj2 = new { a = 7, AccountNumber = "1234567890", e = "bag" };
-            var testObj3 = new { a = 7, AccountNumber = 1234567890, e = "bag" };
+            var testObj1 = new { a = 7, BlaAccountNumberBum = "1234567890123456", e = "bag" };
+            var testObj2 = new { a = 7, AccountNumber = "1234567890123456", e = "bag" };
+            var testObj3 = new { a = 7, AccountNumber = 1234567890123456, e = "bag" };
 
             var self = new ActionsDataHandler2();
-            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaAccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
-            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\"}");
-            this.DoTest(self, testObj3, "{\"AccountNumber\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaAccountNumberBum\":\"3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"AccountNumber\":\"3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2\"}");
+            this.DoTest(self, testObj3, "{\"a\":7,\"AccountNumber\":\"3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2\",\"e\":\"bag\"}");
+        }
+
+        [TestMethod]
+        public void CheckAccountName()
+        {
+            var testObj1 = new { BlaAccountNameBum = "John Smith" };
+            var testObj2 = new { a = 7, AccName = "John's the Great from \" blabla", e = "bag" };
+
+            var self = new ActionsDataHandler2();
+            this.DoTest(self, testObj1, "{\"BlaAccountNameBum\":\"6AtrWNLQyxuU/A==$10$my_version$1\"}");
+            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"AccName\":\"6AtrWNXQhgaI8WqH8AFiQtLF1B2NtGjA4AhiVJ7C$30$my_version$1\"}");
         }
 
         [TestMethod]
         public void CheckAllActions()
         {
-            var testObj1 = new { Mail = "john@smith.com", AccountNumberBum = "1234567890", Expiration = "bla" };
+            var testObj1 = new { Mail = "john@smith.com", AccountNumberBum = "1234567890123456", Expiration = "bla", AccountName = "J" };
 
             var self = new ActionsDataHandler2();
-            this.DoTest(self, testObj1, "{\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=\",\"Mail\":\"smith.com$fifvJxjxqt2wOTYHdxSmAkTjgO8J4nUE/LMYSir3tuo=\"}");
+            this.DoTest(self, testObj1,
+                "{\"AccountName\":\"6A==$1$my_version$1\",\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
         }
 
         [TestMethod]
@@ -814,7 +828,7 @@ namespace Aegis.Pumps.Tests
             var name = "CheckAllActions2";
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"Field1\":0,\"PhoneNumber\":\"X$DEL$X\"}", name, name);
-            this.DoTest(self, testObj2, "{\"Field1\":0,\"OtherClasses\":[{\"My2Mail\":\"bla.com$YTtpdlvZ7gy+dNT6dkThh55eP5WOso+EvCtp9VDdJ3s=\",\"My2PhoneNumber\":\"X$DEL$X\"},{\"My2Mail\":\"bla.com$7gZxEtAXa7JIOY5XCDzc/5+CWL0R/nXzCJnvuOjK0rY=\",\"My2PhoneNumber\":\"X$DEL$X\"}]}", name, name);
+            this.DoTest(self, testObj2, "{\"Field1\":0,\"OtherClasses\":[{\"My2Mail\":\"bla.com$7x1uV5vP5hCM9WSD7Qk=$14$my_version$1$2\",\"My2PhoneNumber\":\"X$DEL$X\"},{\"My2Mail\":\"bla.com$7x1uV5vPlDKC+CvO4Qtu$15$my_version$1$2\",\"My2PhoneNumber\":\"X$DEL$X\"}]}", name, name);
         }
 
         [TestMethod]
@@ -852,6 +866,10 @@ namespace Aegis.Pumps.Tests
             string controllerName = null,
             string actionName = null)
         {
+            AegisClient.ClientInfo.SetUp();
+            AegisClient.ClientInfo.Id = "testId";
+            AegisClient.ClientInfo.DataKey = "my_version$abcdabcdabcdabcd";
+
             var stopWatch1 = Stopwatch.StartNew();
             var stopWatch2 = Stopwatch.StartNew();
 
@@ -862,7 +880,8 @@ namespace Aegis.Pumps.Tests
 
             var stopWatch3 = Stopwatch.StartNew();
 
-            var result = self.ProcessData(null, dataStr);
+            var time = new DateTime(342423433);
+            var result = self.ProcessData(null, time, dataStr);
 
             stopWatch1.Stop();
             stopWatch2.Stop();

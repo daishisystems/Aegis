@@ -676,7 +676,9 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 
 namespace Aegis.Pumps
@@ -687,6 +689,8 @@ namespace Aegis.Pumps
         private string version;
         private string environment;
         private string project;
+        private byte[] dataKeyLocal;
+        private string dataKeyVersion;
 
         public string AegisVersion { get; private set; }
 
@@ -696,7 +700,7 @@ namespace Aegis.Pumps
             set { Set(ref this.name, value?.ToLowerInvariant().Trim()); }
         }
 
-        public string Id { get; private set; }
+        public string Id { get; set; }
 
         public string Version
         {
@@ -718,6 +722,8 @@ namespace Aegis.Pumps
             set { Set(ref this.project, value?.ToLowerInvariant().Trim()); }
         }
 
+        public string DataKey { set { this.SetDataKey(value); } }
+
         public ClientInfo()
         {
             this.AegisVersion = "none";
@@ -727,6 +733,7 @@ namespace Aegis.Pumps
             this.MachineName = "none";
             this.environment = "none";
             this.project = "none";
+            this.dataKeyLocal = null;
         }
 
         public void SetUp()
@@ -746,6 +753,24 @@ namespace Aegis.Pumps
             this.MachineName = Uri.EscapeDataString(machineName);
         }
 
+        public Tuple<byte[], string> GetDataKey(DateTime timeStamp)
+        {
+            if (this.dataKeyLocal == null)
+            {
+                throw new Exception("DataKeyLocal is not initialized!");
+            }
+
+            var keyTemp = (byte)(timeStamp.Ticks % byte.MaxValue);
+
+            var key = new byte[this.dataKeyLocal.Length];
+            for (var index = 0; index < this.dataKeyLocal.Length; index++)
+            {
+                key[index] = (byte)(this.dataKeyLocal[index] ^ keyTemp);
+            }
+
+            return Tuple.Create(key, this.dataKeyVersion);
+        }
+
         private static void Set(ref string dst, string value)
         {
             if (string.IsNullOrWhiteSpace(value?.Trim()))
@@ -755,6 +780,53 @@ namespace Aegis.Pumps
 
             dst = Uri.EscapeDataString(value);
         }
+
+        private void SetDataKey(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value?.Trim()))
+            {
+                throw new ArgumentException("DataKey can't be empty", nameof(value));
+            }
+
+            if (string.IsNullOrWhiteSpace(this.MachineName))
+            {
+                throw new ArgumentException("MachineName can't be empty", nameof(this.MachineName));
+            }
+
+            if (string.IsNullOrWhiteSpace(this.Id))
+            {
+                throw new ArgumentException("Id can't be empty", nameof(this.Id));
+            }
+
+            // parse data key
+            var parts = value.Split('$');
+            if (parts.Length != 2)
+            {
+                throw new Exception($"DataKey incorrect format (parts count is {parts.Length})");
+            }
+
+            var version = parts[0];
+            var keyMain = Convert.FromBase64String(parts[1]);
+            var keyLocal = Encoding.UTF8.GetBytes($"{this.MachineName}{this.Id}".ToLowerInvariant());
+
+            var baseValue = Convert.ToByte('a');
+
+            for (var index = 0; index < keyLocal.Length - 1; index += 2)
+            {
+                var localVal1 = keyLocal[index] - baseValue;
+                var localVal2 = keyLocal[index + 1] - baseValue;
+
+                var localVal = (localVal1 & 15) | ((localVal2 & 15) << 4);
+
+                var mainIndex = (index / 2) % keyMain.Length;
+                keyMain[mainIndex] = (byte)(keyMain[mainIndex] ^ localVal);
+            }
+
+            // merge keys
+            this.dataKeyLocal = keyMain;
+            this.dataKeyVersion = version;
+        }
+
 
         private static string GenerateClientId()
         {

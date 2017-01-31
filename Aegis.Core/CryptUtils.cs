@@ -719,18 +719,56 @@ namespace Aegis.Core
         public static string HashAccountNumber(string accountNumber)
         {
             var account = accountNumber?.Trim();
-            if (string.IsNullOrWhiteSpace(account) || account.Length < 8)
+            if (string.IsNullOrWhiteSpace(account))
             {
                 return null;
             }
 
-            var last4Digits = account.Substring(account.Length - 4, 4);
-            var hash = Hash(account, last4Digits);
+            if (account.Length < 4)
+            {
+                return $"{account}${account}$2";
+            }
 
-            return $"{last4Digits}${hash}";
+            account = account.ToUpperInvariant();
+
+            var last4Digits = account.Substring(account.Length - 4, 4);
+
+            var hash = account;
+            if (IsProperHashAccountNumber(account))
+            {
+                hash = Hash(account, last4Digits);
+            }
+
+            return $"{last4Digits}${hash}$2";
         }
 
-        public static string HashMail(string address, string domain)
+        private static bool IsProperHashAccountNumber(string accountNumber)
+        {
+            if (accountNumber.Length != 16)
+            {
+                return false;
+            }
+
+            var xxxCount = accountNumber.Count(x => x == 'X');
+            if (xxxCount >= 10)
+            {
+                return false;
+            }
+
+            var distinctCount = accountNumber.Distinct().Count();
+            if (distinctCount <= 1)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static string HashMail(
+            string address, 
+            string domain, 
+            byte[] key, 
+            string keyVersion)
         {
             var addr = address?.Trim().ToLowerInvariant();
             var dom = domain?.Trim().ToLowerInvariant();
@@ -739,8 +777,28 @@ namespace Aegis.Core
                 return null;
             }
 
-            var hash = HashSimple(addr);
-            return $"{dom}${hash}";
+            var hash = HashWithKey(addr, key, keyVersion);
+            return $"{dom}${hash}$2";
+        }
+
+        public static string HashWithKey(string text, byte[] key, string keyVersion)
+        {
+            text = text?.Trim();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            // create hash
+            var hash = Encoding.UTF8.GetBytes(text);
+            for (var index = 0; index < hash.Length; index++)
+            {
+                hash[index] = (byte)(hash[index] ^ key[index % key.Length]);
+            }
+
+            // create result
+            var hashStr = Convert.ToBase64String(hash);
+            return $"{hashStr}${text.Length}${keyVersion}$1";
         }
 
         private static string Hash(string text, string salt)

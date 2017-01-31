@@ -679,6 +679,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aegis.Core.Tests
@@ -719,16 +720,26 @@ namespace Aegis.Core.Tests
         public void HashAccountNumber()
         {
             Assert.IsNull(CryptUtils.HashAccountNumber(string.Empty));
-            Assert.AreEqual("7890$ZYaZAJ0DF8Je+Ri8vRYlZV9abOsRQNJq/0QvXFFd104=", CryptUtils.HashAccountNumber("1234567890"));
+            Assert.AreEqual("1$1$2", CryptUtils.HashAccountNumber("1"));
+            Assert.AreEqual("1234$1234$2", CryptUtils.HashAccountNumber("1234"));
+            Assert.AreEqual("7890$1234567890$2", CryptUtils.HashAccountNumber("1234567890"));
+            Assert.AreEqual("3456$XXXXXXXXXX123456$2", CryptUtils.HashAccountNumber("xxxxxxxxxx123456"));
+            Assert.AreEqual("1234$XXXXXXXXXXXX1234$2", CryptUtils.HashAccountNumber("XXXXXXXXXXXX1234"));
+            Assert.AreEqual("3456$WszuIAoGK63Z8LVvWSj88Zabsp6yf0m3/RP0DR+D83k=$2", CryptUtils.HashAccountNumber("1234567890123456"));
         }
 
         [TestMethod]
         public void HashMail()
         {
-            Assert.IsNull(CryptUtils.HashMail(null, null));
-            Assert.IsNull(CryptUtils.HashMail(string.Empty, string.Empty));
-            Assert.AreEqual("domain.com$BPiZbadjt6lpsQKO4wB1aerzpjVIbdqyEdUSyFud+Ps=", CryptUtils.HashMail("user", "domain.com"));
-            Assert.AreEqual("b$ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=", CryptUtils.HashMail("a", "b"));
+            var dataKey = Encoding.UTF8.GetBytes("key");
+            var dataKeyVer = "bla1";
+
+            Assert.IsNull(CryptUtils.HashMail(null, null, dataKey, dataKeyVer));
+            Assert.IsNull(CryptUtils.HashMail(string.Empty, string.Empty, dataKey, dataKeyVer));
+            Assert.AreEqual("domain.com$HhYcGSUdBAgYAgtXCAoU$15$bla1$1$2", 
+                            CryptUtils.HashMail("user@domain.com", "domain.com", dataKey, dataKeyVer));
+            Assert.AreEqual("b$Cg==$1$bla1$1$2", 
+                            CryptUtils.HashMail("a", "b", dataKey, dataKeyVer));
         }
 
         [TestMethod]
@@ -737,6 +748,23 @@ namespace Aegis.Core.Tests
             Assert.IsNull(CryptUtils.HashSimple(null));
             Assert.IsNull(CryptUtils.HashSimple(string.Empty));
             Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", CryptUtils.HashSimple("welcome hash text"));
+        }
+
+        [TestMethod]
+        public void HashWithKey()
+        {
+            var key1 = new byte[] {1};
+            var key2 = Encoding.UTF8.GetBytes("key2");
+            var ver1 = "bla1";
+            var ver2 = "bla2";
+
+            Assert.IsNull(CryptUtils.HashWithKey(null, null, null));
+            Assert.AreEqual($"dmRtYm5sZCFpYHJpIXVkeXU=$17${ver1}$1", 
+                            CryptUtils.HashWithKey("welcome hash text", key1, ver1));
+            Assert.AreEqual($"HAAVUQQIHBIDBApaSxEcSh8=$17${ver1}$1",
+                            CryptUtils.HashWithKey("welcome hash text", key2, ver1));
+            Assert.AreEqual($"Cg==$1${ver2}$1",
+                            CryptUtils.HashWithKey("a", key2, ver2));
         }
     }
 }
