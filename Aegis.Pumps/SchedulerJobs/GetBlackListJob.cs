@@ -777,7 +777,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 if (connectionTime != null)
                 {
-                    this.ClientInstance.Status.BlackListDownloadTime = connectionTime.Value;
+                    this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime.Value;
                 }
 
                 throw;
@@ -794,7 +794,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
 
             // set new data
-            this.ClientInstance.Status.BlackListDownloadTime = connectionTime;
+            this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
 
             this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
             this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
@@ -824,7 +824,7 @@ namespace Aegis.Pumps.SchedulerJobs
             {
                 if (connectionTime != null)
                 {
-                    this.ClientInstance.Status.BlackListDownloadTime = connectionTime.Value;
+                    this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime.Value;
                 }
 
                 throw;
@@ -841,7 +841,7 @@ namespace Aegis.Pumps.SchedulerJobs
             }
 
             // set new data
-            this.ClientInstance.Status.BlackListDownloadTime = connectionTime;
+            this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
 
             this.ClientInstance.BlackList.SetNewDataV2(blackListData, newTimeStamp);
             this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;

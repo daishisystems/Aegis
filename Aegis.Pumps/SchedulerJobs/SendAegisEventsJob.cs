@@ -800,7 +800,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 finally 
                 {
                     stopWatch.Stop();
-                    this.ClientInstance.Status.SendAegisEventsLastSentTime = stopWatch.ElapsedMilliseconds;
+                    this.ClientInstance.Status.SendAegisEventsLastSentTimeInSecs = (long)stopWatch.Elapsed.TotalSeconds;
                 }
 
                 return true;

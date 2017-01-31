@@ -725,7 +725,7 @@ namespace Aegis.Pumps
             DateTimeOffset? requestTimeStamp,
             out List<BlackListItem> data,
             out DateTimeOffset? timeStamp,
-            out long? connectionTime)
+            out long? connectionTimeInSecs)
         {
             data = null;
 
@@ -762,7 +762,7 @@ namespace Aegis.Pumps
             finally
             {
                 stopWatch.Stop();
-                connectionTime = stopWatch.ElapsedMilliseconds;
+                connectionTimeInSecs = (long)stopWatch.Elapsed.TotalSeconds;
             }
 
             if (!result)

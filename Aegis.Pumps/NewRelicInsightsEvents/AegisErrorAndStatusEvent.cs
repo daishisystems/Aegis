@@ -682,7 +682,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     public class AegisErrorAndStatusEvent : AegisErrorEvent, IAegisStatusEvent
     {
         [JilDirective(Name = "blackDwnTime")]
-        public long? BlackListDownloadTime { get; set; }
+        public long? BlackListDownloadTimeInSecs { get; set; }
 
         [JilDirective(Name = "blackConsqDwnErr")]
         public int? BlackListConsecutiveDownloadError { get; set; }
@@ -691,7 +691,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public int? BlackListItemsCount { get; set; }
 
         [JilDirective(Name = "blackLastSuccCheck")]
-        public int? BlackListLastSucessfulCheck { get; set; }
+        public int? BlackListLastSucessfulCheckInSecs { get; set; }
 
         [JilDirective(Name = "blackTimeStamp")]
         public string BlackListTimeStamp { get; set; }
@@ -700,10 +700,10 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         public int? AegisEventsCacheCount { get; set; }
 
         [JilDirective(Name = "eventsLastSuccSent")]
-        public int? AegisEventsCacheLastSucessfulSent { get; set; }
+        public int? AegisEventsCacheLastSucessfulSentInSecs { get; set; }
 
         [JilDirective(Name = "eventsLastSentTime")]
-        public long? AegisEventsCacheLastSentTime { get; set; }
+        public long? AegisEventsCacheLastSentTimeInSecs { get; set; }
 
         [JilDirective(Name = "settingsOnlineTimeStamp")]
         public string SettingsOnlineTimeStamp { get; set; }

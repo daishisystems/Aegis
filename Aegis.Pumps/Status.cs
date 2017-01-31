@@ -682,7 +682,7 @@ namespace Aegis.Pumps
 {
     public class Status
     {
-        public long? BlackListDownloadTime { get; set; }
+        public long? BlackListDownloadTimeInSecs { get; set; }
 
         public int BlackListConsecutiveDownloadError { get; set; }
 
@@ -690,7 +690,7 @@ namespace Aegis.Pumps
 
         public DateTime? SendAegisEventsLastSucessfulSent { get; set; }
 
-        public long? SendAegisEventsLastSentTime { get; set; }
+        public long? SendAegisEventsLastSentTimeInSecs { get; set; }
 
         public AegisStatusEvent CreatEvent()
         {
@@ -704,20 +704,20 @@ namespace Aegis.Pumps
             SettingsOnlineClient settingsOnline)
         {
             var currentTime = DateTime.UtcNow;
-            evnt.BlackListDownloadTime = this.BlackListDownloadTime;
+            evnt.BlackListDownloadTimeInSecs = this.BlackListDownloadTimeInSecs;
             evnt.BlackListConsecutiveDownloadError = this.BlackListConsecutiveDownloadError;
             evnt.BlackListItemsCount = blackList.GetItemsCount();
-            evnt.BlackListLastSucessfulCheck = GetElapsedTime(currentTime, this.BlackListLastSucessfulCheck);
+            evnt.BlackListLastSucessfulCheckInSecs = GetElapsedTimeInSecs(currentTime, this.BlackListLastSucessfulCheck);
             evnt.BlackListTimeStamp = blackList.TimeStamp?.ToString("o");
 
-            evnt.AegisEventsCacheLastSucessfulSent = GetElapsedTime(currentTime, this.SendAegisEventsLastSucessfulSent);
-            evnt.AegisEventsCacheLastSentTime = this.SendAegisEventsLastSentTime;
+            evnt.AegisEventsCacheLastSucessfulSentInSecs = GetElapsedTimeInSecs(currentTime, this.SendAegisEventsLastSucessfulSent);
+            evnt.AegisEventsCacheLastSentTimeInSecs = this.SendAegisEventsLastSentTimeInSecs;
 
             evnt.AegisEventsCacheCount = aegisEventCache.Count();
             evnt.SettingsOnlineTimeStamp = settingsOnline.TimeStamp?.ToString("o");
         }
 
-        private static int? GetElapsedTime(DateTime current, DateTime? time)
+        private static int? GetElapsedTimeInSecs(DateTime current, DateTime? time)
         {
             if (time == null)
             {
