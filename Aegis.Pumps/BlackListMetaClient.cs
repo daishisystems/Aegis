@@ -676,61 +676,163 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Threading.Tasks;
-using Aegis.Pumps.NewRelicInsightsEvents;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using Aegis.Core.Data;
 
-namespace Aegis.Pumps.SchedulerJobs
+namespace Aegis.Pumps
 {
-    internal class SendStatusJob : ClientJob
+    public class BlackListMetaClient
     {
-        public SendStatusJob(AegisClient client) : base(client, "SendStatusJob")
+        private ConcurrentDictionary<string, BlackListMetaItem> blacklist;
+        private List<BlackListSet<BlackListMetaItem>> blacklistRaw;
+
+        public DateTimeOffset? TimeStamp { get; private set; }
+
+        public BlackListMetaClient()
         {
+            this.blacklist = new ConcurrentDictionary<string, BlackListMetaItem>();
         }
 
-        protected override void DoExecute()
+        public List<uint> GetVersionStamps()
         {
-            try
+            if (this.blacklistRaw == null || this.blacklistRaw.Count == 0)
             {
-                // if job is disabled
-                if (this.ClientInstance.SettingsOnline.IsJobDisabled(this.JobName))
+                return null;
+            }
+
+            return this.blacklistRaw.Select(x => x.VersionStamp).ToList();
+        }
+
+        public void SetNewData(List<BlackListSet<BlackListMetaItem>> data, DateTimeOffset? timeStamp)
+        {
+            List<BlackListItem> items;
+            //var dataRaw = Merge(this.blacklistRaw, data, out items);
+
+            // create new collection
+            var blacklistNew = new ConcurrentDictionary<string, BlackListMetaItem>();
+
+            //foreach (var blackListItem in items)
+            //{
+            //    //blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
+            //    // TODO
+            //}
+
+            // swap
+            this.TimeStamp = timeStamp;
+            //this.blacklistRaw = dataRaw;
+            this.blacklist = blacklistNew;
+        }
+
+        public int GetItemsCount()
+        {
+            return this.blacklist.Count;
+        }
+
+        public void CleanUp()
+        {
+            this.blacklist.Clear();
+            this.TimeStamp = null;
+        }
+
+        //public bool TryGetBlacklistedItem(string ipAddress, out BlackListMetaItem blackListItem)
+        //{
+        //    return this.blacklist.TryGetValue(ipAddress, out blackListItem);
+        //}
+
+        //public void CheckBlockedOrSimulated(
+        //    SettingsOnlineData.BlackListData blackListData,
+        //    string eventTypeName,
+        //    BlackListMetaItem blackItem,
+        //    out bool isBlocked,
+        //    out bool isSimulated)
+        //{
+        //    // set default item values
+        //    isBlocked = blackItem.IsBlocked == true;
+        //    isSimulated = blackItem.IsSimulated == true;
+
+        //    // TODO
+
+        //    //// check whether country is blocked or simulated
+        //    //if (blackListData?.IsCountryBlockingEnabled == true)
+        //    //{
+        //    //    isBlocked = isBlocked && (blackListData?.CountriesBlock?.Contains(blackItem.Country) == true);
+        //    //    isSimulated = isSimulated && (blackListData?.CountriesSimulate?.Contains(blackItem.Country) == true);
+        //    //}
+
+        //    // check event type
+        //    if (blackItem.DisabledEventsBlocking?.Contains(eventTypeName) == true)
+        //    {
+        //        isBlocked = false;
+        //    }
+
+        //    if (blackItem.DisabledEventsSimulate?.Contains(eventTypeName) == true)
+        //    {
+        //        isSimulated = false;
+        //    }
+        //}
+
+        public static List<BlackListSet<BlackListItem>> Merge(
+            List<BlackListSet<BlackListItem>> dataCurrent,
+            List<BlackListSet<BlackListItem>> dataUpdate,
+            out List<BlackListItem> items)
+        {
+            // TODO
+
+            // create result
+            var result = new List<BlackListSet<BlackListItem>>(dataUpdate.Count);
+
+            // clone current sets
+            if (dataCurrent != null)
+            {
+                result.AddRange(dataCurrent.Take(dataUpdate.Count).Select(x => x.Clone()));
+            }
+
+            // fill missing sets with null
+            while (result.Count < dataUpdate.Count)
+            {
+                result.Add(null);
+            }
+
+            // merge sets
+            for (var index = 0; index < dataUpdate.Count; index++)
+            {
+                var itemResult = result[index];
+                var itemUpdate = dataUpdate[index];
+
+                // if sets version same - ignore
+                if (itemResult != null && itemResult.VersionStamp == itemUpdate.VersionStamp)
                 {
-                    return;
+                    continue;
                 }
 
-                // TODO sends basic information to NewRelic/Service (?)
-                // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
-                // TODO add counter - SettingsDownloadConsqutieveFailure
-                // TODO add counter - EventsSentConsqutieveFailure
-                // TODO total sent events, parse ip events error, number since last status?
-
-                //var currentTime = DateTime.UtcNow;
-                var statusEvent = this.ClientInstance.Status.CreatEvent();
-
-                this.ClientInstance.Status.FillEvent(
-                    statusEvent,
-                    this.ClientInstance.BlackList,
-                    this.ClientInstance.BlackListMeta,
-                    this.ClientInstance.AegisEventCache,
-                    this.ClientInstance.SettingsOnline);
-
-                this.ClientInstance.NewRelicUtils.AddNotification(
-                    this.ClientInstance.NewRelicClient,
-                    Utils.ComponentNames.JobSendStatus,
-                    $"Status: {DateTime.UtcNow:o}",
-                    customEvent: statusEvent);
+                // set new set
+                result[index] = itemUpdate.Clone();
             }
-            catch (Exception exception)
+
+            // merge sets into one list
+            var allItems = new Dictionary<string, BlackListItem>();
+            foreach (var itemsSet in result)
             {
-                if (this.IsShuttingDown && exception is TaskCanceledException)
+                // update dictionary with items
+                foreach (var item in itemsSet.Data)
                 {
-                    return;
-                }
+                    // add item
+                    if (!allItems.ContainsKey(item.IpAddressRaw))
+                    {
+                        allItems.Add(item.IpAddressRaw, item);
+                        continue;
+                    }
 
-                this.ClientInstance.NewRelicUtils.AddException(
-                this.ClientInstance.NewRelicClient,
-                Utils.ComponentNames.JobSendStatus,
-                exception);
+                    // replace item
+                    allItems[item.IpAddressRaw] = item;
+                }
             }
+
+            // generate list of items
+            items = allItems.Values.ToList();
+            return result;
         }
     }
 }

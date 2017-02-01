@@ -741,6 +741,7 @@ namespace Aegis.Pumps.SchedulerJobs
                 this.ClientInstance?.Status.FillEvent(
                     evnt,
                     this.ClientInstance.BlackList,
+                    this.ClientInstance.BlackListMeta,
                     this.ClientInstance.AegisEventCache,
                     this.ClientInstance.SettingsOnline);
 

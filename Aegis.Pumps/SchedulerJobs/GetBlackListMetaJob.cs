@@ -676,15 +676,20 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using Aegis.Core.Data;
 using Aegis.Pumps.NewRelicInsightsEvents;
 
 namespace Aegis.Pumps.SchedulerJobs
 {
-    internal class SendStatusJob : ClientJob
+    internal class GetBlackListMetaJob : ClientJob
     {
-        public SendStatusJob(AegisClient client) : base(client, "SendStatusJob")
+        private readonly AegisServiceClient aegisServiceClient;
+
+        public GetBlackListMetaJob(AegisClient client)
+            : base(client, "GetBlackListMetaJob")
         {
+            this.aegisServiceClient = new AegisServiceClient();
         }
 
         protected override void DoExecute()
@@ -697,40 +702,134 @@ namespace Aegis.Pumps.SchedulerJobs
                     return;
                 }
 
-                // TODO sends basic information to NewRelic/Service (?)
-                // Information: start-up time, max aegis events in the queue in last hour, settings/blacklist timestamps/elapsed since update etc.
-                // TODO add counter - SettingsDownloadConsqutieveFailure
-                // TODO add counter - EventsSentConsqutieveFailure
-                // TODO total sent events, parse ip events error, number since last status?
+                // run logic V1
+                this.ProcessBlackList();
+            }
+            catch (Exception exception)
+            {
+                if (this.IsShuttingDown)
+                {
+                    return;
+                }
 
-                //var currentTime = DateTime.UtcNow;
-                var statusEvent = this.ClientInstance.Status.CreatEvent();
+                //if (this.ClientInstance?.BlackList != null)
+                //{
+                //    this.ClientInstance.Status.BlackListConsecutiveDownloadError++;
+                //}
 
-                this.ClientInstance.Status.FillEvent(
-                    statusEvent,
+                // create extended error
+                var evnt = new AegisErrorAndStatusEvent();
+
+                this.ClientInstance?.Status.FillEvent(
+                    evnt,
                     this.ClientInstance.BlackList,
                     this.ClientInstance.BlackListMeta,
                     this.ClientInstance.AegisEventCache,
                     this.ClientInstance.SettingsOnline);
 
-                this.ClientInstance.NewRelicUtils.AddNotification(
+                this.ClientInstance?.NewRelicUtils.AddException(
                     this.ClientInstance.NewRelicClient,
-                    Utils.ComponentNames.JobSendStatus,
-                    $"Status: {DateTime.UtcNow:o}",
-                    customEvent: statusEvent);
+                    Utils.ComponentNames.JobGetBlackListMeta,
+                    exception,
+                    "Failed to download meta blacklist",
+                    true,
+                    customEvent: evnt);
             }
-            catch (Exception exception)
-            {
-                if (this.IsShuttingDown && exception is TaskCanceledException)
-                {
-                    return;
-                }
+        }
 
-                this.ClientInstance.NewRelicUtils.AddException(
-                this.ClientInstance.NewRelicClient,
-                Utils.ComponentNames.JobSendStatus,
-                exception);
+        //protected void ProcessBlackListV1()
+        //{
+        //    // get blacklist data
+        //    List<BlackListItem> blackListData;
+        //    DateTimeOffset? newTimeStamp;
+        //    long? connectionTime = null;
+        //    bool isUpdated;
+
+        //    try
+        //    {
+        //        isUpdated = this.aegisServiceClient.GetBlackListData(
+        //            AegisClient.ClientInfo,
+        //            this.ClientInstance.Settings,
+        //            this.ClientInstance.SettingsOnline,
+        //            this.ClientInstance.BlackList.TimeStamp,
+        //            out blackListData,
+        //            out newTimeStamp,
+        //            out connectionTime);
+        //    }
+        //    catch
+        //    {
+        //        if (connectionTime != null)
+        //        {
+        //            this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime.Value;
+        //        }
+
+        //        throw;
+        //    }
+
+        //    // update successful timestamp
+        //    this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
+
+        //    // if data hasn't changed
+        //    if (!isUpdated)
+        //    {
+        //        this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
+        //        return;
+        //    }
+
+        //    // set new data
+        //    this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
+
+        //    this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
+        //    this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
+        //}
+
+        protected void ProcessBlackList()
+        {
+            // TODO ProcessBlackList
+
+            // get blacklist data
+            List<BlackListSet<BlackListMetaItem>> blackListData;
+            DateTimeOffset? newTimeStamp;
+            long? connectionTime = null;
+            bool isUpdated;
+
+            try
+            {
+                //isUpdated = this.aegisServiceClient.GetBlackListDataV2(
+                //    AegisClient.ClientInfo,
+                //    this.ClientInstance.Settings,
+                //    this.ClientInstance.SettingsOnline,
+                //    this.ClientInstance.BlackList.TimeStamp,
+                //    this.ClientInstance.BlackList.GetVersionStamps(),
+                //    out blackListData,
+                //    out newTimeStamp,
+                //    out connectionTime);
             }
+            catch
+            {
+                //if (connectionTime != null)
+                //{
+                //    this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime.Value;
+                //}
+
+                throw;
+            }
+
+            // update successful timestamp
+            //this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
+
+            // if data hasn't changed
+            //if (!isUpdated)
+            //{
+            //    //this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
+            //    return;
+            //}
+
+            // set new data
+            //this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
+
+            //this.ClientInstance.BlackListMeta.SetNewDataV2(blackListData, newTimeStamp);
+            //this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }
     }
 }

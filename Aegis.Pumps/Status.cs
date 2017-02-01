@@ -702,6 +702,7 @@ namespace Aegis.Pumps
         public void FillEvent(
             IAegisStatusEvent evnt,
             BlackListClient blackList, 
+            BlackListMetaClient blackListMeta, 
             AegisEventCacheClient aegisEventCache, 
             SettingsOnlineClient settingsOnline)
         {

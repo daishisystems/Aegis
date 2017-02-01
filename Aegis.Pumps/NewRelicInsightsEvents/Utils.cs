@@ -733,6 +733,7 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 
             // Jobs
             public const string JobGetBlackList = "Job-GetBlackList";
+            public const string JobGetBlackListMeta = "Job-GetBlackListMeta";
             public const string JobGetSettingsOnline = "Job-GetSettingsOnline";
             public const string JobSendAegisEvents = "Job-SendAegisEvents";
             public const string JobSendStatus = "Job-SendStatus";

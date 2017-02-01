@@ -701,6 +701,7 @@ namespace Aegis.Pumps
         public readonly Dictionary<string, int> JobsIntervals = new Dictionary<string, int>()
         {
             { "AegisGetBlackListJob", 60 },
+            { "AegisGetBlackListMetaJob", 60 },
             { "AegisGetSettingsOnlineJob", 600 },                                                            
             { "AegisSendAegisEventsJob", 8 },                                                            
             { "AegisSendStatusJob", 300 },                                                            

@@ -733,7 +733,7 @@ namespace Aegis.Pumps
             }
 
             // generate random start delay values
-            var delays = this.GenerateRandomDelays(AegisClient.ClientInfo.Id, MaxRandomDelay);
+            var delays = this.GenerateRandomDelays(AegisClient.ClientInfo.Id, MaxRandomDelay, 5);
 
             // disable running same job in parallel
             this.NonReentrantAsDefault();
@@ -754,13 +754,18 @@ namespace Aegis.Pumps
 
             this.Add(
                 this.settingsIntervals,
-                new SendAegisEventsJob(client),
+                new GetBlackListMetaJob(client), 
                 initStartDelay + JobStartDelay + delays[2]);
 
             this.Add(
                 this.settingsIntervals,
-                new SendStatusJob(client),
+                new SendAegisEventsJob(client),
                 initStartDelay + JobStartDelay + delays[3]);
+
+            this.Add(
+                this.settingsIntervals,
+                new SendStatusJob(client),
+                initStartDelay + JobStartDelay + delays[4]);
 
             // start schedulers
             if (isSchedulingDisabled != TestDisableSchedulerKey)
@@ -866,12 +871,12 @@ namespace Aegis.Pumps
             return primaryValue != null ? Math.Min(primaryValue.Value, limit) : secondaryValue;
         }
 
-        protected List<int> GenerateRandomDelays(string clientId, int maxRandomValue)
+        protected List<int> GenerateRandomDelays(string clientId, int maxRandomValue, int count)
         {
             var rnd = new Random(clientId.GetHashCode() ^ (int)(DateTime.Now.Ticks % int.MaxValue));
 
             var delaysSet = new HashSet<int>();
-            while (delaysSet.Count < 4)
+            while (delaysSet.Count < count)
             {
                 delaysSet.Add(rnd.Next(0, maxRandomValue / 2));
             }

@@ -703,6 +703,7 @@ namespace Aegis.Pumps
         public readonly Status Status;
         public readonly SettingsOnlineClient SettingsOnline;
         public readonly BlackListClient BlackList;
+        public readonly BlackListMetaClient BlackListMeta;
         public readonly AegisEventCacheClient AegisEventCache;
         public readonly ActionsDataHandler2 ActionsDataHandler;
         public readonly ActionsHub ActionsHub;
@@ -728,10 +729,10 @@ namespace Aegis.Pumps
             this.SettingsOnline = new SettingsOnlineClient();
             this.Status = new Status();
             this.BlackList = new BlackListClient();
+            this.BlackListMeta = new BlackListMetaClient();
             this.AegisEventCache = new AegisEventCacheClient(settings.AegisEventsCacheLimit);
             this.ActionsDataHandler = new ActionsDataHandler2();
             this.ActionsHub = new ActionsHub(this, settings.HttpIpHeaderNames);
-            //this.ActionsHubMdot = new ActionsHubMdot(this, settings.HttpIpHeaderNames);
             this.Scheduler = new SchedulerRegistry();
         }
 
