@@ -684,6 +684,11 @@ namespace Aegis.Pumps.Actions
 {
     public class ActionsDataHandler2
     {
+        private static readonly HashSet<string> NodesToRemove = new HashSet<string>()
+        {
+            "PaymentViewModel.BillingAddress.Countries"
+        };
+
         private readonly ActionsDataHandlerActions actions = new ActionsDataHandlerActions();
 
         public string ProcessData(
@@ -696,7 +701,6 @@ namespace Aegis.Pumps.Actions
                 return null;
             }
 
-            // TODO add functionality to remove useless json code (i.e. mdot)
             var jsonData = JToken.Parse(json);
 
             var nodesToDelete = new List<JToken>();
@@ -735,6 +739,7 @@ namespace Aegis.Pumps.Actions
             if (val.Type == JTokenType.String &&
                 string.IsNullOrEmpty(val.Value<string>()))
             {
+                nodesToDelete.Add(property);
                 return;
             }
 
@@ -767,11 +772,12 @@ namespace Aegis.Pumps.Actions
                 return;
             }
 
+            // remove empty container
             if (node.Type == JTokenType.Property ||
                 node.Type == JTokenType.Object ||
                 node.Type == JTokenType.Array)
             {
-                if (!node.HasValues && node.Parent != null)
+                if ((NodesToRemove.Contains(node.Path) || !node.HasValues) && node.Parent != null)
                 {
                     if (node.Parent.Type == JTokenType.Property)
                     { 

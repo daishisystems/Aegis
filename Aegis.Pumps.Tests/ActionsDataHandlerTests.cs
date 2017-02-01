@@ -696,6 +696,7 @@ namespace Aegis.Pumps.Tests
         public class Test1
         {
             public string PhoneNumber;
+            public string FieldString;
             public int Field1;
             public Test2 Class1;
             public List<Test2> OtherClasses;
@@ -832,11 +833,12 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
-        public void CheckRemovalOfEmptyCollections()
+        public void CheckRemovalOfEmptyCollectionsAndEmptyStrings()
         {
             var testObj1 = new Test1
             {
                 Field1 = 44,
+                FieldString = string.Empty,
                 Class1 = new Test2(),
                 OtherClasses = new List<Test2>(),
                 Collection1 = new List<string>(),
@@ -857,6 +859,17 @@ namespace Aegis.Pumps.Tests
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"Field1\":44}");
             this.DoTest(self, testObj2, "{\"Field1\":55,\"Collection3\":[[1,2]]}");
+        }
+
+        [TestMethod]
+        public void CheckDefinedNodesToRemove()
+        {
+            var json = "{\"IsLoggedIn\":false,\"LimitOfSavedCardReached\":false,\"IsMandatoryLogin\":true,\"AddVatDetails\":false,\"IsVatApplicable\":true,\"IsBookingAlreadyCreated\":false,\"PaymentViewModel\":{\"IsExpired\":false,\"IsDefault\":false,\"UpdateContactDetails\":false,\"AddVatDetails\":false,\"IsFirstPayment\":true,\"AcceptDccOffer\":false,\"SavePaymentCardToAccount\":false,\"LimitOfSavedCardReached\":false,\"DefaultBillingAddress\":{\"Postal\":\"\",\"Country\":\"\",\"State\":\"\",\"City\":\"\",\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"},\"BillingAddress\":{\"Countries\":[{\"IsPostalCodeRequired\":true,\"HasPostalCode\":true,\"IsEU\":false,\"PhoneCode\":-1,\"Name\":\"Curacao\",\"Code\":\"CW\"},{\"IsPostalCodeRequired\":true,\"HasPostalCode\":true,\"IsEU\":false,\"PhoneCode\":\"X$DEL$X\",\"Name\":\"Kosovo\",\"Code\":\"UN\"},{\"IsPostalCodeRequired\":true,\"HasPostalCode\":true,\"IsEU\":false,\"PhoneCode\":\"X$DEL$X\",\"Name\":\"South Sudan\",\"Code\":\"SS\"}],\"Postal\":\"\",\"Country\":\"\",\"State\":\"\",\"City\":\"\",\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"}},\"Bags\":{\"Added\":false,\"TotalPrice\":0,\"IsAddingBagsAllowed\":true,\"TotalQuantity\":0,\"Currency\":\"EUR\"}}";
+            var testObj = JSON.DeserializeDynamic(json);
+
+            var self = new ActionsDataHandler2();
+            this.DoTest(self, testObj,
+            "{\"IsLoggedIn\":false,\"LimitOfSavedCardReached\":false,\"IsMandatoryLogin\":true,\"AddVatDetails\":false,\"IsVatApplicable\":true,\"IsBookingAlreadyCreated\":false,\"PaymentViewModel\":{\"IsExpired\":false,\"IsDefault\":false,\"UpdateContactDetails\":false,\"AddVatDetails\":false,\"IsFirstPayment\":true,\"AcceptDccOffer\":false,\"SavePaymentCardToAccount\":false,\"LimitOfSavedCardReached\":false,\"DefaultBillingAddress\":{\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"},\"BillingAddress\":{\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"}},\"Bags\":{\"Added\":false,\"TotalPrice\":0,\"IsAddingBagsAllowed\":true,\"TotalQuantity\":0,\"Currency\":\"EUR\"}}");
         }
 
         public void DoTest(
