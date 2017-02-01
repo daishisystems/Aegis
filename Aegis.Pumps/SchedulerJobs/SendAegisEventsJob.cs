@@ -757,7 +757,8 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // process data raw events
-                // TODO measure time of this
+                var stopWatchProcessRawEvents = Stopwatch.StartNew();
+
                 foreach (var item in items)
                 {
                     var itemDataRaw = item.GetIDataRawEvent();
@@ -779,13 +780,16 @@ namespace Aegis.Pumps.SchedulerJobs
                     itemDataRaw.IsDataRawProcessed = true;
                 }
 
+                stopWatchProcessRawEvents.Stop();
+                this.ClientInstance.Status.SendAegisEventsProcessRawEventsInSecs = (long)stopWatchProcessRawEvents.Elapsed.TotalSeconds;
+
                 // get compressions settings
                 var isCompressionEnabled =
                     !this.ClientInstance.SettingsOnline.IsFeatureEnabled(
                         SettingsOnlineClient.Features.EventsPostCompressionDisabled);
 
                 // send
-                var stopWatch = Stopwatch.StartNew();
+                var stopWatchSend = Stopwatch.StartNew();
 
                 try
                 {
@@ -800,8 +804,8 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
                 finally 
                 {
-                    stopWatch.Stop();
-                    this.ClientInstance.Status.SendAegisEventsLastSentTimeInSecs = (long)stopWatch.Elapsed.TotalSeconds;
+                    stopWatchSend.Stop();
+                    this.ClientInstance.Status.SendAegisEventsLastSentTimeInSecs = (long)stopWatchSend.Elapsed.TotalSeconds;
                 }
 
                 return true;

@@ -692,6 +692,8 @@ namespace Aegis.Pumps
 
         public long? SendAegisEventsLastSentTimeInSecs { get; set; }
 
+        public long? SendAegisEventsProcessRawEventsInSecs { get; set; }
+
         public AegisStatusEvent CreatEvent()
         {
             return new AegisStatusEvent();
@@ -712,6 +714,7 @@ namespace Aegis.Pumps
 
             evnt.AegisEventsCacheLastSucessfulSentInSecs = GetElapsedTimeInSecs(currentTime, this.SendAegisEventsLastSucessfulSent);
             evnt.AegisEventsCacheLastSentTimeInSecs = this.SendAegisEventsLastSentTimeInSecs;
+            evnt.AegisEventsCacheLastProcessRawEventsInSecs = this.SendAegisEventsProcessRawEventsInSecs;
 
             evnt.AegisEventsCacheCount = aegisEventCache.Count();
             evnt.SettingsOnlineTimeStamp = settingsOnline.TimeStamp?.ToString("o");

@@ -705,6 +705,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "eventsLastSentTime")]
         public long? AegisEventsCacheLastSentTimeInSecs { get; set; }
 
+        [JilDirective(Name = "eventsLastProcessRawEventsTime")]
+        public long? AegisEventsCacheLastProcessRawEventsInSecs { get; set; }
+
         [JilDirective(Name = "settingsOnlineTimeStamp")]
         public string SettingsOnlineTimeStamp { get; set; }
 

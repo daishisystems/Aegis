@@ -10,6 +10,7 @@
         int? AegisEventsCacheCount { get; set; }
         int? AegisEventsCacheLastSucessfulSentInSecs { get; set; }
         long? AegisEventsCacheLastSentTimeInSecs { get; set; }
+        long? AegisEventsCacheLastProcessRawEventsInSecs { get; set; }
         string SettingsOnlineTimeStamp { get; set; }
     }
 }
