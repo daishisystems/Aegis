@@ -695,14 +695,14 @@ namespace Aegis.Pumps
         public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisEventsTimeToLiveInHours = 12;
         public readonly int AegisEventsCacheLimit = 250000;
-        public readonly int AegisEventsCacheBatchSizeSoft = 500; // TODO made online settings
-        public readonly int AegisEventsCacheBatchSizeHard = 1000; // TODO made online settings
+        public readonly int AegisEventsCacheBatchSizeSoft = 1000; // TODO made online settings
+        public readonly int AegisEventsCacheBatchSizeHard = 2000; // TODO made online settings
 
         public readonly Dictionary<string, int> JobsIntervals = new Dictionary<string, int>()
         {
             { "AegisGetBlackListJob", 60 },
             { "AegisGetSettingsOnlineJob", 600 },                                                            
-            { "AegisSendAegisEventsJob", 10 },                                                            
+            { "AegisSendAegisEventsJob", 8 },                                                            
             { "AegisSendStatusJob", 300 },                                                            
         };
 
