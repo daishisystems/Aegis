@@ -95,6 +95,8 @@
     <Compile Include="BlackListManager.cs" />
     <Compile Include="BlackList.cs" />
     <Compile Include="CitrixNetworkRouteMapper.cs" />
+    <Compile Include="Data\BlackListBaseItem.cs" />
+    <Compile Include="Data\BlackListMetaItem.cs" />
     <Compile Include="Data\BlackListSet.cs" />
     <Compile Include="Data\IDataRawEvent.cs" />
     <Compile Include="ExperimentsUtils.cs" />
@@ -103,6 +105,7 @@
     <Compile Include="HttpRequestMetadata.cs" />
     <Compile Include="HttpRequestMetadataException.cs" />
     <Compile Include="HttpRequestMetadataValidator.cs" />
+    <Compile Include="ICloneable.cs" />
     <Compile Include="NetworkRoute.cs" />
     <Compile Include="NetworkRouteMapper.cs" />
     <Compile Include="HttpRequestHeaderParser.cs" />

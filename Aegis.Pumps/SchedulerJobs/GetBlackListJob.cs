@@ -803,7 +803,7 @@ namespace Aegis.Pumps.SchedulerJobs
         protected void ProcessBlackListV2()
         {
             // get blacklist data
-            List<BlackListSet> blackListData;
+            List<BlackListSet<BlackListItem>> blackListData;
             DateTimeOffset? newTimeStamp;
             long? connectionTime = null;
             bool isUpdated;

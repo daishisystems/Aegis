@@ -763,12 +763,12 @@ namespace Aegis.Pumps.Tests
             List<BlackListItem> items;
 
             // current is null, update is empty
-            var sets = BlackListClient.MergeV2(null, new List<BlackListSet>(), out items);
+            var sets = BlackListClient.MergeV2(null, new List<BlackListSet<BlackListItem>>(), out items);
             Assert.AreEqual(0, sets.Count);
             Assert.AreEqual(0, items.Count);
 
             // current is empty, update is empty
-            sets = BlackListClient.MergeV2(new List<BlackListSet>(), new List<BlackListSet>(), out items);
+            sets = BlackListClient.MergeV2(new List<BlackListSet<BlackListItem>>(), new List<BlackListSet<BlackListItem>>(), out items);
             Assert.AreEqual(0, sets.Count);
             Assert.AreEqual(0, items.Count);
         }
@@ -777,9 +777,9 @@ namespace Aegis.Pumps.Tests
         public void MergeV2EmptyWithItems()
         {
             List<BlackListItem> items;
-            var setsUpdate = new List<BlackListSet>()
+            var setsUpdate = new List<BlackListSet<BlackListItem>>()
             {
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 2,
                         Data = new List<BlackListItem>()
@@ -798,7 +798,7 @@ namespace Aegis.Pumps.Tests
             Assert.AreEqual(setsUpdate[0].Data.Count, items.Count);
 
             // current is empty
-            sets = BlackListClient.MergeV2(new List<BlackListSet>(), setsUpdate, out items);
+            sets = BlackListClient.MergeV2(new List<BlackListSet<BlackListItem>>(), setsUpdate, out items);
             Assert.AreEqual(setsUpdate.Count, sets.Count);
             Assert.AreEqual(setsUpdate[0].VersionStamp, sets[0].VersionStamp);
             Assert.AreEqual(setsUpdate[0].Data.Count, items.Count);
@@ -808,9 +808,9 @@ namespace Aegis.Pumps.Tests
         public void MergeV2ItemsWithItems()
         {
             List<BlackListItem> items;
-            var setsCurrent = new List<BlackListSet>()
+            var setsCurrent = new List<BlackListSet<BlackListItem>>()
             {
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 200,
                         Data = new List<BlackListItem>()
@@ -820,7 +820,7 @@ namespace Aegis.Pumps.Tests
                                        new BlackListItem() { IpAddressRaw = "194.168.0.1" }
                                    }
                     },
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 40,
                         Data = new List<BlackListItem>()
@@ -831,9 +831,9 @@ namespace Aegis.Pumps.Tests
                     },
             };
 
-            var setsUpdate = new List<BlackListSet>()
+            var setsUpdate = new List<BlackListSet<BlackListItem>>()
             {
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 20,
                         Data = new List<BlackListItem>()
@@ -843,7 +843,7 @@ namespace Aegis.Pumps.Tests
                                        new BlackListItem() { IpAddressRaw = "194.168.0.1" }
                                    }
                     },
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 40,
                         Data = new List<BlackListItem>()
@@ -851,7 +851,7 @@ namespace Aegis.Pumps.Tests
                                        new BlackListItem() { IpAddressRaw = "192.168.0.1" }
                                    }
                     },
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 60,
                         Data = new List<BlackListItem>()
@@ -877,9 +877,9 @@ namespace Aegis.Pumps.Tests
         public void MergeV2ItemsWithEmpty()
         {
             List<BlackListItem> items;
-            var setsCurrent = new List<BlackListSet>()
+            var setsCurrent = new List<BlackListSet<BlackListItem>>()
             {
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 200,
                         Data = new List<BlackListItem>()
@@ -889,7 +889,7 @@ namespace Aegis.Pumps.Tests
                                        new BlackListItem() { IpAddressRaw = "194.168.0.1" }
                                    }
                     },
-                new BlackListSet()
+                new BlackListSet<BlackListItem>()
                     {
                         VersionStamp = 40,
                         Data = new List<BlackListItem>()
@@ -901,7 +901,7 @@ namespace Aegis.Pumps.Tests
             };
 
             // update is empty
-            var sets = BlackListClient.MergeV2(setsCurrent, new List<BlackListSet>(), out items);
+            var sets = BlackListClient.MergeV2(setsCurrent, new List<BlackListSet<BlackListItem>>(), out items);
 
             Assert.AreEqual(0, sets.Count);
             Assert.AreEqual(0, items.Count);

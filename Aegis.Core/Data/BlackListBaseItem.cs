@@ -675,174 +675,39 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using Aegis.Core.Data;
+using Jil;
 
-namespace Aegis.Pumps
+namespace Aegis.Core.Data
 {
-    public class BlackListClient
+    public class BlackListBaseItem
     {
-        private ConcurrentDictionary<string, BlackListItem> blacklist;
-        private List<BlackListSet<BlackListItem>> blacklistV2Raw;
+        [JilDirective(Name = "isB")]
+        public bool? IsBlocked { get; set; }
 
-        public DateTimeOffset? TimeStamp { get; private set; }
+        [JilDirective(Name = "isS")]
+        public bool? IsSimulated { get; set; }
 
-        public BlackListClient()
+        [JilDirective(Name = "disB")]
+        public HashSet<string> DisabledEventsBlocking { get; set; }
+
+        [JilDirective(Name = "disS")]
+        public HashSet<string> DisabledEventsSimulate { get; set; }
+
+        protected void Clone(BlackListBaseItem self)
         {
-            this.blacklist = new ConcurrentDictionary<string, BlackListItem>();
-        }
+            self.IsBlocked = this.IsBlocked;
+            self.IsSimulated = this.IsSimulated;
 
-        public List<uint> GetVersionStamps()
-        {
-            if (this.blacklistV2Raw == null || this.blacklistV2Raw.Count == 0)
+            if (this.DisabledEventsBlocking != null)
             {
-                return null;
+                self.DisabledEventsBlocking = new HashSet<string>(this.DisabledEventsBlocking);
             }
 
-            return this.blacklistV2Raw.Select(x => x.VersionStamp).ToList();
-        }
-
-        public void SetNewData(IEnumerable<BlackListItem> data, DateTimeOffset? timeStamp)
-        {
-            // create new collection
-            var blacklistNew = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in data)
+            if (this.DisabledEventsSimulate != null)
             {
-                blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
+                self.DisabledEventsSimulate = new HashSet<string>(this.DisabledEventsSimulate);
             }
-
-            // swap
-            this.TimeStamp = timeStamp;
-            this.blacklist = blacklistNew;
-        }
-
-        public void SetNewDataV2(List<BlackListSet<BlackListItem>> data, DateTimeOffset? timeStamp)
-        {
-            List<BlackListItem> items;
-            var dataRaw = MergeV2(this.blacklistV2Raw, data, out items);
-
-            // create new collection
-            var blacklistNew = new ConcurrentDictionary<string, BlackListItem>();
-
-            foreach (var blackListItem in items)
-            {
-                blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
-            }
-
-            // swap
-            this.TimeStamp = timeStamp;
-            this.blacklistV2Raw = dataRaw;
-            this.blacklist = blacklistNew;
-        }
-
-        public int GetItemsCount()
-        {
-            return this.blacklist.Count;
-        }
-
-        public void CleanUp()
-        {
-            this.blacklist.Clear();
-            this.TimeStamp = null;
-        }
-
-        public bool TryGetBlacklistedItem(string ipAddress, out BlackListItem blackListItem)
-        {
-            return this.blacklist.TryGetValue(ipAddress, out blackListItem);
-        }
-
-        public void CheckBlockedOrSimulated(
-            SettingsOnlineData.BlackListData blackListData, 
-            string eventTypeName, 
-            BlackListItem blackItem, 
-            out bool isBlocked, 
-            out bool isSimulated)
-        {
-            // set default item values
-            isBlocked = blackItem.IsBlocked == true;
-            isSimulated = blackItem.IsSimulated == true;
-
-            // check whether country is blocked or simulated
-            if (blackListData?.IsCountryBlockingEnabled == true)
-            {
-                isBlocked = isBlocked && (blackListData?.CountriesBlock?.Contains(blackItem.Country) == true);
-                isSimulated = isSimulated && (blackListData?.CountriesSimulate?.Contains(blackItem.Country) == true);
-            }
-
-            // check event type
-            if (blackItem.DisabledEventsBlocking?.Contains(eventTypeName) == true)
-            {
-                isBlocked = false;
-            }
-
-            if (blackItem.DisabledEventsSimulate?.Contains(eventTypeName) == true)
-            {
-                isSimulated = false;
-            }
-        }
-
-        public static List<BlackListSet<BlackListItem>> MergeV2(
-            List<BlackListSet<BlackListItem>> dataCurrent, 
-            List<BlackListSet<BlackListItem>> dataUpdate, 
-            out List<BlackListItem> items)
-        {
-            // create result
-            var result = new List<BlackListSet<BlackListItem>>(dataUpdate.Count);
-
-            // clone current sets
-            if (dataCurrent != null)
-            {
-                result.AddRange(dataCurrent.Take(dataUpdate.Count).Select(x => x.Clone()));
-            }
-
-            // fill missing sets with null
-            while (result.Count < dataUpdate.Count)
-            {
-                result.Add(null);
-            }
-
-            // merge sets
-            for (var index = 0; index < dataUpdate.Count; index++)
-            {
-                var itemResult = result[index];
-                var itemUpdate = dataUpdate[index];
-
-                // if sets version same - ignore
-                if (itemResult != null && itemResult.VersionStamp == itemUpdate.VersionStamp)
-                {
-                    continue;
-                }
-
-                // set new set
-                result[index] = itemUpdate.Clone();
-            }
-
-            // merge sets into one list
-            var allItems = new Dictionary<string, BlackListItem>();
-            foreach (var itemsSet in result)
-            {
-                // update dictionary with items
-                foreach (var item in itemsSet.Data)
-                {
-                    // add item
-                    if (!allItems.ContainsKey(item.IpAddressRaw))
-                    {
-                        allItems.Add(item.IpAddressRaw, item);
-                        continue;
-                    }
-
-                    // replace item
-                    allItems[item.IpAddressRaw] = item;
-                }
-            }
-
-            // generate list of items
-            items = allItems.Values.ToList();
-            return result;
         }
     }
 }

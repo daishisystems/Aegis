@@ -788,7 +788,7 @@ namespace Aegis.Pumps
             SettingsOnlineClient settingsOnline,
             DateTimeOffset? requestTimeStamp,
             List<uint> versionStamps,
-            out List<BlackListSet> data,
+            out List<BlackListSet<BlackListItem>> data,
             out DateTimeOffset? timeStamp,
             out long? connectionTime)
         {
@@ -846,7 +846,7 @@ namespace Aegis.Pumps
             // deserialise data
             try
             {
-                data = JSON.Deserialize<List<BlackListSet>>(dataString, Options.ISO8601);
+                data = JSON.Deserialize<List<BlackListSet<BlackListItem>>>(dataString, Options.ISO8601);
                 return true;
             }
             catch (Exception exception)

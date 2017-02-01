@@ -675,26 +675,27 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Jil;
 
 namespace Aegis.Core.Data
 {
-    public class BlackListSet
+    public class BlackListSet<T> where T : class, ICloneable<T>
     {
         [JilDirective(Name = "data")]
-        public List<BlackListItem> Data { get; set; }
+        public List<T> Data { get; set; }
 
         [JilDirective(Name = "versionStamp")]
         public uint VersionStamp { get; set; }
 
-        public BlackListSet Clone()
+        public BlackListSet<T> Clone()
         {
-            var self = new BlackListSet();
-            self.VersionStamp = this.VersionStamp;
-            self.Data = new List<BlackListItem>(this.Data.Select(x => x.Clone()));
+            var self = new BlackListSet<T>
+            {
+                VersionStamp = this.VersionStamp,
+                Data = new List<T>(this.Data.Select(x => x.Clone()))
+            };
             return self;
         }
     }

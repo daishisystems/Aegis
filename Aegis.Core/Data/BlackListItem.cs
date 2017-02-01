@@ -685,22 +685,9 @@ namespace Aegis.Core.Data
     ///     <see cref="BlackListItem" />, in its simplest form, consists of an
     ///     <see cref="IPAddress" /> that has been flagged as having malicious intent.
     /// </summary>
-    public class BlackListItem
+    public class BlackListItem : BlackListBaseItem, ICloneable<BlackListItem>
     {
         private string ipAddressString;
-
-        [JilDirective(Name = "isB")]
-        public bool? IsBlocked { get; set; }
-
-        [JilDirective(Name = "isS")]
-        public bool? IsSimulated { get; set; }
-
-        [JilDirective(Name = "disB")]
-        public HashSet<string> DisabledEventsBlocking { get; set; }
-
-        [JilDirective(Name = "disS")]
-        public HashSet<string> DisabledEventsSimulate { get; set; }
-
 
         /// <summary>
         ///     <see cref="Country" /> is the country of origin, from which
@@ -751,35 +738,24 @@ namespace Aegis.Core.Data
         public BlackListItem Clone()
         {
             var self = new BlackListItem();
+            this.Clone(self);
+
             self.ipAddressString = this.ipAddressString;
             self.IpAddress = this.IpAddress;
-            self.IsBlocked = this.IsBlocked;
-            self.IsSimulated = this.IsSimulated;
             self.Country = this.Country;
-
-            if (this.DisabledEventsBlocking != null)
-            {
-                self.DisabledEventsBlocking = new HashSet<string>(this.DisabledEventsBlocking);
-            }
-
-            if (this.DisabledEventsSimulate != null)
-            {
-                self.DisabledEventsSimulate = new HashSet<string>(this.DisabledEventsSimulate);
-            }
-
             return self;
         }
 
         public override bool Equals(object value)
         {
             // Is null?
-            if (object.ReferenceEquals(null, value))
+            if (ReferenceEquals(null, value))
             {
                 return false;
             }
 
             // Is the same object?
-            if (object.ReferenceEquals(this, value))
+            if (ReferenceEquals(this, value))
             {
                 return true;
             }
@@ -796,13 +772,13 @@ namespace Aegis.Core.Data
         public bool Equals(BlackListItem item)
         {
             // Is null?
-            if (object.ReferenceEquals(null, item))
+            if (ReferenceEquals(null, item))
             {
                 return false;
             }
 
             // Is the same object?
-            if (object.ReferenceEquals(this, item))
+            if (ReferenceEquals(this, item))
             {
                 return true;
             }
@@ -817,7 +793,7 @@ namespace Aegis.Core.Data
 
         private static bool IsEqual(BlackListItem item1, BlackListItem item2)
         {
-            if (object.ReferenceEquals(null, item1) || object.ReferenceEquals(null, item2))
+            if (ReferenceEquals(null, item1) || ReferenceEquals(null, item2))
             {
                 return false;
             }
