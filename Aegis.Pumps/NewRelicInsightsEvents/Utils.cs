@@ -929,7 +929,8 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
                 return;
             }
 
-            lastSent.AddOrUpdate(messageHash, DateTime.UtcNow, (k, old) => DateTime.UtcNow);
+            var time = DateTime.UtcNow;
+            lastSent.AddOrUpdate(messageHash, time, (k, old) => time);
         }
 
         private void CleanOldLastSent(ConcurrentDictionary<string, DateTime> lastSent)
