@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Aegis.Core.Data;
@@ -685,14 +684,14 @@ namespace Aegis.Pumps
 {
     public class BlackListMetaClient
     {
-        private ConcurrentDictionary<string, BlackListMetaItem> blacklist;
+        private Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>> blacklist;
         private List<BlackListSet<BlackListMetaItem>> blacklistRaw;
 
         public DateTimeOffset? TimeStamp { get; private set; }
 
         public BlackListMetaClient()
         {
-            this.blacklist = new ConcurrentDictionary<string, BlackListMetaItem>();
+            this.blacklist = new Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>();
         }
 
         public List<uint> GetVersionStamps()
@@ -707,21 +706,32 @@ namespace Aegis.Pumps
 
         public void SetNewData(List<BlackListSet<BlackListMetaItem>> data, DateTimeOffset? timeStamp)
         {
-            List<BlackListItem> items;
-            //var dataRaw = Merge(this.blacklistRaw, data, out items);
+            List<BlackListMetaItem> items;
+            var dataRaw = Merge(this.blacklistRaw, data, out items);
 
             // create new collection
-            var blacklistNew = new ConcurrentDictionary<string, BlackListMetaItem>();
+            var blacklistNew = new Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>();
 
-            //foreach (var blackListItem in items)
-            //{
-            //    //blacklistNew.TryAdd(blackListItem.IpAddressRaw, blackListItem);
-            //    // TODO
-            //}
+            foreach (var item in items)
+            {
+                if (!blacklistNew.ContainsKey(item.Kind))
+                {
+                    blacklistNew.Add(item.Kind, new Dictionary<string, BlackListMetaItem>());
+                }
+
+                if (!blacklistNew[item.Kind].ContainsKey(item.Value))
+                {
+                    blacklistNew[item.Kind].Add(item.Value, item);
+                    continue;
+                }
+
+                // replace
+                blacklistNew[item.Kind][item.Value] = item;
+            }
 
             // swap
             this.TimeStamp = timeStamp;
-            //this.blacklistRaw = dataRaw;
+            this.blacklistRaw = dataRaw;
             this.blacklist = blacklistNew;
         }
 
@@ -773,15 +783,13 @@ namespace Aegis.Pumps
         //    }
         //}
 
-        public static List<BlackListSet<BlackListItem>> Merge(
-            List<BlackListSet<BlackListItem>> dataCurrent,
-            List<BlackListSet<BlackListItem>> dataUpdate,
-            out List<BlackListItem> items)
+        public static List<BlackListSet<BlackListMetaItem>> Merge(
+            List<BlackListSet<BlackListMetaItem>> dataCurrent,
+            List<BlackListSet<BlackListMetaItem>> dataUpdate,
+            out List<BlackListMetaItem> items)
         {
-            // TODO
-
             // create result
-            var result = new List<BlackListSet<BlackListItem>>(dataUpdate.Count);
+            var result = new List<BlackListSet<BlackListMetaItem>>(dataUpdate.Count);
 
             // clone current sets
             if (dataCurrent != null)
@@ -812,21 +820,23 @@ namespace Aegis.Pumps
             }
 
             // merge sets into one list
-            var allItems = new Dictionary<string, BlackListItem>();
+            var allItems = new Dictionary<string, BlackListMetaItem>();
             foreach (var itemsSet in result)
             {
                 // update dictionary with items
                 foreach (var item in itemsSet.Data)
                 {
+                    var key = $"{item.Kind}|{item.Value}";
+
                     // add item
-                    if (!allItems.ContainsKey(item.IpAddressRaw))
+                    if (!allItems.ContainsKey(key))
                     {
-                        allItems.Add(item.IpAddressRaw, item);
+                        allItems.Add(key, item);
                         continue;
                     }
 
                     // replace item
-                    allItems[item.IpAddressRaw] = item;
+                    allItems[key] = item;
                 }
             }
 

@@ -699,6 +699,7 @@ namespace Aegis.Pumps
         {
             public const string Blacklist = "blacklist";
             public const string BlacklistV2 = "blacklist2";
+            public const string BlacklistMeta = "blacklistMeta";
             public const string SettingsOnline = "settings";
             public const string AegisEvents = "events";
         }
@@ -852,6 +853,79 @@ namespace Aegis.Pumps
             catch (Exception exception)
             {
                 throw new Exception("Unable to deserialise the BlackList", exception);
+            }
+        }
+
+        public bool GetBlackListMeta(
+            ClientInfo clientInfo,
+            Settings settings,
+            SettingsOnlineClient settingsOnline,
+            DateTimeOffset? requestTimeStamp,
+            List<uint> versionStamps,
+            out List<BlackListSet<BlackListMetaItem>> data,
+            out DateTimeOffset? timeStamp,
+            out long? connectionTime)
+        {
+            data = null;
+            var uriParameters = new Dictionary<string, string>()
+            {
+                {ParameterNames.ClientName, clientInfo.Name},
+                {ParameterNames.ClientId, clientInfo.Id},
+                {ParameterNames.ClientVersion, clientInfo.Version},
+                {ParameterNames.ClientMachineName, clientInfo.MachineName},
+                {ParameterNames.ClientEnvironment, clientInfo.Environment},
+                {ParameterNames.ClientProject, clientInfo.Project},
+                {ParameterNames.AegisVersion, clientInfo.AegisVersion},
+            };
+
+            if (versionStamps != null && versionStamps.Count > 0)
+            {
+                var versionStampsStr = string.Join("-", versionStamps.Select(x => x.ToString("x")));
+                uriParameters.Add(ParameterNames.BlackListVersionStamps, versionStampsStr);
+            }
+
+            var uriService = this.CreateUri(
+                settings,
+                settingsOnline,
+                ServiceNames.BlacklistMeta,
+                uriParameters);
+
+            var httpRequestMetadata = this.CreateHttpRequestMetadata(
+                settings,
+                settingsOnline,
+                ServiceNames.BlacklistMeta,
+                uriService);
+
+            // get string data from service
+            string dataString;
+            bool result;
+
+            var stopWatch = Stopwatch.StartNew();
+
+            try
+            {
+                result = this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp);
+            }
+            finally
+            {
+                stopWatch.Stop();
+                connectionTime = stopWatch.ElapsedMilliseconds;
+            }
+
+            if (!result)
+            {
+                return false;
+            }
+
+            // deserialise data
+            try
+            {
+                data = JSON.Deserialize<List<BlackListSet<BlackListMetaItem>>>(dataString, Options.ISO8601);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Unable to deserialise the BlackList Meta", exception);
             }
         }
 

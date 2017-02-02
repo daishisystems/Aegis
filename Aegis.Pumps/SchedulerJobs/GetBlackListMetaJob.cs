@@ -785,8 +785,6 @@ namespace Aegis.Pumps.SchedulerJobs
 
         protected void ProcessBlackList()
         {
-            // TODO ProcessBlackList
-
             // get blacklist data
             List<BlackListSet<BlackListMetaItem>> blackListData;
             DateTimeOffset? newTimeStamp;
@@ -795,15 +793,15 @@ namespace Aegis.Pumps.SchedulerJobs
 
             try
             {
-                //isUpdated = this.aegisServiceClient.GetBlackListDataV2(
-                //    AegisClient.ClientInfo,
-                //    this.ClientInstance.Settings,
-                //    this.ClientInstance.SettingsOnline,
-                //    this.ClientInstance.BlackList.TimeStamp,
-                //    this.ClientInstance.BlackList.GetVersionStamps(),
-                //    out blackListData,
-                //    out newTimeStamp,
-                //    out connectionTime);
+                isUpdated = this.aegisServiceClient.GetBlackListMeta(
+                    AegisClient.ClientInfo,
+                    this.ClientInstance.Settings,
+                    this.ClientInstance.SettingsOnline,
+                    this.ClientInstance.BlackList.TimeStamp,
+                    this.ClientInstance.BlackList.GetVersionStamps(),
+                    out blackListData,
+                    out newTimeStamp,
+                    out connectionTime);
             }
             catch
             {
@@ -819,16 +817,16 @@ namespace Aegis.Pumps.SchedulerJobs
             //this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
 
             // if data hasn't changed
-            //if (!isUpdated)
-            //{
-            //    //this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
-            //    return;
-            //}
+            if (!isUpdated)
+            {
+                //this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
+                return;
+            }
 
             // set new data
             //this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
 
-            //this.ClientInstance.BlackListMeta.SetNewDataV2(blackListData, newTimeStamp);
+            this.ClientInstance.BlackListMeta.SetNewData(blackListData, newTimeStamp);
             //this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
         }
     }

@@ -752,10 +752,11 @@ namespace Aegis.Pumps
                 new GetBlackListJob(client),
                 initStartDelay + JobStartDelay + delays[1]);
 
-            this.Add(
-                this.settingsIntervals,
-                new GetBlackListMetaJob(client), 
-                initStartDelay + JobStartDelay + delays[2]);
+            // TODO temporary disabled as not ready yet
+            //this.Add(
+            //    this.settingsIntervals,
+            //    new GetBlackListMetaJob(client), 
+            //    initStartDelay + JobStartDelay + delays[2]);
 
             this.Add(
                 this.settingsIntervals,
