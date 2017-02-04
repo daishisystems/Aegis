@@ -722,6 +722,11 @@ namespace Aegis.Pumps.Actions
 
         public OnAction GetAction(string field)
         {
+            if (string.IsNullOrWhiteSpace(field))
+            {
+                return null;
+            }
+
             // check cache
             OnAction action;
             if (this.cache.TryGetValue(field, out action))

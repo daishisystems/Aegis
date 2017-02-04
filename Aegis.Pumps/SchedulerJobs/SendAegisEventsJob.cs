@@ -767,6 +767,13 @@ namespace Aegis.Pumps.SchedulerJobs
                         continue;
                     }
 
+                    if (string.IsNullOrWhiteSpace(itemDataRaw.DataRaw))
+                    {
+                        itemDataRaw.DataRaw = null;
+                        itemDataRaw.IsDataRawProcessed = true;
+                        continue;
+                    }
+
                     var processedData = itemDataRaw.DataRaw;
                     if (!itemDataRaw.IsDataRawProcessDisabled)
                     {
@@ -778,6 +785,7 @@ namespace Aegis.Pumps.SchedulerJobs
 
                     itemDataRaw.Data = processedData;
                     itemDataRaw.IsDataRawProcessed = true;
+                    itemDataRaw.DataRaw = null;
                 }
 
                 stopWatchProcessRawEvents.Stop();

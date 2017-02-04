@@ -694,7 +694,7 @@ namespace Aegis.Pumps
         public readonly int AegisServiceUnavailabilityLimitInHours = 6;
         public readonly List<string> HttpIpHeaderNames;
         public readonly int AegisEventsTimeToLiveInHours = 12;
-        public readonly int AegisEventsCacheLimit = 250000;
+        public readonly int AegisEventsCacheLimit = 200000;
         public readonly int AegisEventsCacheBatchSizeSoft = 1000; // TODO made online settings
         public readonly int AegisEventsCacheBatchSizeHard = 2000; // TODO made online settings
 
