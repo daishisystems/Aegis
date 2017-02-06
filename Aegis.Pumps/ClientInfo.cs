@@ -676,7 +676,6 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -740,9 +739,6 @@ namespace Aegis.Pumps
         {
             this.AegisVersion = typeof(AegisClient).Assembly.GetName().Version.ToString();
 
-            // set ClientUniqueId with an unique id to recognize many instances
-            this.Id = GenerateClientId();
-
             // set machine name if available
             var machineName = System.Environment.MachineName;
             if (string.IsNullOrWhiteSpace(machineName))
@@ -751,6 +747,9 @@ namespace Aegis.Pumps
             }
 
             this.MachineName = Uri.EscapeDataString(machineName);
+
+            // set ClientUniqueId with an unique id to recognize many instances
+            this.Id = GenerateClientId(machineName);
         }
 
         public Tuple<byte[], string> GetDataKey(DateTime timeStamp)
@@ -805,7 +804,7 @@ namespace Aegis.Pumps
                 throw new Exception($"DataKey incorrect format (parts count is {parts.Length})");
             }
 
-            var version = parts[0];
+            var keyVersion = parts[0];
             var keyMain = Convert.FromBase64String(parts[1]);
             var keyLocal = Encoding.UTF8.GetBytes($"{this.MachineName}{this.Id}".ToLowerInvariant());
 
@@ -824,22 +823,27 @@ namespace Aegis.Pumps
 
             // merge keys
             this.dataKeyLocal = keyMain;
-            this.dataKeyVersion = version;
+            this.dataKeyVersion = keyVersion;
         }
 
 
-        private static string GenerateClientId()
+        private static string GenerateClientId(string machineName)
         {
             Thread.Sleep(1);
 
+            var machineNamePart = machineName;
+            if (machineName.Length > 3)
+            {
+                machineNamePart = machineName.Substring(machineName.Length - 3, 3);
+            }
+
             var guidStr = Guid.NewGuid().ToString("N");
             var processStr = Process.GetCurrentProcess().Id.ToString("x6");
-            var threadStr = Thread.CurrentThread.ManagedThreadId.ToString("x4");
             var timeStr = DateTime.UtcNow.Ticks.ToString("x4");
 
             var finalStr = guidStr.Substring(guidStr.Length - 4, 4) + "-" +
                            processStr.Substring(processStr.Length - 4, 4) + "-" +
-                           threadStr.Substring(threadStr.Length - 2, 2) + "-" +
+                           machineNamePart + "-" +
                            timeStr.Substring(timeStr.Length - 2, 2);
 
             return Uri.EscapeDataString(finalStr);
