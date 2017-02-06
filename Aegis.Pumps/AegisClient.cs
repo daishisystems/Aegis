@@ -928,6 +928,7 @@ namespace Aegis.Pumps
             // stop schedulers and clean all data (final data release leave to the GC)
             self.Scheduler?.ShutDown();
             self.BlackList?.CleanUp();
+            self.BlackListMeta?.CleanUp();
 
             // flush NewRelic events
             self.NewRelicClient?.UploadAllCachedEvents();

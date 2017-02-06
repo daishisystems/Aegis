@@ -78,6 +78,7 @@
     <Compile Include="AegisServiceClient.cs" />
     <Compile Include="BlackListClient.cs" />
     <Compile Include="AegisClient.cs" />
+    <Compile Include="BlackListMetaActions.cs" />
     <Compile Include="BlackListMetaClient.cs" />
     <Compile Include="ClientInfo.cs" />
     <Compile Include="CompressUtils.cs" />

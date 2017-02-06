@@ -684,7 +684,9 @@ namespace Aegis.Core.Data
         public enum KindType
         {
             None,
-            UserAgent,
+            UserAgentRaw,
+            UserAgentHash,
+            UserAgentNormalizedHash,
             EmailFull,
             EmailDomain,
             CustomerId,
@@ -697,8 +699,8 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "v")]
         public string Value { get; set; }
 
-        [JilDirective(Name = "t")]
-        public string Tag { get; set; }
+        [JilDirective(Name = "e")]
+        public string EventType { get; set; }
 
         public BlackListMetaItem Clone()
         {
@@ -707,7 +709,7 @@ namespace Aegis.Core.Data
 
             self.Kind = this.Kind;
             self.Value = this.Value;
-            self.Tag = this.Tag;
+            self.EventType = this.EventType;
             return self;
         }
     }

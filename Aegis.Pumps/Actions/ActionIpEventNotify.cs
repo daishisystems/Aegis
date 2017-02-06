@@ -924,29 +924,46 @@ namespace Aegis.Pumps.Actions
             }
 
             // protect the endpoint
-            BlackListItem blackItem;
-            if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddressString, out blackItem))
+            //BlackListItem blackItem;
+            bool isBlocked, isSimulated;
+            string blackCountry, blackTag;
+
+            if (!this.CheckWithBlackList(
+                eventTypeName, 
+                ipAddressString, 
+                evnt, 
+                out isBlocked,
+                out isSimulated,
+                out blackCountry,
+                out blackTag))
             {
                 // do not block
                 return false;
             }
 
+            //BlackListItem blackItem;
+            //if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddressString, out blackItem))
+            //{
+            //    // do not block
+            //    return false;
+            //}
+
             // check if blocked or simulated
-            bool isBlocked, isSimulated;
+            //bool isBlocked, isSimulated;
 
-            this.Client.BlackList.CheckBlockedOrSimulated(
-                this.Client.SettingsOnline.Data.Blacklist,
-                eventTypeName,
-                blackItem, 
-                out isBlocked, 
-                out isSimulated);
+            //this.Client.BlackList.CheckBlockedOrSimulated(
+            //    this.Client.SettingsOnline.Data.Blacklist,
+            //    eventTypeName,
+            //    blackItem, 
+            //    out isBlocked, 
+            //    out isSimulated);
 
-            // exit if not blocked or simulated
-            if (isBlocked != true && isSimulated != true)
-            {
-                // do not block - not blocked nor simulated
-                return false;
-            }
+            //// exit if not blocked or simulated
+            //if (isBlocked != true && isSimulated != true)
+            //{
+            //    // do not block - not blocked nor simulated
+            //    return false;
+            //}
 
             // is blacklisting notification disabled
             if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Blacklist))
@@ -965,7 +982,8 @@ namespace Aegis.Pumps.Actions
                 IsSimulated = isSimulated,
                 IpAddress = ipAddressString,
                 GroupId = groupId,
-                Country = blackItem.Country,
+                Country = blackCountry,
+                Tag = blackTag,
                 AbsolutePath = requestUri.AbsolutePath,
                 FullPath = requestUri.PathAndQuery
             };
@@ -990,7 +1008,8 @@ namespace Aegis.Pumps.Actions
                 IsBlocked = isBlocked,
                 IsSimulated = isSimulated,
                 SourceEventType = eventTypeName,
-                Country = blackItem.Country,
+                Country = blackCountry,
+                Tag = blackTag,
                 SessionId = sessionId,
                 HttpMethod = httpMethod,
                 HttpUserAgent = httpUserAgent,
@@ -1018,6 +1037,56 @@ namespace Aegis.Pumps.Actions
 
             // return info whether to block or not
             return isBlocked;
+        }
+
+        // TODO add possibility to block per: account number, mail, user agent, customer id, session?
+        private bool CheckWithBlackList(
+            string eventTypeName, 
+            string ipAddressString, 
+            T evnt, 
+            out bool isBlocked, 
+            out bool isSimulated,
+            out string blackCountry,
+            out string blackTag)
+        {
+            blackCountry = null;
+            blackTag = null;
+
+            // check by IP
+            BlackListItem blackItem;
+
+            if (this.Client.BlackList.Check(
+                ipAddressString,
+                this.Client.SettingsOnline.Data.Blacklist,
+                eventTypeName,
+                out blackItem,
+                out isBlocked,
+                out isSimulated))
+            {
+                blackCountry = blackItem.Country;
+                blackTag = blackItem.Tag;
+                // block or simulate
+                return true;
+            }
+
+            // check by Meta
+            BlackListMetaItem blackMetaItem;
+
+            if (this.Client.BlackListMeta.Check(
+                evnt,
+                this.Client.SettingsOnline.Data.Blacklist,
+                eventTypeName,
+                out blackMetaItem,
+                out isBlocked,
+                out isSimulated))
+            {                                           
+                blackTag = blackMetaItem.Tag;
+                // block or simulate
+                return true;
+            }
+
+            // do not block
+            return false;
         }
     }
 }

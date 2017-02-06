@@ -677,160 +677,170 @@ Public License instead of this License.  But first, please read
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
+using System.Net.Mail;
+using System.Text.RegularExpressions;
+using Aegis.Core;
+using Aegis.Core.Data;
+using Newtonsoft.Json.Linq;
 
-namespace Aegis.Core
+namespace Aegis.Pumps
 {
-    public static class CryptUtils
+    public static class BlackListMetaActions
     {
-        private static readonly SHA256 sha = new SHA256Managed();
-        private static readonly MD5 md5 = new MD5Cng();
-
-        public static string ComputeGroupId(List<IPAddress> ipAddresses)
+        private class CheckData
         {
-            if (ipAddresses.Count == 0)
+            public JToken EvntJtoken;
+        }
+
+        private delegate string OnKindAction(AegisUniversalEvent evnt, ref CheckData data);
+
+        private const string TextEmpty = "[EMPTY]";
+
+        private static readonly Dictionary<BlackListMetaItem.KindType, OnKindAction> KindActions =
+            new Dictionary<BlackListMetaItem.KindType, OnKindAction>()
+            {
+                {BlackListMetaItem.KindType.UserAgentRaw, OnUserAgentRaw},
+                {BlackListMetaItem.KindType.UserAgentHash, OnUserAgentHash},
+                {BlackListMetaItem.KindType.UserAgentNormalizedHash, OnUserAgentNormalizedHash},
+                {BlackListMetaItem.KindType.EmailFull, OnEmailFull},
+                {BlackListMetaItem.KindType.EmailDomain, OnEmailDomain}
+            };
+
+        private static readonly Dictionary<string, string> JsonPaths = new Dictionary<string, string>()
+        {
+            {"payment-CustomerId", "CustomerId"} // TODO he?
+        };
+
+        private static readonly Regex RegexNormalize = new Regex(@"\W+", RegexOptions.Compiled);
+
+        public static bool Check(
+            AegisUniversalEvent evnt,
+            List<BlackListMetaItem> items,
+            out BlackListMetaItem blackItem)
+        {
+            blackItem = null;
+
+            CheckData data = null;
+            foreach (var item in items)
+            {
+                OnKindAction extractor;
+                if (!KindActions.TryGetValue(item.Kind, out extractor))
+                {
+                    continue;
+                }
+
+                var result = extractor(evnt, ref data);
+                if (result == null)
+                {
+                    // no result
+                    continue;
+                }
+
+                if (result == item.Value)
+                {
+                    blackItem = item;
+                    break;
+                }
+            }
+
+            return blackItem != null;
+        }
+
+        private static string OnUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            return evnt.HttpUserAgent?.Trim();
+        }
+
+        private static string OnUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            var text = evnt.HttpUserAgent?.Trim();
+            if (evnt.HttpUserAgent == null)
+            {
+                text = TextEmpty;
+            }
+
+            return CryptUtils.HashSimpleMd5WithLength(text);
+        }
+
+        private static string OnUserAgentNormalizedHash(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            var text = evnt.HttpUserAgent;
+            if (evnt.HttpUserAgent == null)
+            {
+                text = TextEmpty;
+            }
+            else
+            {
+                text = RegexNormalize.Replace(text, " ").Trim().ToLowerInvariant();
+            }
+
+            return CryptUtils.HashSimpleMd5WithLength(text);
+        }
+
+        private static string OnEmailFull(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            var email = GetDataFromJson(evnt, ref data, $"{evnt.EventType}-Email");
+            if (string.IsNullOrWhiteSpace(email))
             {
                 return null;
             }
 
-            var data = string.Join(";", ipAddresses.Select(x => x.ToString().ToLowerInvariant().Trim()).OrderBy(x => x));
-
-            var hashRaw = sha.ComputeHash(Encoding.UTF8.GetBytes(data));
-            var hashStr = Convert.ToBase64String(hashRaw);
-
-            return $"g${ipAddresses.Count}${data.Length}${hashStr}";
+            return email.Trim().ToLowerInvariant();
         }
 
-        public static string HashSimple(string text)
+        private static string OnEmailDomain(AegisUniversalEvent evnt, ref CheckData data)
         {
-            var txt = text?.Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(txt))
+            // get mail
+            var email = GetDataFromJson(evnt, ref data, $"{evnt.EventType}-Email");
+            if (string.IsNullOrWhiteSpace(email))
             {
                 return null;
             }
 
-            var txtHashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(txt));
+            // parse mail
+            try
+            {
+                var mail = new MailAddress(email);
+                var mailDomain = mail.Host.Substring(0, Math.Min(mail.Host.Length, 64));
+                return mailDomain.Trim().ToLowerInvariant();
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
 
-            return Convert.ToBase64String(txtHashBytes);
+            return null;
         }
 
-        public static string HashSimpleMd5WithLength(string text)
+        private static string GetDataFromJson(
+            AegisUniversalEvent evnt, 
+            ref CheckData data, 
+            string jsonPathKey)
         {
-            if (text == null)
+            if (string.IsNullOrWhiteSpace(evnt.DataRaw))
             {
                 return null;
             }
 
-            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(text));
-            var hashStr = string.Join(string.Empty, hash.Select(x => x.ToString("x2")));
-            return $"{text.Length}${hashStr}";
-        }
-
-        public static string HashAccountNumber(string accountNumber)
-        {
-            var account = accountNumber?.Trim();
-            if (string.IsNullOrWhiteSpace(account))
+            string jsonPath;
+            if (!JsonPaths.TryGetValue(jsonPathKey, out jsonPath))
             {
                 return null;
             }
 
-            if (account.Length < 4)
+            if (data == null)
             {
-                return $"{account}${account}$2";
+                data = SetDataJson(evnt);
             }
 
-            account = account.ToUpperInvariant();
-
-            var last4Digits = account.Substring(account.Length - 4, 4);
-
-            var hash = account;
-            if (IsProperHashAccountNumber(account))
-            {
-                hash = Hash(account, last4Digits);
-            }
-
-            return $"{last4Digits}${hash}$2";
+            var result = data.EvntJtoken.SelectToken(jsonPath);
+            return result?.Value<string>();
         }
 
-        private static bool IsProperHashAccountNumber(string accountNumber)
+        private static CheckData SetDataJson(AegisUniversalEvent evnt)
         {
-            if (accountNumber.Length != 16)
-            {
-                return false;
-            }
-
-            var xxxCount = accountNumber.Count(x => x == 'X');
-            if (xxxCount >= 10)
-            {
-                return false;
-            }
-
-            var distinctCount = accountNumber.Distinct().Count();
-            if (distinctCount <= 1)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static string HashMail(
-            string address, 
-            string domain, 
-            byte[] key, 
-            string keyVersion)
-        {
-            var addr = address?.Trim().ToLowerInvariant();
-            var dom = domain?.Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(addr) || string.IsNullOrWhiteSpace(dom))
-            {
-                return null;
-            }
-
-            var hash = HashWithKey(addr, key, keyVersion);
-            return $"{dom}${hash}$2";
-        }
-
-        public static string HashWithKey(string text, byte[] key, string keyVersion)
-        {
-            text = text?.Trim();
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return null;
-            }
-
-            // create hash
-            var hash = Encoding.UTF8.GetBytes(text);
-            for (var index = 0; index < hash.Length; index++)
-            {
-                hash[index] = (byte)(hash[index] ^ key[index % key.Length]);
-            }
-
-            // create result
-            var hashStr = Convert.ToBase64String(hash);
-            return $"{hashStr}${text.Length}${keyVersion}$1";
-        }
-
-        private static string Hash(string text, string salt)
-        {
-            const int AdditionalSaltLength = 8;
-
-            var textHashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(text));
-            var saltBytes = Encoding.UTF8.GetBytes(salt);
-
-            // final input = text-hash-except-first-X-bytes
-            var finalInput = textHashBytes.Skip(AdditionalSaltLength).ToArray();
-
-            // final salt = salt + first-X-bytes-of-text-hash
-            var finalSalt = saltBytes.Concat(textHashBytes.Take(AdditionalSaltLength)).ToArray();
-
-            // compute
-            var resultsBytes = ScryptEncoder.EncodeRaw(finalInput, finalSalt, 14, 8, 1);
-
-            return Convert.ToBase64String(resultsBytes);
+            var json = JToken.Parse(evnt.DataRaw);
+            return new CheckData() { EvntJtoken = json };
         }
     }
 }

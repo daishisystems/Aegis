@@ -688,6 +688,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "isS")]
         public bool? IsSimulated { get; set; }
 
+        [JilDirective(Name = "tg")]
+        public string Tag { get; set; }
+
         [JilDirective(Name = "disB")]
         public HashSet<string> DisabledEventsBlocking { get; set; }
 
@@ -698,6 +701,7 @@ namespace Aegis.Core.Data
         {
             self.IsBlocked = this.IsBlocked;
             self.IsSimulated = this.IsSimulated;
+            self.Tag = this.Tag;
 
             if (this.DisabledEventsBlocking != null)
             {

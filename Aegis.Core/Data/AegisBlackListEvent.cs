@@ -699,6 +699,9 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "c")]
         public string Country { get; set; }
 
+        [JilDirective(Name = "tg")]
+        public string Tag { get; set; }
+
         [JilDirective(Name = "dt")]
         public string DataType { get; set; }
 

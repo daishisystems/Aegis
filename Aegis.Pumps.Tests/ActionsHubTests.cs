@@ -939,10 +939,10 @@ namespace Aegis.Pumps.Tests
 
             var blackListData = new List<BlackListItem>()
             {
-                new BlackListItem() { IpAddressRaw = "204.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "206.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "207.168.1.1", IsBlocked = true },
-                new BlackListItem() { IpAddressRaw = "208.168.1.1", IsBlocked = true },
+                new BlackListItem() { IpAddressRaw = "204.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1"},
+                new BlackListItem() { IpAddressRaw = "206.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
+                new BlackListItem() { IpAddressRaw = "207.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
+                new BlackListItem() { IpAddressRaw = "208.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
             };
             AegisClient.Instance.BlackList.SetNewData(blackListData, null);
 
@@ -1249,6 +1249,8 @@ namespace Aegis.Pumps.Tests
                 {
                     var evntBlacklist = (AegisBlackListEvent)evnt;
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.SourceEventType), evntBlacklist.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Country), evntBlacklist.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Tag), evntBlacklist.EventType);
                     Assert.IsTrue(evntBlacklist.IsBlocked, evntBlacklist.EventType);
                 }
             }

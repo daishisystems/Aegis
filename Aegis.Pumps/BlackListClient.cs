@@ -750,6 +750,26 @@ namespace Aegis.Pumps
             this.TimeStamp = null;
         }
 
+        public bool Check(
+            string ipAddress, 
+            SettingsOnlineData.BlackListData blackListData, 
+            string eventTypeName, 
+            out BlackListItem blackItem, 
+            out bool isBlocked, 
+            out bool isSimulated)
+        {
+            isBlocked = false;
+            isSimulated = false;
+
+            if (!this.blacklist.TryGetValue(ipAddress, out blackItem))
+            {
+                return false;
+            }
+
+            this.CheckBlockedOrSimulated(blackListData, eventTypeName, blackItem, out isBlocked, out isSimulated);
+            return isBlocked || isSimulated;
+        }
+
         public bool TryGetBlacklistedItem(string ipAddress, out BlackListItem blackListItem)
         {
             return this.blacklist.TryGetValue(ipAddress, out blackListItem);

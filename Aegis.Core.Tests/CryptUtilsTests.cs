@@ -675,7 +675,6 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -748,6 +747,14 @@ namespace Aegis.Core.Tests
             Assert.IsNull(CryptUtils.HashSimple(null));
             Assert.IsNull(CryptUtils.HashSimple(string.Empty));
             Assert.AreEqual("yzrFAAhVZE9qzgwLYJgwIr38u7nPIc4EVvsT2DHd51Q=", CryptUtils.HashSimple("welcome hash text"));
+        }
+
+        [TestMethod]
+        public void HashSimpleMd5WithLength()
+        {
+            Assert.IsNull(CryptUtils.HashSimpleMd5WithLength(null));
+            Assert.AreEqual("0$d41d8cd98f00b204e9800998ecf8427e", CryptUtils.HashSimpleMd5WithLength(string.Empty));
+            Assert.AreEqual("17$11d6b4c6b0156efa35b8c7477de93255", CryptUtils.HashSimpleMd5WithLength("welcome hash text"));
         }
 
         [TestMethod]

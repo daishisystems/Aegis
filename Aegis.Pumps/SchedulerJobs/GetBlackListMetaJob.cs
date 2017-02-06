@@ -737,52 +737,6 @@ namespace Aegis.Pumps.SchedulerJobs
             }
         }
 
-        //protected void ProcessBlackListV1()
-        //{
-        //    // get blacklist data
-        //    List<BlackListItem> blackListData;
-        //    DateTimeOffset? newTimeStamp;
-        //    long? connectionTime = null;
-        //    bool isUpdated;
-
-        //    try
-        //    {
-        //        isUpdated = this.aegisServiceClient.GetBlackListData(
-        //            AegisClient.ClientInfo,
-        //            this.ClientInstance.Settings,
-        //            this.ClientInstance.SettingsOnline,
-        //            this.ClientInstance.BlackList.TimeStamp,
-        //            out blackListData,
-        //            out newTimeStamp,
-        //            out connectionTime);
-        //    }
-        //    catch
-        //    {
-        //        if (connectionTime != null)
-        //        {
-        //            this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime.Value;
-        //        }
-
-        //        throw;
-        //    }
-
-        //    // update successful timestamp
-        //    this.ClientInstance.Status.BlackListLastSucessfulCheck = DateTime.UtcNow;
-
-        //    // if data hasn't changed
-        //    if (!isUpdated)
-        //    {
-        //        this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
-        //        return;
-        //    }
-
-        //    // set new data
-        //    this.ClientInstance.Status.BlackListDownloadTimeInSecs = connectionTime;
-
-        //    this.ClientInstance.BlackList.SetNewData(blackListData, newTimeStamp);
-        //    this.ClientInstance.Status.BlackListConsecutiveDownloadError = 0;
-        //}
-
         protected void ProcessBlackList()
         {
             // get blacklist data

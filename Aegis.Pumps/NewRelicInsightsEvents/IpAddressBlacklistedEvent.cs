@@ -716,6 +716,9 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         [JilDirective(Name = "country")]
         public string Country { get; set; }
 
+        [JilDirective(Name = "tag")]
+        public string Tag { get; set; }
+
         /// <summary>
         ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
         ///     black-listed IP address has attempted access.
