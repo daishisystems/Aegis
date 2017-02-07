@@ -699,7 +699,6 @@ namespace Aegis.Pumps
         private const string CustomerId = "CustomerId";
         private const string Email = "Email";
 
-        // TODO handle all balcklist meta actions
         private static readonly Dictionary<BlackListMetaItem.KindType, OnKindAction> KindActions =
             new Dictionary<BlackListMetaItem.KindType, OnKindAction>()
             {

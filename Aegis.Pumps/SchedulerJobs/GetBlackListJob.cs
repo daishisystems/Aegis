@@ -712,9 +712,8 @@ namespace Aegis.Pumps.SchedulerJobs
                 }
 
                 // run logic V2 if enabled
-                if (
-                    this.ClientInstance.SettingsOnline.IsFeatureEnabled(
-                        SettingsOnlineClient.Features.BlackListDownloadV2))
+                if (!this.ClientInstance.SettingsOnline.IsFeatureEnabled(
+                        SettingsOnlineClient.Features.BlackListDownloadV2Disabled))
                 {
                     this.ProcessBlackListV2();
                     return;
