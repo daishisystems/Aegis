@@ -1039,7 +1039,6 @@ namespace Aegis.Pumps.Actions
             return isBlocked;
         }
 
-        // TODO add possibility to block per: account number, mail, user agent, customer id, session?
         private bool CheckWithBlackList(
             string eventTypeName, 
             string ipAddressString, 
@@ -1074,8 +1073,6 @@ namespace Aegis.Pumps.Actions
 
             if (this.Client.BlackListMeta.Check(
                 evnt,
-                this.Client.SettingsOnline.Data.Blacklist,
-                eventTypeName,
                 out blackMetaItem,
                 out isBlocked,
                 out isSimulated))

@@ -759,8 +759,6 @@ namespace Aegis.Pumps
 
         public bool Check(
             AegisUniversalEvent evnt,
-            SettingsOnlineData.BlackListData blackListData,
-            string eventTypeName,
             out BlackListMetaItem blackItem,
             out bool isBlocked,
             out bool isSimulated)
@@ -782,7 +780,8 @@ namespace Aegis.Pumps
                 return false;
             }
 
-            isBlocked = true;
+            isBlocked = blackItem.IsBlocked == true;
+            isSimulated = blackItem.IsSimulated == true;
             return true;
         }
 
@@ -810,7 +809,6 @@ namespace Aegis.Pumps
             //    isBlocked = blackItem.IsBlocked == true;
             //    isSimulated = blackItem.IsSimulated == true;
 
-            //    // TODO
 
             //    //// check whether country is blocked or simulated
             //    //if (blackListData?.IsCountryBlockingEnabled == true)

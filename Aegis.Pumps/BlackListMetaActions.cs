@@ -685,9 +685,10 @@ using Newtonsoft.Json.Linq;
 
 namespace Aegis.Pumps
 {
+    // TODO create tests for BlackListMetaActions
     public static class BlackListMetaActions
     {
-        private class CheckData
+        public class CheckData
         {
             public JToken EvntJtoken;
         }
@@ -695,7 +696,10 @@ namespace Aegis.Pumps
         private delegate string OnKindAction(AegisUniversalEvent evnt, ref CheckData data);
 
         private const string TextEmpty = "[EMPTY]";
+        private const string CustomerId = "CustomerId";
+        private const string Email = "Email";
 
+        // TODO handle all balcklist meta actions
         private static readonly Dictionary<BlackListMetaItem.KindType, OnKindAction> KindActions =
             new Dictionary<BlackListMetaItem.KindType, OnKindAction>()
             {
@@ -703,12 +707,14 @@ namespace Aegis.Pumps
                 {BlackListMetaItem.KindType.UserAgentHash, OnUserAgentHash},
                 {BlackListMetaItem.KindType.UserAgentNormalizedHash, OnUserAgentNormalizedHash},
                 {BlackListMetaItem.KindType.EmailFull, OnEmailFull},
-                {BlackListMetaItem.KindType.EmailDomain, OnEmailDomain}
+                {BlackListMetaItem.KindType.EmailDomain, OnEmailDomain},
+                {BlackListMetaItem.KindType.CustomerId, OnCustomerId}
             };
 
         private static readonly Dictionary<string, string> JsonPaths = new Dictionary<string, string>()
         {
-            {"payment-CustomerId", "CustomerId"} // TODO he?
+            { AegisBaseEvent.EventTypes.Payment + "$" + CustomerId, "CustomerId" },
+            { AegisBaseEvent.EventTypes.Payment + "$" + Email, "Contact.Email" }
         };
 
         private static readonly Regex RegexNormalize = new Regex(@"\W+", RegexOptions.Compiled);
@@ -723,13 +729,20 @@ namespace Aegis.Pumps
             CheckData data = null;
             foreach (var item in items)
             {
-                OnKindAction extractor;
-                if (!KindActions.TryGetValue(item.Kind, out extractor))
-                {
-                    continue;
-                }
+                //OnKindAction extractor;
+                //if (!KindActions.TryGetValue(item.Kind, out extractor))
+                //{
+                //    continue;
+                //}
 
-                var result = extractor(evnt, ref data);
+                //var result = extractor(evnt, ref data);
+                //if (result == null)
+                //{
+                //    // no result
+                //    continue;
+                //}
+
+                var result = ExtractValue(item.Kind, evnt, ref data);
                 if (result == null)
                 {
                     // no result
@@ -746,12 +759,26 @@ namespace Aegis.Pumps
             return blackItem != null;
         }
 
-        private static string OnUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
+        public static string ExtractValue(
+            BlackListMetaItem.KindType kind,
+            AegisUniversalEvent evnt,
+            ref CheckData data)
+        {
+            OnKindAction extractor;
+            if (!KindActions.TryGetValue(kind, out extractor))
+            {
+                return null;
+            }
+
+            return extractor(evnt, ref data);
+        }
+
+        public static string OnUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
         {
             return evnt.HttpUserAgent?.Trim();
         }
 
-        private static string OnUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
         {
             var text = evnt.HttpUserAgent?.Trim();
             if (evnt.HttpUserAgent == null)
@@ -762,7 +789,7 @@ namespace Aegis.Pumps
             return CryptUtils.HashSimpleMd5WithLength(text);
         }
 
-        private static string OnUserAgentNormalizedHash(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnUserAgentNormalizedHash(AegisUniversalEvent evnt, ref CheckData data)
         {
             var text = evnt.HttpUserAgent;
             if (evnt.HttpUserAgent == null)
@@ -777,9 +804,9 @@ namespace Aegis.Pumps
             return CryptUtils.HashSimpleMd5WithLength(text);
         }
 
-        private static string OnEmailFull(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnEmailFull(AegisUniversalEvent evnt, ref CheckData data)
         {
-            var email = GetDataFromJson(evnt, ref data, $"{evnt.EventType}-Email");
+            var email = GetDataFromJson(evnt, ref data, Email);
             if (string.IsNullOrWhiteSpace(email))
             {
                 return null;
@@ -788,10 +815,10 @@ namespace Aegis.Pumps
             return email.Trim().ToLowerInvariant();
         }
 
-        private static string OnEmailDomain(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnEmailDomain(AegisUniversalEvent evnt, ref CheckData data)
         {
             // get mail
-            var email = GetDataFromJson(evnt, ref data, $"{evnt.EventType}-Email");
+            var email = GetDataFromJson(evnt, ref data, Email);
             if (string.IsNullOrWhiteSpace(email))
             {
                 return null;
@@ -812,10 +839,21 @@ namespace Aegis.Pumps
             return null;
         }
 
+        public static string OnCustomerId(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            var customerId = GetDataFromJson(evnt, ref data, CustomerId);
+            if (string.IsNullOrWhiteSpace(customerId))
+            {
+                return null;
+            }
+
+            return customerId.Trim().ToLowerInvariant();
+        }
+
         private static string GetDataFromJson(
             AegisUniversalEvent evnt, 
             ref CheckData data, 
-            string jsonPathKey)
+            string jsonFieldName)
         {
             if (string.IsNullOrWhiteSpace(evnt.DataRaw))
             {
@@ -823,6 +861,7 @@ namespace Aegis.Pumps
             }
 
             string jsonPath;
+            var jsonPathKey = $"{evnt.EventType}${jsonFieldName}";
             if (!JsonPaths.TryGetValue(jsonPathKey, out jsonPath))
             {
                 return null;

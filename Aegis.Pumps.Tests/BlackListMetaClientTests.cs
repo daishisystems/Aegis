@@ -675,43 +675,220 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using Jil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Aegis.Core.Data;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aegis.Core.Data
+namespace Aegis.Pumps.Tests
 {
-    public class BlackListMetaItem : BlackListBaseItem, ICloneable<BlackListMetaItem>
+    [TestClass]
+    public class BlackListMetaClientTests
     {
-        public enum KindType
+        private static readonly BlackListMetaItem.KindType[] KindListAll = new[]
         {
-            None,
-            UserAgentRaw,
-            UserAgentHash,
-            UserAgentNormalizedHash,
-            EmailFull,
-            EmailDomain,
-            CustomerId
-            //SessionId
-            //Account
+                BlackListMetaItem.KindType.CustomerId,
+                BlackListMetaItem.KindType.UserAgentRaw,
+                BlackListMetaItem.KindType.UserAgentHash,
+                BlackListMetaItem.KindType.UserAgentNormalizedHash,
+                BlackListMetaItem.KindType.EmailFull,
+                BlackListMetaItem.KindType.EmailDomain
+        };
+
+        [TestMethod]
+        public void DoNotBlockOnNotInitialized()
+        {
+            var self = new BlackListMetaClient();
+            Assert.IsNull(self.TimeStamp);
+
+            BlackListMetaItem blackItem;
+            bool isSimulated, isBlocked;
+
+            var evntBlock = this.CreateEvent(BlackListMetaItem.KindType.CustomerId);
+            var evntNonBlock = this.CreateEvent(BlackListMetaItem.KindType.None);
+
+            var result = self.Check(evntBlock, out blackItem, out isSimulated, out isBlocked);
+            Assert.IsFalse(result);
+            Assert.IsFalse(isSimulated);
+            Assert.IsFalse(isBlocked);
+
+            result = self.Check(evntNonBlock, out blackItem, out isSimulated, out isBlocked);
+            Assert.IsFalse(result);
+            Assert.IsFalse(isSimulated);
+            Assert.IsFalse(isBlocked);
         }
 
-        [JilDirective(Name = "k")]
-        public KindType Kind { get; set; }
-
-        [JilDirective(Name = "v")]
-        public string Value { get; set; }
-
-        [JilDirective(Name = "e")]
-        public string EventType { get; set; }
-
-        public BlackListMetaItem Clone()
+        [TestMethod]
+        public void TimeStampUpdateOnSetNewData()
         {
-            var self = new BlackListMetaItem();
-            this.Clone(self);
+            var self = new BlackListMetaClient();
+            Assert.IsNull(self.TimeStamp);
 
-            self.Kind = this.Kind;
-            self.Value = this.Value;
-            self.EventType = this.EventType;
-            return self;
+            var data = this.GetBlackListData(KindListAll);
+
+            var time1 = DateTime.UtcNow;
+            self.SetNewData(data, time1);
+            Assert.AreEqual(time1, self.TimeStamp);
+
+            Thread.Sleep(1);
+
+            var time2 = DateTime.UtcNow;
+            self.SetNewData(data, time2);
+            Assert.AreEqual(time2, self.TimeStamp);
+        }
+
+        [TestMethod]
+        public void CheckNonBlockEvent()
+        {
+            var self = new BlackListMetaClient();
+            var data = this.GetBlackListData(KindListAll);
+            self.SetNewData(data, DateTime.UtcNow);
+
+            BlackListMetaItem blackItem;
+            bool isSimulated, isBlocked;
+
+            var evntNonBlock = this.CreateEvent(BlackListMetaItem.KindType.None);
+
+            // check non block
+            var result = self.Check(evntNonBlock, out blackItem, out isSimulated, out isBlocked);
+            Assert.IsFalse(result);
+            Assert.IsFalse(isSimulated);
+            Assert.IsFalse(isBlocked);
+            Assert.IsNull(blackItem);
+        }
+
+        [TestMethod]
+        public void CheckBlockEvents()
+        {
+            this.TestBlockEvent(BlackListMetaItem.KindType.CustomerId);
+            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentRaw);
+            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentHash);
+            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentNormalizedHash);
+            this.TestBlockEvent(BlackListMetaItem.KindType.EmailDomain);
+            this.TestBlockEvent(BlackListMetaItem.KindType.EmailFull);
+        }
+
+        public void TestBlockEvent(BlackListMetaItem.KindType blockKind)
+        {
+            var self = new BlackListMetaClient();
+            var data = this.GetBlackListData(KindListAll.Where(x => x == blockKind));
+            self.SetNewData(data, DateTime.UtcNow);
+
+            BlackListMetaItem blackItem;
+            bool isSimulated, isBlocked;
+
+            var evntBlockCustomerId = this.CreateEvent(blockKind);
+
+            var result = self.Check(evntBlockCustomerId, out blackItem, out isSimulated, out isBlocked);
+            Assert.IsTrue(result, blockKind.ToString());
+            Assert.IsTrue(isSimulated, blockKind.ToString());
+            Assert.IsTrue(isBlocked, blockKind.ToString());
+            Assert.IsNotNull(blackItem, blockKind.ToString());
+            Assert.AreEqual(blockKind, blackItem.Kind, blockKind.ToString());
+        }
+
+        private AegisUniversalEvent CreateEvent(BlackListMetaItem.KindType toBlockOn)
+        {
+            var dataRaw =
+                @"{""CustomerId"":""xxxx-customerid-xxxx"",""AccountNumber"":""xxxx-accountnumber-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-xxxx""}}";
+            var userAgent = "xxxx-useragent-xxxx";
+
+
+            switch (toBlockOn)
+            {
+                case BlackListMetaItem.KindType.CustomerId:
+                    dataRaw = dataRaw.Replace("xxxx-customerid-xxxx", "xxxx-customerid-block-xxxx");
+                    break;
+
+                case BlackListMetaItem.KindType.EmailFull:
+                case BlackListMetaItem.KindType.EmailDomain:
+                    dataRaw = dataRaw.Replace("xxxx-email@bla.com-xxxx", "xxxx-email@bla.com-block-xxxx");
+                    break;
+
+                case BlackListMetaItem.KindType.UserAgentRaw:
+                case BlackListMetaItem.KindType.UserAgentHash:
+                case BlackListMetaItem.KindType.UserAgentNormalizedHash:
+                    userAgent = userAgent.Replace("xxxx-useragent-xxxx", "xxxx-useragent-block-xxxx");
+                    break;
+
+                case BlackListMetaItem.KindType.None:
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
+
+            // return new event
+            return new AegisUniversalEvent()
+            {
+                EventType = AegisBaseEvent.EventTypes.Payment,
+                HttpUserAgent = userAgent,
+                DataRaw = dataRaw
+            };
+        }
+
+        private List<BlackListSet<BlackListMetaItem>> GetBlackListData(
+            IEnumerable<BlackListMetaItem.KindType> kindList,
+            uint version = 1)
+        {
+            const string dataRaw = @"{""CustomerId"":""xxxx-customerid-block-xxxx"",""AccountNumber"":""xxxx-accountnumber-block-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-block-xxxx""}}";
+            const string userAgent = "xxxx-useragent-block-xxxx";
+
+            var dataList = new List<BlackListMetaItem>();
+
+            foreach (var kind in kindList)
+            {
+                var value = this.GetBlackListDataValue(
+                    kind, 
+                    AegisBaseEvent.EventTypes.Payment,
+                    userAgent,
+                    dataRaw);
+
+                dataList.Add(
+                    new BlackListMetaItem()
+                    {
+                        EventType = AegisBaseEvent.EventTypes.Payment,
+                        Kind = kind,
+                        Value = value,
+                        IsBlocked = true,
+                        IsSimulated = true
+                    }
+                    );
+            }
+
+            return new List<BlackListSet<BlackListMetaItem>>()
+            {
+                new BlackListSet<BlackListMetaItem>()
+                {
+                    Data = dataList,
+                    VersionStamp = version
+                }
+            };
+        }
+
+        private string GetBlackListDataValue(
+            BlackListMetaItem.KindType kind,
+            string eventType, 
+            string userAgent, 
+            string dataRaw)
+        {
+            var evnt = new AegisUniversalEvent()
+            {
+                EventType = eventType,
+                HttpUserAgent = userAgent,
+                DataRaw = dataRaw
+            };
+
+            BlackListMetaActions.CheckData data = null;
+            var value = BlackListMetaActions.ExtractValue(kind, evnt, ref data);
+            if (value == null)
+            {
+                throw new Exception($"Can't extract data for kind='{kind}' and eventType='{eventType}'");
+            }
+
+            return value;
         }
     }
 }
