@@ -698,22 +698,26 @@ namespace Aegis.Pumps
         private const string TextEmpty = "[EMPTY]";
         private const string CustomerId = "CustomerId";
         private const string Email = "Email";
+        private const string AccountName = "AccountName";
 
         private static readonly Dictionary<BlackListMetaItem.KindType, OnKindAction> KindActions =
             new Dictionary<BlackListMetaItem.KindType, OnKindAction>()
             {
-                {BlackListMetaItem.KindType.UserAgentRaw, OnUserAgentRaw},
-                {BlackListMetaItem.KindType.UserAgentHash, OnUserAgentHash},
-                {BlackListMetaItem.KindType.UserAgentNormalizedHash, OnUserAgentNormalizedHash},
+                {BlackListMetaItem.KindType.HttpUserAgentRaw, OnHttpUserAgentRaw},
+                {BlackListMetaItem.KindType.HttpUserAgentHash, OnHttpUserAgentHash},
+                {BlackListMetaItem.KindType.HttpUserAgentNormalizedHash, OnHttpUserAgentNormalizedHash},
+                {BlackListMetaItem.KindType.HttpReferer, OnHttpReferer},
                 {BlackListMetaItem.KindType.EmailFull, OnEmailFull},
                 {BlackListMetaItem.KindType.EmailDomain, OnEmailDomain},
-                {BlackListMetaItem.KindType.CustomerId, OnCustomerId}
+                {BlackListMetaItem.KindType.CustomerId, OnCustomerId},
+                {BlackListMetaItem.KindType.AccountName, OnAccountName}
             };
 
         private static readonly Dictionary<string, string> JsonPaths = new Dictionary<string, string>()
         {
             { AegisBaseEvent.EventTypes.Payment + "$" + CustomerId, "CustomerId" },
-            { AegisBaseEvent.EventTypes.Payment + "$" + Email, "Contact.Email" }
+            { AegisBaseEvent.EventTypes.Payment + "$" + Email, "Contact.Email" },
+            { AegisBaseEvent.EventTypes.Payment + "$" + AccountName, "AccountName" }
         };
 
         private static readonly Regex RegexNormalize = new Regex(@"[\W_]+", RegexOptions.Compiled);
@@ -772,14 +776,14 @@ namespace Aegis.Pumps
             return extractor(evnt, ref data);
         }
 
-        public static string OnUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnHttpUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
         {
             return evnt.HttpUserAgent?.Trim();
         }
 
-        public static string OnUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnHttpUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
         {
-            var text = evnt.HttpUserAgent?.Trim();
+            var text = evnt.HttpUserAgent?.Trim()?.ToLowerInvariant();
             if (evnt.HttpUserAgent == null)
             {
                 text = TextEmpty;
@@ -788,7 +792,7 @@ namespace Aegis.Pumps
             return CryptUtils.HashSimpleMd5WithLength(text);
         }
 
-        public static string OnUserAgentNormalizedHash(AegisUniversalEvent evnt, ref CheckData data)
+        public static string OnHttpUserAgentNormalizedHash(AegisUniversalEvent evnt, ref CheckData data)
         {
             var text = evnt.HttpUserAgent;
             if (evnt.HttpUserAgent == null)
@@ -801,6 +805,11 @@ namespace Aegis.Pumps
             }
 
             return CryptUtils.HashSimpleMd5WithLength(text);
+        }
+
+        public static string OnHttpReferer(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            return evnt.HttpReferer?.Trim();
         }
 
         public static string OnEmailFull(AegisUniversalEvent evnt, ref CheckData data)
@@ -847,6 +856,17 @@ namespace Aegis.Pumps
             }
 
             return customerId.Trim().ToLowerInvariant();
+        }
+
+        public static string OnAccountName(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            var value = GetDataFromJson(evnt, ref data, AccountName);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return value.Trim().ToLowerInvariant();
         }
 
         private static string GetDataFromJson(

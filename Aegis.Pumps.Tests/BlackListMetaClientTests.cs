@@ -687,14 +687,19 @@ namespace Aegis.Pumps.Tests
     [TestClass]
     public class BlackListMetaClientTests
     {
+        private const string PaymentJson =
+        @"{""CustomerId"":""xxxx-customerid-xxxx"",""AccountName"":""xxxx-accountname-xxxx"",""AccountNumber"":""xxxx-accountnumber-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-xxxx""}}";
+
         private static readonly BlackListMetaItem.KindType[] KindListAll = new[]
         {
                 BlackListMetaItem.KindType.CustomerId,
-                BlackListMetaItem.KindType.UserAgentRaw,
-                BlackListMetaItem.KindType.UserAgentHash,
-                BlackListMetaItem.KindType.UserAgentNormalizedHash,
+                BlackListMetaItem.KindType.HttpUserAgentRaw,
+                BlackListMetaItem.KindType.HttpUserAgentHash,
+                BlackListMetaItem.KindType.HttpUserAgentNormalizedHash,
+                BlackListMetaItem.KindType.HttpReferer,
                 BlackListMetaItem.KindType.EmailFull,
-                BlackListMetaItem.KindType.EmailDomain
+                BlackListMetaItem.KindType.EmailDomain,
+                BlackListMetaItem.KindType.AccountName
         };
 
         [TestMethod]
@@ -763,11 +768,13 @@ namespace Aegis.Pumps.Tests
         public void CheckBlockEvents()
         {
             this.TestBlockEvent(BlackListMetaItem.KindType.CustomerId);
-            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentRaw);
-            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentHash);
-            this.TestBlockEvent(BlackListMetaItem.KindType.UserAgentNormalizedHash);
+            this.TestBlockEvent(BlackListMetaItem.KindType.HttpUserAgentRaw);
+            this.TestBlockEvent(BlackListMetaItem.KindType.HttpUserAgentHash);
+            this.TestBlockEvent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash);
+            this.TestBlockEvent(BlackListMetaItem.KindType.HttpReferer);
             this.TestBlockEvent(BlackListMetaItem.KindType.EmailDomain);
             this.TestBlockEvent(BlackListMetaItem.KindType.EmailFull);
+            this.TestBlockEvent(BlackListMetaItem.KindType.AccountName);
         }
 
         public void TestBlockEvent(BlackListMetaItem.KindType blockKind)
@@ -792,9 +799,10 @@ namespace Aegis.Pumps.Tests
 
         private AegisUniversalEvent CreateEvent(BlackListMetaItem.KindType toBlockOn)
         {
-            var dataRaw =
-                @"{""CustomerId"":""xxxx-customerid-xxxx"",""AccountNumber"":""xxxx-accountnumber-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-xxxx""}}";
-            var userAgent = "xxxx-user_56_agent-xxxx";
+            var dataRaw = PaymentJson;
+                //@"{""CustomerId"":""xxxx-customerid-xxxx"",""AccountName"":""xxxx-accountname-xxxx"",""AccountNumber"":""xxxx-accountnumber-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-xxxx""}}";
+            var httpUserAgent = "xxxx-user_56_agent-xxxx";
+            var httpReferer = "xxxx-referer-xxxx";
 
 
             switch (toBlockOn)
@@ -808,10 +816,18 @@ namespace Aegis.Pumps.Tests
                     dataRaw = dataRaw.Replace("xxxx-email@bla.com-xxxx", "xxxx-email@bla.com-block-xxxx");
                     break;
 
-                case BlackListMetaItem.KindType.UserAgentRaw:
-                case BlackListMetaItem.KindType.UserAgentHash:
-                case BlackListMetaItem.KindType.UserAgentNormalizedHash:
-                    userAgent = userAgent.Replace("xxxx-user_56_agent-xxxx", "xxxx-user_56_agent-block-xxxx");
+                case BlackListMetaItem.KindType.HttpUserAgentRaw:
+                case BlackListMetaItem.KindType.HttpUserAgentHash:
+                case BlackListMetaItem.KindType.HttpUserAgentNormalizedHash:
+                    httpUserAgent = httpUserAgent.Replace("xxxx-user_56_agent-xxxx", "xxxx-user_56_agent-block-xxxx");
+                    break;
+
+                case BlackListMetaItem.KindType.HttpReferer:
+                    httpReferer = httpReferer.Replace("xxxx-referer-xxxx", "xxxx-referer-block-xxxx");
+                    break;
+
+                case BlackListMetaItem.KindType.AccountName:
+                    dataRaw = dataRaw.Replace("xxxx-accountname-xxxx", "xxxx-accountname-block-xxxx");
                     break;
 
                 case BlackListMetaItem.KindType.None:
@@ -825,7 +841,8 @@ namespace Aegis.Pumps.Tests
             return new AegisUniversalEvent()
             {
                 EventType = AegisBaseEvent.EventTypes.Payment,
-                HttpUserAgent = userAgent,
+                HttpUserAgent = httpUserAgent,
+                HttpReferer = httpReferer,
                 DataRaw = dataRaw
             };
         }
@@ -834,8 +851,11 @@ namespace Aegis.Pumps.Tests
             IEnumerable<BlackListMetaItem.KindType> kindList,
             uint version = 1)
         {
-            const string dataRaw = @"{""CustomerId"":""xxxx-customerid-block-xxxx"",""AccountNumber"":""xxxx-accountnumber-block-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-block-xxxx""}}";
-            const string userAgent = "xxxx-user_56_agent-block-xxxx";
+            //const string dataRaw = @"{""CustomerId"":""xxxx-customerid-block-xxxx"",""AccountNumber"":""xxxx-accountnumber-block-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-block-xxxx""}}";
+            //const string userAgent = "xxxx-user_56_agent-block-xxxx";
+            string dataRaw = PaymentJson.Replace("-xxxx", "-block-xxxx");
+            var httpUserAgent = "xxxx-user_56_agent-block-xxxx";
+            var httpReferer = "xxxx-referer-block-xxxx";
 
             var dataList = new List<BlackListMetaItem>();
 
@@ -844,7 +864,8 @@ namespace Aegis.Pumps.Tests
                 var value = this.GetBlackListDataValue(
                     kind, 
                     AegisBaseEvent.EventTypes.Payment,
-                    userAgent,
+                    httpUserAgent,
+                    httpReferer,
                     dataRaw);
 
                 dataList.Add(
@@ -872,13 +893,15 @@ namespace Aegis.Pumps.Tests
         private string GetBlackListDataValue(
             BlackListMetaItem.KindType kind,
             string eventType, 
-            string userAgent, 
+            string httpUserAgent, 
+            string httpReferer, 
             string dataRaw)
         {
             var evnt = new AegisUniversalEvent()
             {
                 EventType = eventType,
-                HttpUserAgent = userAgent,
+                HttpUserAgent = httpUserAgent,
+                HttpReferer = httpReferer,
                 DataRaw = dataRaw
             };
 

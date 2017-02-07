@@ -684,12 +684,14 @@ namespace Aegis.Core.Data
         public enum KindType
         {
             None,
-            UserAgentRaw,
-            UserAgentHash,
-            UserAgentNormalizedHash,
+            HttpUserAgentRaw,
+            HttpUserAgentHash,
+            HttpUserAgentNormalizedHash,
+            HttpReferer,
             EmailFull,
             EmailDomain,
-            CustomerId
+            CustomerId,
+            AccountName
             //SessionId
             //Account
         }
