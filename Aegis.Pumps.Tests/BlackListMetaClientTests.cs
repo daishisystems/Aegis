@@ -787,13 +787,14 @@ namespace Aegis.Pumps.Tests
             Assert.IsTrue(isBlocked, blockKind.ToString());
             Assert.IsNotNull(blackItem, blockKind.ToString());
             Assert.AreEqual(blockKind, blackItem.Kind, blockKind.ToString());
+            Assert.IsFalse(string.IsNullOrWhiteSpace(blackItem.Value));
         }
 
         private AegisUniversalEvent CreateEvent(BlackListMetaItem.KindType toBlockOn)
         {
             var dataRaw =
                 @"{""CustomerId"":""xxxx-customerid-xxxx"",""AccountNumber"":""xxxx-accountnumber-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-xxxx""}}";
-            var userAgent = "xxxx-useragent-xxxx";
+            var userAgent = "xxxx-user_56_agent-xxxx";
 
 
             switch (toBlockOn)
@@ -810,7 +811,7 @@ namespace Aegis.Pumps.Tests
                 case BlackListMetaItem.KindType.UserAgentRaw:
                 case BlackListMetaItem.KindType.UserAgentHash:
                 case BlackListMetaItem.KindType.UserAgentNormalizedHash:
-                    userAgent = userAgent.Replace("xxxx-useragent-xxxx", "xxxx-useragent-block-xxxx");
+                    userAgent = userAgent.Replace("xxxx-user_56_agent-xxxx", "xxxx-user_56_agent-block-xxxx");
                     break;
 
                 case BlackListMetaItem.KindType.None:
@@ -834,7 +835,7 @@ namespace Aegis.Pumps.Tests
             uint version = 1)
         {
             const string dataRaw = @"{""CustomerId"":""xxxx-customerid-block-xxxx"",""AccountNumber"":""xxxx-accountnumber-block-xxxx"", ""Contact"": {""Email"":""xxxx-email@bla.com-block-xxxx""}}";
-            const string userAgent = "xxxx-useragent-block-xxxx";
+            const string userAgent = "xxxx-user_56_agent-block-xxxx";
 
             var dataList = new List<BlackListMetaItem>();
 

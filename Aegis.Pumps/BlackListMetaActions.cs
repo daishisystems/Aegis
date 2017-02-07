@@ -716,7 +716,7 @@ namespace Aegis.Pumps
             { AegisBaseEvent.EventTypes.Payment + "$" + Email, "Contact.Email" }
         };
 
-        private static readonly Regex RegexNormalize = new Regex(@"\W+", RegexOptions.Compiled);
+        private static readonly Regex RegexNormalize = new Regex(@"[\W_]+", RegexOptions.Compiled);
 
         public static bool Check(
             AegisUniversalEvent evnt,
