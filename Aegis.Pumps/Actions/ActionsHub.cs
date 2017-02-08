@@ -689,12 +689,10 @@ namespace Aegis.Pumps.Actions
     {
         private readonly ActionIpEventNotify<AegisUniversalEvent> actionUniversal;
 
-        private readonly AegisClient client;
         private List<string> ipHeaderNames;
 
         public ActionsHub(AegisClient client, IEnumerable<string> httpIpHeaderNames)
         {
-            this.client = client;
             this.ipHeaderNames = httpIpHeaderNames.ToList();
 
             this.actionUniversal = new ActionIpEventNotify<AegisUniversalEvent>(client);
@@ -714,6 +712,7 @@ namespace Aegis.Pumps.Actions
             string controllerName,
             string actionName,
             object data,
+            string sessionIdNext = null,
             bool isOutput = false,
             bool isOutputException = false,
             HttpHeaders responseHeaders = null,
@@ -736,9 +735,11 @@ namespace Aegis.Pumps.Actions
                     eventNameFinal,
                     this.ipHeaderNames,
                     requestHeaders,
+                    responseHeaders,
                     requestUri,
                     httpMethod,
                     sessionId,
+                    sessionIdNext,
                     controllerName,
                     actionName,
                     () => new AegisUniversalEvent()
@@ -761,6 +762,7 @@ namespace Aegis.Pumps.Actions
             string controllerName,
             string actionName,
             object data,
+            string sessionIdNext = null,
             bool isOutput = false,
             bool isOutputException = false,
             NameValueCollection responseHeaders = null,
@@ -775,6 +777,7 @@ namespace Aegis.Pumps.Actions
                 controllerName,
                 actionName,
                 data,
+                sessionIdNext,
                 isOutput,
                 isOutputException,
                 ActionsUtils.GetAsHttpHeaders(responseHeaders),

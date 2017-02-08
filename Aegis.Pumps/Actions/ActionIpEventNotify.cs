@@ -701,9 +701,11 @@ namespace Aegis.Pumps.Actions
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
+            HttpHeaders responseHeaders,
             Uri requestUri,
             string httpMethod,
             string sessionId,
+            string sessionIdNext,
             string clientControllerName,
             string clientActionName,
             Func<T> eventBuilder)
@@ -714,11 +716,13 @@ namespace Aegis.Pumps.Actions
                     eventTypeName,
                     ipHeaderNames,
                     requestHeaders,
+                    responseHeaders,
                     requestUri,
                     clientControllerName,
                     clientActionName,
                     httpMethod,
                     sessionId,
+                    sessionIdNext,
                     eventBuilder);
             }
             catch (Exception exception)
@@ -736,11 +740,13 @@ namespace Aegis.Pumps.Actions
             string eventTypeName,
             List<string> ipHeaderNames,
             HttpHeaders requestHeaders,
+            HttpHeaders responseHeaders,
             Uri requestUri,
             string clientControllerName,
             string clientActionName,
             string httpMethod,
             string sessionId,
+            string sessionIdNext,
             Func<T> eventBuilder)
         {
             // is current action disabled
@@ -777,9 +783,28 @@ namespace Aegis.Pumps.Actions
             var httpUserAgent = this.GetHttpHeaderValue(@"User-Agent", requestHeaders, 256);
             var httpReferer = this.GetHttpHeaderValue(@"Referer", requestHeaders, 256);
             var httpAcceptLanguage = this.GetHttpHeaderValue(@"Accept-Language", requestHeaders, 256);
-            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
             var httpHeadersRest = this.GetAllHttpHeaders(requestHeaders, this.ignoredHttpHeaders, 256);
-            
+
+            // get http session token
+            var httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", requestHeaders, 256);
+
+            if (string.IsNullOrEmpty(httpSessionToken) && responseHeaders != null)
+            {
+                httpSessionToken = this.GetHttpHeaderValue(@"X-Session-Token", responseHeaders, 256);
+            }
+
+            if (string.IsNullOrEmpty(httpSessionToken))
+            {
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    httpSessionToken = sessionId;
+                }
+                else if (!string.IsNullOrEmpty(sessionIdNext))
+                {
+                    httpSessionToken = sessionIdNext;
+                }
+            }
+
             // process each IP
             var isBlocked = false;
 
