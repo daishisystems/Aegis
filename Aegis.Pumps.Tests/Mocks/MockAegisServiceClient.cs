@@ -676,6 +676,8 @@ Public License instead of this License.  But first, please read
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Aegis.Core;
 
 namespace Aegis.Pumps.Tests.Mocks
@@ -692,13 +694,17 @@ namespace Aegis.Pumps.Tests.Mocks
 
         public string MockInSendAegisEvents { get; private set; }
 
+        public List<KeyValuePair<string, string>> MockInHeaders { get; private set; }
+
         protected override bool DoGetStringData(
-            Core.HttpRequestMetadata httpRequestMetadata,
+            HttpRequestMetadata httpRequestMetadata,
             DateTimeOffset? requestTimeStamp,
             out string data,
-            out DateTimeOffset? timeStamp)
+            out DateTimeOffset? timeStamp,
+            List<KeyValuePair<string, string>> requestHeaders = null)
         {
             this.MockInUri = new Uri(httpRequestMetadata.URI.ToString());
+            this.MockInHeaders = requestHeaders?.ToList();
 
             data = this.MockOutData;
             timeStamp = this.MockOutTimeStamp;

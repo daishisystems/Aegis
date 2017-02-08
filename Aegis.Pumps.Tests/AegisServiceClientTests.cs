@@ -679,7 +679,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
 using Jil;
@@ -736,8 +738,136 @@ namespace Aegis.Pumps.Tests
                 out speedTime);
 
             Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
-            Assert.AreEqual(data.Count, resultData.Count);
             Assert.AreEqual(testUri, mock.MockInUri.Host);
+            Assert.AreEqual(data.Count, resultData.Count);
+            Assert.IsTrue(resultData.All(x => !string.IsNullOrEmpty(x.IpAddressRaw)));
+
+            this.CheckStandardUriParameter(mock.MockInUri.Query);
+        }
+
+        [TestMethod]
+        public void GetBlackListV2()
+        {
+            // create data
+            var data = new List<BlackListSet<BlackListItem>>()
+            {
+                new BlackListSet<BlackListItem>()
+                {
+                    Data = new List<BlackListItem>()
+                    { 
+                        new BlackListItem() {IpAddressRaw = "192.168.0.1"},
+                        new BlackListItem() {IpAddressRaw = "192.168.0.2"},
+                    },
+                    VersionStamp = 2
+                },
+                new BlackListSet<BlackListItem>()
+                {
+                    Data = new List<BlackListItem>()
+                    {
+                        new BlackListItem() {IpAddressRaw = "192.168.0.1"},
+                        new BlackListItem() {IpAddressRaw = "192.168.0.2"},
+                    },
+                    VersionStamp = 3
+                }
+            };
+
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
+
+            // create mock object
+            var mock = new MockAegisServiceClient();
+            mock.MockResult = true;
+            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
+            mock.MockOutData = dataJson;
+
+            var testUri = "test.bla.com";
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+
+            List<BlackListSet<BlackListItem>> resultData;
+            DateTimeOffset? resultTimeStamp;
+            long? speedTime;
+            mock.GetBlackListDataV2(
+                this.clientInfo,
+                settings,
+                settingsOnline,
+                null,
+                new List<uint>() {1,2,3}, 
+                out resultData,
+                out resultTimeStamp,
+                out speedTime);
+
+            Assert.IsNotNull(mock.MockInHeaders);
+            Assert.IsTrue(mock.MockInHeaders.Exists(x => x.Key == AegisServiceClient.HeaderNames.XAegisBlackListVersions));
+
+            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+            Assert.AreEqual(data.Count, resultData.Count);
+            Assert.IsTrue(resultData.All(x => x.Data != null && x.Data.Count > 0));
+            Assert.IsTrue(resultData.All(x => x.VersionStamp >= 2));
+
+            this.CheckStandardUriParameter(mock.MockInUri.Query);
+        }
+
+        [TestMethod]
+        public void GetBlackListMeta()
+        {
+            // create data
+            var data = new List<BlackListSet<BlackListMetaItem>>()
+            {
+                new BlackListSet<BlackListMetaItem>()
+                {
+                    Data = new List<BlackListMetaItem>()
+                    {
+                        new BlackListMetaItem() {Value = "val1"},
+                        new BlackListMetaItem() {Value = "val2"},
+                    },
+                    VersionStamp = 2
+                },
+                new BlackListSet<BlackListMetaItem>()
+                {
+                    Data = new List<BlackListMetaItem>()
+                    {
+                        new BlackListMetaItem() {Value = "val3"},
+                        new BlackListMetaItem() {Value = "val4"},
+                    },
+                    VersionStamp = 3
+                }
+            };
+
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
+
+            // create mock object
+            var mock = new MockAegisServiceClient();
+            mock.MockResult = true;
+            mock.MockOutTimeStamp = DateTimeOffset.UtcNow;
+            mock.MockOutData = dataJson;
+
+            var testUri = "test.bla.com";
+            var settings = new Settings(null, null, "http://" + testUri, new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+
+            List<BlackListSet<BlackListMetaItem>> resultData;
+            DateTimeOffset? resultTimeStamp;
+            long? speedTime;
+            mock.GetBlackListMeta(
+                this.clientInfo,
+                settings,
+                settingsOnline,
+                null,
+                new List<uint>() { 1, 2, 3 },
+                out resultData,
+                out resultTimeStamp,
+                out speedTime);
+
+            Assert.IsNotNull(mock.MockInHeaders);
+            Assert.IsTrue(mock.MockInHeaders.Exists(x => x.Key == AegisServiceClient.HeaderNames.XAegisBlackListVersions));
+
+            Assert.AreEqual(mock.MockOutTimeStamp, resultTimeStamp);
+            Assert.AreEqual(testUri, mock.MockInUri.Host);
+            Assert.AreEqual(data.Count, resultData.Count);
+            Assert.IsTrue(resultData.All(x => x.VersionStamp >= 2));
+            Assert.IsTrue(resultData.All(x => x.Data != null && x.Data.Count > 0));
+            Assert.IsTrue(resultData.All(x => x.Data.All(y => !string.IsNullOrWhiteSpace(y.Value))));
 
             this.CheckStandardUriParameter(mock.MockInUri.Query);
         }
@@ -897,19 +1027,6 @@ namespace Aegis.Pumps.Tests
                     });
             }
 
-            //{
-            //new AegisAvailabilityEvent(),
-            //new AegisBagEvent(),
-            //new AegisConfigurationsEvent(),
-            //new AegisAvailabilityEvent(),
-            //new AegisAvailabilityEvent(),
-            //new AegisUniversalEvent()
-            //{
-            //    EventType = AegisBaseEvent.EventTypes.Availability,
-            //    Data = string.Join("", bigData)
-            //}
-            //};
-
             foreach (var ev in events)
             {
                 ev.ApplicationName = "test-appName";
@@ -919,7 +1036,7 @@ namespace Aegis.Pumps.Tests
                 ev.Time = DateTime.UtcNow.ToString("o");
                 ev.ExperimentId = 7;
                 ev.GroupId = "test-groupId";
-                ev.HttpPath = "test-path";
+                ev.HttpPath = @"/en-ie/availability?Origin=FAO&TEEN=0&ADT=9&CHD=0&FlexDaysOut=6&RoundTrip=false&INF=0&Destination=FMM&DateOut=2017-06-12";
                 ev.HttpAcceptLanguage = "test-httpAcceptLang żźłćłóęś€$http://dad/&*()";
                 ev.HttpUserAgent = "test-httpUserAgent żźłćłóęś€$http://dad/&*()";
                 ev.HttpSessionToken = "test-httpSessionToken żźłćłóęś€$http://dad/&*()";
@@ -1029,12 +1146,13 @@ namespace Aegis.Pumps.Tests
         [Ignore]
         public void GetBlackListV2TwoTimesFromTheRealCluster()
         {
-            var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
+            //var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
+            var settings = new Settings(null, null, "http://aegisserviceclusterpoc.northeurope.cloudapp.azure.com:8467", new[] {"NS_CLIENT_IP"});
             var settingsOnline = new SettingsOnlineClient();
             var self = new AegisServiceClient();
 
             // request 1
-            List<BlackListSet> blackListSets;
+            List<BlackListSet<BlackListItem>> blackListSets;
             DateTimeOffset? timeStamp;
             long? speedTime;
 
@@ -1052,23 +1170,197 @@ namespace Aegis.Pumps.Tests
             Assert.IsNotNull(timeStamp);
 
             // request 2
-            List<BlackListSet> blackListSets2;
+            //List<BlackListSet<BlackListItem>> blackListSets2;
             DateTimeOffset? timeStamp2;
 
-            var result2 = self.GetBlackListDataV2(
-                clientInfo,
-                settings,
-                settingsOnline,
-                timeStamp,
-                blackListSets.Select(x => x.VersionStamp).ToList(),
-                out blackListSets2,
-                out timeStamp2,
-                out speedTime);
+            while (true)
+            {
+                var versions = blackListSets.Select(x => x.VersionStamp).ToList();
 
-            Assert.IsFalse(result2);
-            Assert.IsNull(blackListSets2);
-            Assert.IsNull(timeStamp2);
+                var result2 = self.GetBlackListDataV2(
+                    clientInfo,
+                    settings,
+                    settingsOnline,
+                    timeStamp,
+                    versions,
+                    //blackListSets.Select(x => x.VersionStamp).ToList(),
+                    out blackListSets,
+                    //out blackListSets2,
+                    out timeStamp2,
+                    out speedTime);
+
+                if (!result2)
+                {
+                    Thread.Sleep(5000);
+                    //break;
+                }
+
+                //Assert.IsFalse(result2);
+                //Assert.IsNull(blackListSets2);
+                //Assert.IsNull(timeStamp2);
+            }
         }
+
+        [TestMethod]
+        [Ignore]
+        public void GetBlackListV2TheRealClusterToTheFile()
+        {
+            //var settings = new Settings(null, null, "http://localhost:8467", new[] {"NS_CLIENT_IP"});
+            var settings = new Settings(null, null, "http://aegisserviceclusterpoc.northeurope.cloudapp.azure.com:8467", new[] { "NS_CLIENT_IP" });
+            var settingsOnline = new SettingsOnlineClient();
+            var self = new AegisServiceClient();
+
+            // request 1
+            List<BlackListSet<BlackListItem>> blackListMain = new List<BlackListSet<BlackListItem>>();
+            DateTimeOffset? timeStamp = null;
+
+
+            while (true)
+            {
+                List<BlackListSet<BlackListItem>> blackListSets;
+                long? speedTime;
+
+                var versions = blackListMain.Select(x => x.VersionStamp).ToList();
+
+                var result = self.GetBlackListDataV2(
+                    clientInfo,
+                    settings,
+                    settingsOnline,
+                    timeStamp,
+                    versions,
+                    out blackListSets,
+                    out timeStamp,
+                    out speedTime);
+
+                if (!result)
+                {
+                    break;
+                }
+
+                blackListMain = MergeV2(blackListMain, blackListSets);
+
+                //Assert.IsTrue(result);
+                //Assert.IsNotNull(timeStamp);
+            }
+
+            // merge sets into one list
+            var allItems = new Dictionary<string, BlackListItem>();
+            foreach (var itemsSet in blackListMain)
+            {
+                // update dictionary with items
+                foreach (var item in itemsSet.Data)
+                {
+                    // add item
+                    if (!allItems.ContainsKey(item.IpAddressRaw))
+                    {
+                        allItems.Add(item.IpAddressRaw, item);
+                        continue;
+                    }
+
+                    // replace item
+                    allItems[item.IpAddressRaw] = item;
+                }
+            }
+
+            // generate list of items
+            var items = allItems.Values;
+            var filePath = Path.GetFullPath("blacklist_data.txt");
+            Debug.WriteLine($"Writing to the file {filePath}");
+
+            File.WriteAllLines(filePath, items.Select(x => $"{x.IpAddressRaw}\t{x.Country}\t{x.IsBlocked}"));
+
+            // request 2
+            //List<BlackListSet<BlackListItem>> blackListSets2;
+            //DateTimeOffset? timeStamp2;
+
+            //while (true)
+            //{
+            //    var versions = blackListSets.Select(x => x.VersionStamp).ToList();
+
+            //    var result2 = self.GetBlackListDataV2(
+            //        clientInfo,
+            //        settings,
+            //        settingsOnline,
+            //        timeStamp,
+            //        versions,
+            //        //blackListSets.Select(x => x.VersionStamp).ToList(),
+            //        out blackListSets,
+            //        //out blackListSets2,
+            //        out timeStamp2,
+            //        out speedTime);
+
+            //    if (!result2)
+            //    {
+            //        Thread.Sleep(5000);
+            //        //break;
+            //    }
+
+            //Assert.IsFalse(result2);
+            //Assert.IsNull(blackListSets2);
+            //Assert.IsNull(timeStamp2);
+            //}
+        }
+
+        public static List<BlackListSet<BlackListItem>> MergeV2(
+            List<BlackListSet<BlackListItem>> dataCurrent,
+            List<BlackListSet<BlackListItem>> dataUpdate)
+            //out List<BlackListItem> items)
+        {
+            // create result
+            var result = new List<BlackListSet<BlackListItem>>(dataUpdate.Count);
+
+            // clone current sets
+            if (dataCurrent != null)
+            {
+                result.AddRange(dataCurrent.Take(dataUpdate.Count).Select(x => x.Clone()));
+            }
+
+            // fill missing sets with null
+            while (result.Count < dataUpdate.Count)
+            {
+                result.Add(null);
+            }
+
+            // merge sets
+            for (var index = 0; index < dataUpdate.Count; index++)
+            {
+                var itemResult = result[index];
+                var itemUpdate = dataUpdate[index];
+
+                // if sets version same - ignore
+                if (itemResult != null && itemResult.VersionStamp == itemUpdate.VersionStamp)
+                {
+                    continue;
+                }
+
+                // set new set
+                result[index] = itemUpdate.Clone();
+            }
+
+            // merge sets into one list
+            //var allItems = new Dictionary<string, BlackListItem>();
+            //foreach (var itemsSet in result)
+            //{
+            //    // update dictionary with items
+            //    foreach (var item in itemsSet.Data)
+            //    {
+            //        // add item
+            //        if (!allItems.ContainsKey(item.IpAddressRaw))
+            //        {
+            //            allItems.Add(item.IpAddressRaw, item);
+            //            continue;
+            //        }
+
+            //        // replace item
+            //        allItems[item.IpAddressRaw] = item;
+            //    }
+            //}
+
+            // generate list of items
+            //items = allItems.Values.ToList();
+            return result;
+        }
+
 
         [TestMethod]
         [Ignore]

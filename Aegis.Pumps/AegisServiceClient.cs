@@ -719,6 +719,11 @@ namespace Aegis.Pumps
             public const string BlackListVersionStamps = "bvs";
         }
 
+        public static class HeaderNames
+        {
+            public const string XAegisBlackListVersions = "X-Aegis-BlackList-Versions";
+        }
+
         public bool GetBlackListData(
             ClientInfo clientInfo,
             Settings settings,
@@ -805,10 +810,16 @@ namespace Aegis.Pumps
                 {ParameterNames.AegisVersion, clientInfo.AegisVersion},
             };
 
+            // set http header
+            List<KeyValuePair<string, string>> headers = null;
             if (versionStamps != null && versionStamps.Count > 0)
             {
                 var versionStampsStr = string.Join("-", versionStamps.Select(x => x.ToString("x")));
-                uriParameters.Add(ParameterNames.BlackListVersionStamps, versionStampsStr);
+
+                headers = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>(HeaderNames.XAegisBlackListVersions, versionStampsStr)
+                };
             }
 
             var uriService = this.CreateUri(
@@ -831,7 +842,12 @@ namespace Aegis.Pumps
 
             try
             {
-                result = this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp);
+                result = this.DoGetStringData(
+                    httpRequestMetadata, 
+                    requestTimeStamp, 
+                    out dataString, 
+                    out timeStamp,
+                    headers);
             }
             finally 
             {
@@ -878,10 +894,16 @@ namespace Aegis.Pumps
                 {ParameterNames.AegisVersion, clientInfo.AegisVersion},
             };
 
+            // set http header
+            List<KeyValuePair<string, string>> headers = null;
             if (versionStamps != null && versionStamps.Count > 0)
             {
                 var versionStampsStr = string.Join("-", versionStamps.Select(x => x.ToString("x")));
-                uriParameters.Add(ParameterNames.BlackListVersionStamps, versionStampsStr);
+
+                headers = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>(HeaderNames.XAegisBlackListVersions, versionStampsStr)
+                };
             }
 
             var uriService = this.CreateUri(
@@ -904,7 +926,12 @@ namespace Aegis.Pumps
 
             try
             {
-                result = this.DoGetStringData(httpRequestMetadata, requestTimeStamp, out dataString, out timeStamp);
+                result = this.DoGetStringData(
+                    httpRequestMetadata,
+                    requestTimeStamp,
+                    out dataString,
+                    out timeStamp,
+                    headers);
             }
             finally
             {
@@ -1085,7 +1112,8 @@ namespace Aegis.Pumps
             HttpRequestMetadata httpRequestMetadata,
             DateTimeOffset? requestTimeStamp,
             out string data,
-            out DateTimeOffset? timeStamp)
+            out DateTimeOffset? timeStamp,
+            List<KeyValuePair<string, string>> requestHeaders = null)
         {
             data = null;
             timeStamp = null;
@@ -1102,10 +1130,15 @@ namespace Aegis.Pumps
             }
 
             var httpClient = this.GetHttpClient(httpRequestMetadata);
+            httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.IfModifiedSince = requestTimeStamp;
 
+            // additional headers
+            requestHeaders?.ForEach(x => httpClient.DefaultRequestHeaders.Add(x.Key, x.Value));
+
+            // make request
             var response = httpClient.GetAsync(httpRequestMetadata.URI).Result;
 
             // if data is not modified since last request or no data available
