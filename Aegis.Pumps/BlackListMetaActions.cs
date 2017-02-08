@@ -722,46 +722,6 @@ namespace Aegis.Pumps
 
         private static readonly Regex RegexNormalize = new Regex(@"[\W_]+", RegexOptions.Compiled);
 
-        public static bool Check(
-            AegisUniversalEvent evnt,
-            List<BlackListMetaItem> items,
-            out BlackListMetaItem blackItem)
-        {
-            blackItem = null;
-
-            CheckData data = null;
-            foreach (var item in items)
-            {
-                //OnKindAction extractor;
-                //if (!KindActions.TryGetValue(item.Kind, out extractor))
-                //{
-                //    continue;
-                //}
-
-                //var result = extractor(evnt, ref data);
-                //if (result == null)
-                //{
-                //    // no result
-                //    continue;
-                //}
-
-                var result = ExtractValue(item.Kind, evnt, ref data);
-                if (result == null)
-                {
-                    // no result
-                    continue;
-                }
-
-                if (result == item.Value)
-                {
-                    blackItem = item;
-                    break;
-                }
-            }
-
-            return blackItem != null;
-        }
-
         public static string ExtractValue(
             BlackListMetaItem.KindType kind,
             AegisUniversalEvent evnt,
@@ -778,12 +738,18 @@ namespace Aegis.Pumps
 
         public static string OnHttpUserAgentRaw(AegisUniversalEvent evnt, ref CheckData data)
         {
-            return evnt.HttpUserAgent?.Trim();
+            var text = evnt.HttpUserAgent?.Trim();
+            if (evnt.HttpUserAgent == null)
+            {
+                text = TextEmpty;
+            }
+
+            return text;
         }
 
         public static string OnHttpUserAgentHash(AegisUniversalEvent evnt, ref CheckData data)
         {
-            var text = evnt.HttpUserAgent?.Trim()?.ToLowerInvariant();
+            var text = evnt.HttpUserAgent?.Trim().ToLowerInvariant();
             if (evnt.HttpUserAgent == null)
             {
                 text = TextEmpty;
@@ -809,7 +775,13 @@ namespace Aegis.Pumps
 
         public static string OnHttpReferer(AegisUniversalEvent evnt, ref CheckData data)
         {
-            return evnt.HttpReferer?.Trim();
+            var text = evnt.HttpReferer?.Trim();
+            if (evnt.HttpReferer == null)
+            {
+                text = TextEmpty;
+            }
+
+            return text;
         }
 
         public static string OnEmailFull(AegisUniversalEvent evnt, ref CheckData data)

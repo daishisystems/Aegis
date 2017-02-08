@@ -684,16 +684,16 @@ namespace Aegis.Pumps
 {
     public class BlackListMetaClient
     {
-        private Dictionary<string, List<BlackListMetaItem>> blacklist;
-        //private Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>> blacklist;
+        private Dictionary<string, 
+                    Dictionary<BlackListMetaItem.KindType,
+                        Dictionary<string, BlackListMetaItem>>> blacklist;
         private List<BlackListSet<BlackListMetaItem>> blacklistRaw;
 
         public DateTimeOffset? TimeStamp { get; private set; }
 
         public BlackListMetaClient()
         {
-            this.blacklist = new Dictionary<string, List<BlackListMetaItem>>();
-            //this.blacklist = new Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>();
+            this.blacklist = new Dictionary<string, Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>>();
         }
 
         public List<uint> GetVersionStamps()
@@ -712,32 +712,28 @@ namespace Aegis.Pumps
             var dataRaw = Merge(this.blacklistRaw, data, out items);
 
             // create new collection
-            //var blacklistNew = new Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>();
-            var blacklistNew = new Dictionary<string, List<BlackListMetaItem>>();
+            var blacklistNew = new Dictionary<string, Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>>();
 
             foreach (var item in items)
             {
                 if (!blacklistNew.ContainsKey(item.EventType))
                 {
-                    blacklistNew.Add(item.EventType, new List<BlackListMetaItem>());
+                    blacklistNew.Add(item.EventType, new Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>>());
                 }
 
-                blacklistNew[item.EventType].Add(item);
+                if (!blacklistNew[item.EventType].ContainsKey(item.Kind))
+                {
+                    blacklistNew[item.EventType].Add(item.Kind, new Dictionary<string, BlackListMetaItem>());
+                }
 
+                if (!blacklistNew[item.EventType][item.Kind].ContainsKey(item.Value))
+                {
+                    blacklistNew[item.EventType][item.Kind].Add(item.Value, item);
+                    continue;
+                }
 
-                //if (!blacklistNew.ContainsKey(item.Kind))
-                //{
-                //    blacklistNew.Add(item.Kind, new Dictionary<string, BlackListMetaItem>());
-                //}
-
-                //if (!blacklistNew[item.Kind].ContainsKey(item.Value))
-                //{
-                //    blacklistNew[item.Kind].Add(item.Value, item);
-                //    continue;
-                //}
-
-                //// replace
-                //blacklistNew[item.Kind][item.Value] = item;
+                // replace
+                blacklistNew[item.EventType][item.Kind][item.Value] = item;
             }
 
             // swap
@@ -768,66 +764,42 @@ namespace Aegis.Pumps
             blackItem = null;
 
             // get items for this event
-            List<BlackListMetaItem> items;
-            if (!this.blacklist.TryGetValue(evnt.EventType, out items))
+            Dictionary<BlackListMetaItem.KindType, Dictionary<string, BlackListMetaItem>> itemsKindDict;
+            if (!this.blacklist.TryGetValue(evnt.EventType, out itemsKindDict))
             {
                 return false;
             }
 
-            // run actions
-            if (!BlackListMetaActions.Check(evnt, items, out blackItem))
+            // for each kind
+            BlackListMetaActions.CheckData data = null;
+            foreach (var itemKind in itemsKindDict)
+            {
+                // get value of event for this kind
+                var evntValue = BlackListMetaActions.ExtractValue(itemKind.Key, evnt, ref data);
+                if (evntValue == null)
+                {
+                    // no result
+                    continue;
+                }
+
+                // check if there is match with above value
+                if (itemKind.Value.TryGetValue(evntValue, out blackItem))
+                {
+                    break;
+                }
+            }
+
+            // not found
+            if (blackItem == null)
             {
                 return false;
             }
 
+            // found
             isBlocked = blackItem.IsBlocked == true;
             isSimulated = blackItem.IsSimulated == true;
             return true;
         }
-
-        //private bool Compare(BlackListMetaItem item, string result)
-        //{
-        //    if (item.Value == result)
-        //    {
-        //        return true;
-        //    }
-        //}
-
-        //public bool TryGetBlacklistedItem(string ipAddress, out BlackListMetaItem blackListItem)
-        //{
-        //    return this.blacklist.TryGetValue(ipAddress, out blackListItem);
-        //}
-
-            //public void CheckBlockedOrSimulated(
-            //    SettingsOnlineData.BlackListData blackListData,
-            //    string eventTypeName,
-            //    BlackListMetaItem blackItem,
-            //    out bool isBlocked,
-            //    out bool isSimulated)
-            //{
-            //    // set default item values
-            //    isBlocked = blackItem.IsBlocked == true;
-            //    isSimulated = blackItem.IsSimulated == true;
-
-
-            //    //// check whether country is blocked or simulated
-            //    //if (blackListData?.IsCountryBlockingEnabled == true)
-            //    //{
-            //    //    isBlocked = isBlocked && (blackListData?.CountriesBlock?.Contains(blackItem.Country) == true);
-            //    //    isSimulated = isSimulated && (blackListData?.CountriesSimulate?.Contains(blackItem.Country) == true);
-            //    //}
-
-            //    // check event type
-            //    if (blackItem.DisabledEventsBlocking?.Contains(eventTypeName) == true)
-            //    {
-            //        isBlocked = false;
-            //    }
-
-            //    if (blackItem.DisabledEventsSimulate?.Contains(eventTypeName) == true)
-            //    {
-            //        isSimulated = false;
-            //    }
-            //}
 
         public static List<BlackListSet<BlackListMetaItem>> Merge(
             List<BlackListSet<BlackListMetaItem>> dataCurrent,
