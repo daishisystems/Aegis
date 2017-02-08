@@ -687,6 +687,7 @@ namespace Aegis.Pumps.SchedulerJobs
     ///     Aegis for the most up-to-date black-list, and retains a copy of this
     ///     black-list in memory.
     /// </summary>
+    // TODO add tests for GetBlackListJob and other jobs
     internal class GetBlackListJob : ClientJob
     {
         private readonly AegisServiceClient aegisServiceClient;

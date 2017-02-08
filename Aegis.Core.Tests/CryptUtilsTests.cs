@@ -724,6 +724,7 @@ namespace Aegis.Core.Tests
             Assert.AreEqual("7890$1234567890$2", CryptUtils.HashAccountNumber("1234567890"));
             Assert.AreEqual("3456$XXXXXXXXXX123456$2", CryptUtils.HashAccountNumber("xxxxxxxxxx123456"));
             Assert.AreEqual("1234$XXXXXXXXXXXX1234$2", CryptUtils.HashAccountNumber("XXXXXXXXXXXX1234"));
+            Assert.AreEqual("1234$V6ZQwCqrh9OsvEx8WPEKRSbbnYPGdOtv5HBEGBMPwK4=$2", CryptUtils.HashAccountNumber("123456XXXXXX1234"));
             Assert.AreEqual("3456$WszuIAoGK63Z8LVvWSj88Zabsp6yf0m3/RP0DR+D83k=$2", CryptUtils.HashAccountNumber("1234567890123456"));
         }
 
