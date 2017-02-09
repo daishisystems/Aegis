@@ -703,6 +703,7 @@ namespace Aegis.Pumps.Actions
             this.ipHeaderNames = httpIpHeaderNames.ToList();
         }
 
+        // TODO change ProcessEvent parameters into an object
         public bool ProcessEvent(
             string eventName,
             HttpHeaders requestHeaders,

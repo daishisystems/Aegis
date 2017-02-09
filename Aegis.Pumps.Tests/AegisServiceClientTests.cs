@@ -704,8 +704,6 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void GetBlackList()
         {
-            // TODO create another tests with https://demo7227109.mockable.io/blacklist/ireland
-
             // create data
             var data = new List<BlackListItem>()
             {
