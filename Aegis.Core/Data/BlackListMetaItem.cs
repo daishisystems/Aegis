@@ -683,7 +683,7 @@ namespace Aegis.Core.Data
     {
         public enum KindType
         {
-            None,
+            None = 0,
             HttpUserAgentRaw,
             HttpUserAgentHash,
             HttpUserAgentNormalizedHash,
@@ -696,7 +696,7 @@ namespace Aegis.Core.Data
             //Account
         }
 
-        [JilDirective(Name = "k")]
+        [JilDirective(Name = "k", TreatEnumerationAs = typeof(int))]
         public KindType Kind { get; set; }
 
         [JilDirective(Name = "v")]

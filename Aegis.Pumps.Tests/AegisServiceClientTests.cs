@@ -818,8 +818,8 @@ namespace Aegis.Pumps.Tests
                 {
                     Data = new List<BlackListMetaItem>()
                     {
-                        new BlackListMetaItem() {Value = "val1"},
-                        new BlackListMetaItem() {Value = "val2"},
+                        new BlackListMetaItem() {Value = "val1", Kind =  BlackListMetaItem.KindType.CustomerId},
+                        new BlackListMetaItem() {Value = "val2", Kind = BlackListMetaItem.KindType.AccountName},
                     },
                     VersionStamp = 2
                 },
@@ -828,13 +828,13 @@ namespace Aegis.Pumps.Tests
                     Data = new List<BlackListMetaItem>()
                     {
                         new BlackListMetaItem() {Value = "val3"},
-                        new BlackListMetaItem() {Value = "val4"},
+                        new BlackListMetaItem() {Value = "val4", Kind = BlackListMetaItem.KindType.EmailDomain},
                     },
                     VersionStamp = 3
                 }
             };
 
-            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNulls);
+            var dataJson = JSON.Serialize(data, Options.ISO8601ExcludeNullsIncludeInherited);
 
             // create mock object
             var mock = new MockAegisServiceClient();
