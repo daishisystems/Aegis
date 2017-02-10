@@ -698,7 +698,6 @@ namespace Aegis.Pumps.Actions
         public string SessionIdNext;
         public bool IsOutput;
         public bool IsOutputException;
-        public bool IsSensitiveDataCheckDisabled;
         public HttpHeaders ResponseHeaders;
 
         public static HttpHeaders ConvertHeaders(NameValueCollection headers)

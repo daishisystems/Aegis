@@ -693,44 +693,6 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
             public const string ParseIpAddress = "ParseIpAddress";
             public const string UtilsInternal = "UtilsInternal";
 
-            // Actions
-            //public const string ActionAvailability = "Action-Availability";
-            //public const string ActionConfigurations = "Action-Configurations";
-            //public const string ActionResource = "Action-Resource";
-            //public const string ActionCalendar = "Action-Calendar";
-            //public const string ActionPrice = "Action-Price";
-            //public const string ActionFlight = "Action-Flight";
-            //public const string ActionFast = "Action-Fast";
-            //public const string ActionExtras = "Action-Extras";
-            //public const string ActionQuickAdd = "Action-QuickAdd";
-            //public const string ActionBag = "Action-Bag";
-            //public const string ActionBooking = "Action-Booking";
-            //public const string ActionRefresh = "Action-Refresh";
-            //public const string ActionSeat = "Action-Seat";
-            //public const string ActionFees = "Action-Fees";
-            //public const string ActionPaymentMethods = "Action-PaymentMethods";
-            //public const string ActionDcc = "Action-Dcc";
-            //public const string ActionPayment = "Action-Payment";
-            //public const string ActionPromoCodes = "Action-PromoCodes";
-            //public const string ActionHttpOptions = "Action-HttpOptions";
-
-            // Actions-Mdot
-            //public const string ActionMdotAccount = "Action-Mdot-Account";
-            //public const string ActionMdotAccountLogIn = "Action-Mdot-AccountLogIn";
-            //public const string ActionMdotAccountSignUp = "Action-Mdot-AccountSignUp";
-            //public const string ActionMdotAvailability = "Action-Mdot-Availability";
-            //public const string ActionMdotBag = "Action-Mdot-Bag";
-            //public const string ActionMdotBooking = "Action-Mdot-Booking";
-            //public const string ActionMdotCheckout = "Action-Mdot-Checkout";
-            //public const string ActionMdotFast = "Action-Mdot-Fast";
-            //public const string ActionMdotFlight = "Action-Mdot-Flight";
-            //public const string ActionMdotPayment = "Action-Mdot-Payment";
-            //public const string ActionMdotPaymentPrepareForPay = "Action-Mdot-PaymentPrepareForPay";
-            //public const string ActionMdotPaymentPay = "Action-Mdot-PaymentPay";
-            //public const string ActionMdotPaymentPayIn = "Action-Mdot-PaymentPayIn";
-            //public const string ActionMdotPriceBreakdown = "Action-Mdot-PriceBreakdown";
-            //public const string ActionMdotSeat = "Action-Mdot-Seat";
-
             // Jobs
             public const string JobGetBlackList = "Job-GetBlackList";
             public const string JobGetBlackListMeta = "Job-GetBlackListMeta";

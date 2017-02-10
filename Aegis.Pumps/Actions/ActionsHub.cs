@@ -704,6 +704,7 @@ namespace Aegis.Pumps.Actions
         {
             string dataStr = null;
             string dataTypeFullName = null;
+
             if (eventParameters.Data != null)
             {
                 dataTypeFullName = eventParameters.Data.GetType().FullName;
@@ -731,7 +732,6 @@ namespace Aegis.Pumps.Actions
                         EventType = eventNameFinal,
                         DataRaw = dataStr,
                         DataType = dataTypeFullName,
-                        IsDataRawProcessDisabled = eventParameters.IsSensitiveDataCheckDisabled,
                         IsOutputException = eventParameters.IsOutputException ? true : (bool?)null,
                         HttpHeadersResponse = ActionsUtils.GetAllHttpHeaders(eventParameters.ResponseHeaders, "X-", 256)
                     });

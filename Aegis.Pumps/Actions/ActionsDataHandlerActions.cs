@@ -689,11 +689,12 @@ namespace Aegis.Pumps.Actions
 
         private readonly Dictionary<string, OnAction> actionWords = new Dictionary<string, OnAction>()
         {
+            { "accountname", ActionAccountName },
+            { "accname", ActionAccountName },
+
             { "expiration", ActionRemove },
             { "expirydate", ActionRemove },
             { "dob", ActionRemove },
-            { "accountname", ActionAccountName },
-            { "accname", ActionAccountName },
             { "verificationcode", ActionRemove },
             { "docnumber", ActionRemove },
             { "line", ActionRemove },
@@ -711,6 +712,7 @@ namespace Aegis.Pumps.Actions
             { "firstname", ActionRemove },
             { "lastname", ActionRemove },
             { "fullname", ActionRemove },
+
             { "mail", ActionMail },
 
             { "accountnumber", ActionAccountNumber },
@@ -763,7 +765,7 @@ namespace Aegis.Pumps.Actions
 
             ActionsUtils.ParseEmail(
                 client,
-                nameof(ActionsDataHandler2),
+                nameof(ActionsDataHandlerActions),
                 text,
                 keyInfo.Item1, 
                 keyInfo.Item2,
