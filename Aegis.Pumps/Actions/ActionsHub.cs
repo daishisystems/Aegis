@@ -675,11 +675,8 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Net.Http.Headers;
 using Aegis.Core.Data;
 using Jil;
 
@@ -703,86 +700,41 @@ namespace Aegis.Pumps.Actions
             this.ipHeaderNames = httpIpHeaderNames.ToList();
         }
 
-        // TODO change ProcessEvent parameters into an object
-        public bool ProcessEvent(
-            string eventName,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string sessionId,
-            string controllerName,
-            string actionName,
-            object data,
-            string sessionIdNext = null,
-            bool isOutput = false,
-            bool isOutputException = false,
-            HttpHeaders responseHeaders = null,
-            bool sensitiveDataCheck = true)
+        public bool ProcessEvent(EventParameters eventParameters)
         {
             string dataStr = null;
             string dataTypeFullName = null;
-            if (data != null)
+            if (eventParameters.Data != null)
             {
-                dataTypeFullName = data.GetType().FullName;
+                dataTypeFullName = eventParameters.Data.GetType().FullName;
 
-                dataStr = JSON.SerializeDynamic(data, Options.ExcludeNullsIncludeInherited);
+                dataStr = JSON.SerializeDynamic(eventParameters.Data, Options.ExcludeNullsIncludeInherited);
             }
 
-            var eventNameFinal = isOutput
-                ? AegisBaseEvent.EventTypes.GetOutputEventName(eventName)
-                : AegisBaseEvent.EventTypes.GetInputEventName(eventName);
+            var eventNameFinal = eventParameters.IsOutput
+                ? AegisBaseEvent.EventTypes.GetOutputEventName(eventParameters.EventName)
+                : AegisBaseEvent.EventTypes.GetInputEventName(eventParameters.EventName);
 
             return this.actionUniversal.Run(
                     eventNameFinal,
                     this.ipHeaderNames,
-                    requestHeaders,
-                    responseHeaders,
-                    requestUri,
-                    httpMethod,
-                    sessionId,
-                    sessionIdNext,
-                    controllerName,
-                    actionName,
+                    eventParameters.RequestHeaders,
+                    eventParameters.ResponseHeaders,
+                    eventParameters.RequestUri,
+                    eventParameters.HttpMethod,
+                    eventParameters.SessionId,
+                    eventParameters.SessionIdNext,
+                    eventParameters.ControllerName,
+                    eventParameters.ActionName,
                     () => new AegisUniversalEvent()
                     {
                         EventType = eventNameFinal,
                         DataRaw = dataStr,
                         DataType = dataTypeFullName,
-                        IsDataRawProcessDisabled = !sensitiveDataCheck,
-                        IsOutputException = isOutputException ? true : (bool?)null,
-                        HttpHeadersResponse = ActionsUtils.GetAllHttpHeaders(responseHeaders, "X-", 256)
+                        IsDataRawProcessDisabled = eventParameters.IsSensitiveDataCheckDisabled,
+                        IsOutputException = eventParameters.IsOutputException ? true : (bool?)null,
+                        HttpHeadersResponse = ActionsUtils.GetAllHttpHeaders(eventParameters.ResponseHeaders, "X-", 256)
                     });
-        }
-
-        public bool ProcessEvent(
-            string eventName,
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string sessionId,
-            string controllerName,
-            string actionName,
-            object data,
-            string sessionIdNext = null,
-            bool isOutput = false,
-            bool isOutputException = false,
-            NameValueCollection responseHeaders = null,
-            bool sensitiveDataCheck = true)
-        {
-            return this.ProcessEvent(
-                eventName,
-                ActionsUtils.GetAsHttpHeaders(requestHeaders),
-                requestUri,
-                httpMethod,
-                sessionId,
-                controllerName,
-                actionName,
-                data,
-                sessionIdNext,
-                isOutput,
-                isOutputException,
-                ActionsUtils.GetAsHttpHeaders(responseHeaders),
-                sensitiveDataCheck);
         }
     }
 }

@@ -72,6 +72,7 @@
     <Compile Include="Actions\ActionsDataHandlerItem.cs" />
     <Compile Include="Actions\ActionsHub.cs" />
     <Compile Include="Actions\ActionUtils.cs" />
+    <Compile Include="Actions\EventParameters.cs" />
     <Compile Include="Actions\IActionsHub.cs" />
     <Compile Include="Actions\IActionsHubMdot.cs" />
     <Compile Include="AegisEventCacheClient.cs" />

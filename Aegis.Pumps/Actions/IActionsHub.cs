@@ -675,10 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Net.Http.Headers;
 
 namespace Aegis.Pumps.Actions
 {
@@ -686,34 +683,6 @@ namespace Aegis.Pumps.Actions
     {
         void SetHttpIpHeaders(IEnumerable<string> httpIpHeaderNames);
 
-        bool ProcessEvent(
-            string eventName,
-            HttpHeaders requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string sessionId,
-            string controllerName,
-            string actionName,
-            object data,
-            string sessionIdNext = null,
-            bool isOutput = false,
-            bool isOutputException = false,
-            HttpHeaders responseHeaders = null,
-            bool sensitiveDataCheck = true);
-
-        bool ProcessEvent(
-            string eventName,
-            NameValueCollection requestHeaders,
-            Uri requestUri,
-            string httpMethod,
-            string sessionId,
-            string controllerName,
-            string actionName,
-            object data,
-            string sessionIdNext = null,
-            bool isOutput = false,
-            bool isOutputException = false,
-            NameValueCollection responseHeaders = null,
-            bool sensitiveDataCheck = true);
+        bool ProcessEvent(EventParameters eventParameters);
     }
 }

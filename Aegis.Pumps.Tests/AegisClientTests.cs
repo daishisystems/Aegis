@@ -680,6 +680,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using Aegis.Core.Data;
+using Aegis.Pumps.Actions;
 using Aegis.Pumps.Tests.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -829,26 +830,9 @@ namespace Aegis.Pumps.Tests
         }
 
         [TestMethod]
-        public void OnAvailabilityController_NoInitialized()
+        public void GetActionsHub_NoInitialized()
         {
-            var requestHeaders = new MockHttpHeaders();
-            var requestUri = new Uri("http://www.bla.com/unit/tests");
-            var httpMethod = "GET";
-
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-                AegisBaseEvent.EventTypes.MdotAvailability,
-                requestHeaders,
-                requestUri,
-                httpMethod,
-                "sessionId",
-                "controller",
-                "available",
-                new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
-
-            Assert.IsTrue(result != true);
+            Assert.IsNull(AegisClient.GetActionsHub());
             Assert.IsNull(AegisClient.Instance);
             Assert.IsFalse(AegisClient.IsInitialised);
         }
@@ -868,20 +852,20 @@ namespace Aegis.Pumps.Tests
             var requestHeaders = new MockHttpHeaders();
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null}
+            };
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-                AegisBaseEvent.EventTypes.MdotAvailability,
-                requestHeaders,
-                requestUri,
-                httpMethod,
-                "sessionId",
-                "controller",
-                "available",
-                new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
-
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+  
             Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
@@ -912,19 +896,20 @@ namespace Aegis.Pumps.Tests
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-               AegisBaseEvent.EventTypes.MdotAvailability,
-               requestHeaders,
-               requestUri,
-               httpMethod,
-               "sessionId",
-               "controller",
-               "available",
-               new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null }
+            };
 
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+   
             Assert.IsTrue(result == false);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(0, AegisClient.Instance.AegisEventCache.Count());
@@ -969,19 +954,20 @@ namespace Aegis.Pumps.Tests
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-                AegisBaseEvent.EventTypes.MdotAvailability,
-                requestHeaders,
-                requestUri,
-                httpMethod,
-                "sessionId",
-                "controller",
-                "available",
-                new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null }
+            };
 
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+      
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, AegisClient.Instance.AegisEventCache.Count());
@@ -1033,19 +1019,20 @@ namespace Aegis.Pumps.Tests
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-               AegisBaseEvent.EventTypes.MdotAvailability,
-               requestHeaders,
-               requestUri,
-               httpMethod,
-               "sessionId",
-               "controller",
-               "available",
-               new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null }
+            };
 
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+      
             Assert.IsTrue(result != true);
             Assert.AreEqual(0, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(1, AegisClient.Instance.AegisEventCache.Count());
@@ -1099,19 +1086,20 @@ namespace Aegis.Pumps.Tests
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-                AegisBaseEvent.EventTypes.MdotAvailability,
-                requestHeaders,
-                requestUri,
-                httpMethod,
-                "sessionId",
-                "controller",
-                "available",
-                new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null }
+            };
 
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+         
             Assert.IsTrue(result == true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, AegisClient.Instance.AegisEventCache.Count());
@@ -1166,19 +1154,20 @@ namespace Aegis.Pumps.Tests
             var requestUri = new Uri("http://www.bla.com/unit/tests");
             var httpMethod = "GET";
 
-            var result = AegisClient.GetActionsHub()?.ProcessEvent(
-                AegisBaseEvent.EventTypes.MdotAvailability,
-                requestHeaders,
-                requestUri,
-                httpMethod,
-                "sessionId",
-                "controller",
-                "available",
-                new object[] { "origin",
-                null,
-                DateTime.UtcNow,
-                null});
+            var parameters = new EventParameters()
+            {
+                EventName = AegisBaseEvent.EventTypes.MdotAvailability,
+                RequestHeaders = requestHeaders,
+                RequestUri = requestUri,
+                HttpMethod = httpMethod,
+                SessionId = "sessionId",
+                ControllerName = "controller",
+                ActionName = "action",
+                Data = new object[] { "origin", null, DateTime.UtcNow, null }
+            };
 
+            var result = AegisClient.GetActionsHub()?.ProcessEvent(parameters);
+        
             Assert.IsTrue(result != true);
             Assert.AreEqual(1, newRelicClient.UploadNewRelicInsightsEvents.Count);
             Assert.AreEqual(2, AegisClient.Instance.AegisEventCache.Count());
