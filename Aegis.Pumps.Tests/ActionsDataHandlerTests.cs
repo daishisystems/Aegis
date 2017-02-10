@@ -724,7 +724,7 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void CheckNonModified()
         {
-            var testObj = new { a = 7, e = "bag" };
+            var testObj = new {a = 7, e = "bag"};
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj, "{\"a\":7,\"e\":\"bag\"}");
@@ -733,34 +733,41 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void CheckDuplicatedFields()
         {
-            var testObj = new { phone = 7, mail = "bag", accountname = new { phone = 14, mail = "muuu", accountname = "zzzz", d = "ooo" } };
+            var testObj =
+                new
+                {
+                    phone = 7,
+                    mail = "bla@ooo.com",
+                    accountname = new {phone = 14, mail = "zzz@pob.com", accountname = "zzzz", d = "ooo"}
+                };
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj,
-                "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"+B55TA==$4$my_version$1\",\"mail\":\"unknown$7xF2Qw==$4$my_version$1$2\"},\"mail\":\"unknown$4AVk$3$my_version$1$2\"}");
+                "{\"phone\":\"X$DEL$X\",\"accountname\":{\"phone\":\"X$DEL$X\",\"d\":\"ooo\",\"accountname\":\"+B55TA==$4$my_version$1\",\"mail\":\"pob.com$+B55doLMxFyD+yc=$11$my_version$1$2\"},\"mail\":\"ooo.com$4Ahidp3MyVyD+yc=$11$my_version$1$2\"}");
         }
 
         [TestMethod]
         public void CheckRemove()
         {
-            var testObj1 = new { a = 7, BlaBlaExpirationBumBum = "bla", e = "bag" };
-            var testObj2 = new { a = 7, Expiration = "bla", e = "bag" };
-            var testObj3 = new { a = 7, Expiration = 1, e = "bag" };
-            var testObj4 = new { a = 7, First = "bla", FirstNumber = "eye" };
-            var testObj5 = new { FirstName = "bla", FullName = "eye", LastName = "sss", Title = "ss" };
+            var testObj1 = new {a = 7, BlaBlaExpirationBumBum = "bla", e = "bag"};
+            var testObj2 = new {a = 7, Expiration = "bla", e = "bag"};
+            var testObj3 = new {a = 7, Expiration = 1, e = "bag"};
+            var testObj4 = new {a = 7, First = "bla", FirstNumber = "eye"};
+            var testObj5 = new {FirstName = "bla", FullName = "eye", LastName = "sss", Title = "ss"};
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaBlaExpirationBumBum\":\"X$DEL$X\"}");
             this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Expiration\":\"X$DEL$X\"}");
             this.DoTest(self, testObj3, "{\"Expiration\":\"X$DEL$X\",\"a\":7,\"e\":\"bag\"}");
             this.DoTest(self, testObj4, "{\"a\":7,\"FirstNumber\":\"eye\",\"First\":\"X$DEL$X\"}");
-            this.DoTest(self, testObj5, "{\"Title\":\"X$DEL$X\",\"LastName\":\"X$DEL$X\",\"FullName\":\"X$DEL$X\",\"FirstName\":\"X$DEL$X\"}");
+            this.DoTest(self, testObj5,
+                "{\"Title\":\"X$DEL$X\",\"LastName\":\"X$DEL$X\",\"FullName\":\"X$DEL$X\",\"FirstName\":\"X$DEL$X\"}");
         }
 
         [TestMethod]
         public void CheckRemoveWithEscapeStringInJson()
         {
-            var testObj1 = new { a = 7, Line1 = "John \\\"Smith", FirstNumber = "eye" };
+            var testObj1 = new {a = 7, Line1 = "John \\\"Smith", FirstNumber = "eye"};
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1, "{\"a\":7,\"FirstNumber\":\"eye\",\"Line1\":\"X$DEL$X\"}");
@@ -769,14 +776,35 @@ namespace Aegis.Pumps.Tests
         [TestMethod]
         public void CheckMail()
         {
-            var testObj1 = new { a = 7, BlaMailBum = "john@smith.com", e = "bag" };
-            var testObj2 = new { a = 7, Mail = "john@smith.com", e = "bag" };
-            var testObj3 = new { a = 7, Mail = 3, e = "bag" };
+            var testObj1 = new {a = 7, BlaMailBum = "john@smith.com", e = "bag"};
+            var testObj2 = new {a = 7, Mail = "john@smith.com", e = "bag"};
+            //var testObj3 = new { a = 7, Mail = 3, e = "bag" };
 
             var self = new ActionsDataHandler2();
-            this.DoTest(self, testObj1, "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
-            this.DoTest(self, testObj2, "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
-            this.DoTest(self, testObj3, "{\"Mail\":\"unknown$sQ==$1$my_version$1$2\",\"a\":7,\"e\":\"bag\"}");
+            this.DoTest(self, testObj1,
+                "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
+            this.DoTest(self, testObj2,
+                "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
+            //this.DoTest(self, testObj3, "{\"Mail\":\"unknown$sQ==$1$my_version$1$2\",\"a\":7,\"e\":\"bag\"}");
+        }
+
+        [TestMethod]
+        public void CheckIncorrectMail()
+        {
+            var testObj = new {a = 7, Mail = 3, e = "bag"};
+
+            var self = new ActionsDataHandler2();
+
+            // throw exception
+            try
+            {
+                this.DoTest(self, testObj, "{\"Mail\":\"unknown$sQ==$1$my_version$1$2\",\"a\":7,\"e\":\"bag\"}");
+                Assert.Fail("Lack of exception");
+            }
+            catch (Exception)
+            {
+                // pass
+            }
         }
 
         [TestMethod]
@@ -877,7 +905,8 @@ namespace Aegis.Pumps.Tests
             object data,
             string expected,
             string controllerName = null,
-            string actionName = null)
+            string actionName = null,
+            AegisClient client = null)
         {
             AegisClient.ClientInfo.SetUp();
             AegisClient.ClientInfo.Id = "testId";
@@ -894,7 +923,7 @@ namespace Aegis.Pumps.Tests
             var stopWatch3 = Stopwatch.StartNew();
 
             var time = new DateTime(342423433);
-            var result = self.ProcessData(null, time, dataStr);
+            var result = self.ProcessData(client, time, dataStr);
 
             stopWatch1.Stop();
             stopWatch2.Stop();

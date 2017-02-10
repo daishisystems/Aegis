@@ -723,10 +723,18 @@ namespace Aegis.Pumps.Actions
             }
             catch (Exception exception)
             {
-                client?.NewRelicUtils.AddNotification(
+                var message = $"ParseEmail exception email={email.Substring(0, Math.Min(email.Length, 64))}=\n{exception}";
+
+                // workaround for unit tests
+                if (client == null)
+                {
+                    throw new Exception(message);    
+                }
+
+                client.NewRelicUtils.AddNotification(
                     client.NewRelicClient,
                     componentName,
-                    $"ParseEmail exception email={email.Substring(0, Math.Min(email.Length, 64))}=\n{exception}");
+                    message);
             }
 
             // hash mail

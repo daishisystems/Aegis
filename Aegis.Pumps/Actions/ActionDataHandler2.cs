@@ -704,18 +704,18 @@ namespace Aegis.Pumps.Actions
             var jsonData = JToken.Parse(json);
 
             var nodesToDelete = new List<JToken>();
+            JsonWalkNode(client, timeStamp, jsonData, nodesToDelete, this.OnProperty, false);
 
-            do
+            while (nodesToDelete.Count > 0)
             {
-                nodesToDelete.Clear();
-                JsonWalkNode(client, timeStamp, jsonData, nodesToDelete, this.OnProperty);
-
                 foreach (var token in nodesToDelete)
                 {
                     token.Remove();
                 }
 
-            } while (nodesToDelete.Count > 0);
+                nodesToDelete.Clear();
+                JsonWalkNode(client, timeStamp, jsonData, nodesToDelete, this.OnProperty, true);
+            }
 
             return jsonData.ToString(Formatting.None);
         }
@@ -724,7 +724,8 @@ namespace Aegis.Pumps.Actions
             AegisClient client, 
             DateTime timeStamp,
             JProperty property, 
-            List<JToken> nodesToDelete)
+            List<JToken> nodesToDelete,
+            bool noActionsRun)
         {
             var val = property.Value;
             if (val.Type != JTokenType.String &&
@@ -743,9 +744,13 @@ namespace Aegis.Pumps.Actions
                 return;
             }
 
-            var key = property.Name.ToLowerInvariant();
+            if (noActionsRun)
+            {
+                return;
+            }
 
             // get action
+            var key = property.Name.ToLowerInvariant();
             var action = this.actions.GetAction(key);
             if (action == null)
             {
@@ -764,7 +769,8 @@ namespace Aegis.Pumps.Actions
             DateTime timeStamp,
             JToken node,
             List<JToken> nodesToDelete,
-            Action<AegisClient, DateTime, JProperty, List<JToken>> actionProperty = null)
+            Action<AegisClient, DateTime, JProperty, List<JToken>, bool> actionProperty,
+            bool noActionsRun)
         {
             if (node.Type == JTokenType.Null)
             {
@@ -794,7 +800,7 @@ namespace Aegis.Pumps.Actions
             {
                 foreach (var child in node.Children())
                 {
-                    JsonWalkNode(client, timeStamp, child, nodesToDelete, actionProperty);
+                    JsonWalkNode(client, timeStamp, child, nodesToDelete, actionProperty, noActionsRun);
                 }
 
                 return;
@@ -807,9 +813,9 @@ namespace Aegis.Pumps.Actions
 
             foreach (var child in node.Children<JProperty>())
             {
-                actionProperty?.Invoke(client, timeStamp, child, nodesToDelete);
+                actionProperty?.Invoke(client, timeStamp, child, nodesToDelete, noActionsRun);
 
-                JsonWalkNode(client, timeStamp, child.Value, nodesToDelete, actionProperty);
+                JsonWalkNode(client, timeStamp, child.Value, nodesToDelete, actionProperty, noActionsRun);
             }
         }
     }
