@@ -789,8 +789,8 @@ namespace Aegis.Pumps
             // check whether country is blocked or simulated
             if (blackListData?.IsCountryBlockingEnabled == true)
             {
-                isBlocked = isBlocked && (blackListData?.CountriesBlock?.Contains(blackItem.Country) == true);
-                isSimulated = isSimulated && (blackListData?.CountriesSimulate?.Contains(blackItem.Country) == true);
+                isBlocked = isBlocked && (blackListData.CountriesBlock?.Contains(blackItem.Country) == true);
+                isSimulated = isSimulated && (blackListData.CountriesSimulate?.Contains(blackItem.Country) == true);
             }
 
             // check event type

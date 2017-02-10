@@ -702,6 +702,12 @@ namespace Aegis.Core.Data
         [JilDirective(Name = "tg")]
         public string Tag { get; set; }
 
+        [JilDirective(Name = "tg2")]
+        public string Tag2 { get; set; }
+
+        [JilDirective(Name = "tg3")]
+        public string Tag3 { get; set; }
+
         [JilDirective(Name = "dt")]
         public string DataType { get; set; }
 

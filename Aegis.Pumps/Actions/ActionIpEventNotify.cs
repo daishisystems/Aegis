@@ -949,46 +949,21 @@ namespace Aegis.Pumps.Actions
             }
 
             // protect the endpoint
-            //BlackListItem blackItem;
             bool isBlocked, isSimulated;
-            string blackCountry, blackTag;
+            NewRelicInsightsEvents.IpAddressBlacklistedEvent blackNewRelicEvent;
 
             if (!this.CheckWithBlackList(
+                currentTime,
                 eventTypeName, 
                 ipAddressString, 
                 evnt, 
                 out isBlocked,
                 out isSimulated,
-                out blackCountry,
-                out blackTag))
+                out blackNewRelicEvent))
             {
                 // do not block
                 return false;
             }
-
-            //BlackListItem blackItem;
-            //if (!this.Client.BlackList.TryGetBlacklistedItem(ipAddressString, out blackItem))
-            //{
-            //    // do not block
-            //    return false;
-            //}
-
-            // check if blocked or simulated
-            //bool isBlocked, isSimulated;
-
-            //this.Client.BlackList.CheckBlockedOrSimulated(
-            //    this.Client.SettingsOnline.Data.Blacklist,
-            //    eventTypeName,
-            //    blackItem, 
-            //    out isBlocked, 
-            //    out isSimulated);
-
-            //// exit if not blocked or simulated
-            //if (isBlocked != true && isSimulated != true)
-            //{
-            //    // do not block - not blocked nor simulated
-            //    return false;
-            //}
 
             // is blacklisting notification disabled
             if (this.Client.SettingsOnline.IsAegisEventNotificationDisabled(AegisBaseEvent.EventTypes.Blacklist))
@@ -998,22 +973,16 @@ namespace Aegis.Pumps.Actions
             }
 
             // log the malicious event to NewRelic
-            // TODO use currentTime variable in this newrelic event
-            var ipBlackListEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent()
-            {
-                SourceEventType = eventTypeName,
-                ExperimentId = expId,
-                IsBlocked = isBlocked,
-                IsSimulated = isSimulated,
-                IpAddress = ipAddressString,
-                GroupId = groupId,
-                Country = blackCountry,
-                Tag = blackTag,
-                AbsolutePath = requestUri.AbsolutePath,
-                FullPath = requestUri.PathAndQuery
-            };
+            blackNewRelicEvent.SourceEventType = eventTypeName;
+            blackNewRelicEvent.ExperimentId = expId;
+            blackNewRelicEvent.IsBlocked = isBlocked;
+            blackNewRelicEvent.IsSimulated = isSimulated;
+            blackNewRelicEvent.IpAddress = ipAddressString;
+            blackNewRelicEvent.GroupId = groupId;
+            blackNewRelicEvent.AbsolutePath = requestUri.AbsolutePath;
+            blackNewRelicEvent.FullPath = requestUri.PathAndQuery;
 
-            this.Client.NewRelicClient.AddNewRelicInsightEvent(ipBlackListEvent);
+            this.Client.NewRelicClient.AddNewRelicInsightEvent(blackNewRelicEvent);
 
             // send blacklisted ip to the service
             var ipBlackListAegisEvent = new AegisBlackListEvent
@@ -1033,8 +1002,10 @@ namespace Aegis.Pumps.Actions
                 IsBlocked = isBlocked,
                 IsSimulated = isSimulated,
                 SourceEventType = eventTypeName,
-                Country = blackCountry,
-                Tag = blackTag,
+                Country = blackNewRelicEvent.Country,
+                Tag = blackNewRelicEvent.Tag,
+                Tag2 = blackNewRelicEvent.Tag2,
+                Tag3 = blackNewRelicEvent.Tag3,
                 SessionId = sessionId,
                 HttpMethod = httpMethod,
                 HttpUserAgent = httpUserAgent,
@@ -1065,16 +1036,15 @@ namespace Aegis.Pumps.Actions
         }
 
         private bool CheckWithBlackList(
+            DateTime timeStamp,
             string eventTypeName, 
             string ipAddressString, 
             T evnt, 
-            out bool isBlocked, 
+            out bool isBlocked,
             out bool isSimulated,
-            out string blackCountry,
-            out string blackTag)
+            out NewRelicInsightsEvents.IpAddressBlacklistedEvent blackEvent)
         {
-            blackCountry = null;
-            blackTag = null;
+            blackEvent = null;
 
             // check by IP
             BlackListItem blackItem;
@@ -1087,8 +1057,14 @@ namespace Aegis.Pumps.Actions
                 out isBlocked,
                 out isSimulated))
             {
-                blackCountry = blackItem.Country;
-                blackTag = blackItem.Tag;
+                blackEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent(timeStamp)
+                {
+                    Country = blackItem.Country,
+                    Tag = blackItem.Tag,
+                    Tag2 = blackItem.Tag2,
+                    Tag3 = blackItem.Tag3
+                };
+
                 // block or simulate
                 return true;
             }
@@ -1101,8 +1077,14 @@ namespace Aegis.Pumps.Actions
                 out blackMetaItem,
                 out isBlocked,
                 out isSimulated))
-            {                                           
-                blackTag = blackMetaItem.Tag;
+            {
+                blackEvent = new NewRelicInsightsEvents.IpAddressBlacklistedEvent(timeStamp)
+                {
+                    Tag = blackMetaItem.Tag,
+                    Tag2 = blackMetaItem.Tag2,
+                    Tag3 = blackMetaItem.Tag3
+                };
+
                 // block or simulate
                 return true;
             }

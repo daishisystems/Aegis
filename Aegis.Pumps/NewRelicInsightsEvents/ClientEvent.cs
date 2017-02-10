@@ -685,6 +685,16 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     {
         private static readonly DateTime UnixStartTime = new DateTime(1970, 1, 1);
 
+        protected ClientEvent(DateTime? timeStamp = null)
+        {
+            if (timeStamp == null)
+            {
+                timeStamp = DateTime.UtcNow;
+            }            
+
+            this.TimeStamp = (int)timeStamp.Value.Subtract(UnixStartTime).TotalSeconds;
+        }
+
         /// <summary>
         ///     <see cref="EventType" /> is the New Relic Insights to which this
         ///     event will be uploaded.
@@ -733,13 +743,13 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
         ///     expressed in Unix ticks.
         /// </summary>
         [JilDirective(Name = "timestamp")]
-        public int TimeStamp => (int)DateTime.UtcNow.Subtract(UnixStartTime).TotalSeconds;
+        public int TimeStamp { get; private set; }
 
         /// <summary>
-        ///     <see cref="MachineName" /> is the name of the underlying server, upon which
+        ///     <see cref="ApplicationMachineName" /> is the name of the underlying server, upon which
         ///     the application is running.
         /// </summary>
         [JilDirective(Name = "machineName")]
-        public string MachineName => AegisClient.ClientInfo.MachineName;
+        public string ApplicationMachineName => AegisClient.ClientInfo.MachineName;
     }
 }

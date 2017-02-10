@@ -683,8 +683,8 @@ using System.Net.Http.Headers;
 using Jil;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Aegis.Core.Data;
-using Aegis.Pumps.Actions;
 using Aegis.Pumps.Tests.Mocks;
+using Daishi.NewRelic.Insights;
 
 namespace Aegis.Pumps.Tests
 {
@@ -939,11 +939,22 @@ namespace Aegis.Pumps.Tests
 
             var blackListData = new List<BlackListItem>()
             {
-                new BlackListItem() { IpAddressRaw = "204.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1"},
-                new BlackListItem() { IpAddressRaw = "206.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
-                new BlackListItem() { IpAddressRaw = "207.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
-                new BlackListItem() { IpAddressRaw = "208.168.1.1", IsBlocked = true, Country = "c1", Tag = "t1" },
+                new BlackListItem() { IpAddressRaw = "204.168.1.1"},
+                new BlackListItem() { IpAddressRaw = "206.168.1.1"},
+                new BlackListItem() { IpAddressRaw = "207.168.1.1"},
+                new BlackListItem() { IpAddressRaw = "208.168.1.1"},
             };
+
+            foreach (var item in blackListData)
+            {
+                item.IsBlocked = true;
+                item.IsSimulated = true;
+                item.Country = "this is country";
+                item.Tag = "this is tag";
+                item.Tag2 = "this is tag2";
+                item.Tag3 = "this is tag3";
+            }
+
             AegisClient.Instance.BlackList.SetNewData(blackListData, null);
 
 
@@ -1121,11 +1132,12 @@ namespace Aegis.Pumps.Tests
 
                     // check errors
                     Assert.AreEqual(errorsCount, newRelicClient.UploadNewRelicInsightsEvents.Count);
+                    this.CheckNewRelicEvents(newRelicClient.UploadNewRelicInsightsEvents);
 
                     // new number of events
                     Assert.AreEqual(eventsCount, AegisClient.Instance.AegisEventCache.Count());
 
-                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, 100, (e, a) => this.RunActionsCheckEvents(e, a, isTestParamsNull));
+                    AegisClient.Instance.AegisEventCache.RelayEvents(1000, 100, (e, a) => this.CheckAegisEvents(e, a, isTestParamsNull));
 
                     if (!isWamUp)
                     {
@@ -1142,7 +1154,44 @@ namespace Aegis.Pumps.Tests
             }
         }
 
-        private bool RunActionsCheckEvents(List<AegisBaseEvent> events, int allEventsCount, bool isTestParamsNull)
+        private void CheckNewRelicEvents(IEnumerable<NewRelicInsightsEvent> events)
+        {
+            foreach (var evnt in events)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(evnt.EventType));
+
+                var clientEvent = evnt as NewRelicInsightsEvents.ClientEvent;
+                if (clientEvent != null)
+                {
+                    Assert.IsTrue(clientEvent.TimeStamp > 0);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationName));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationId));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationVersion));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationMachineName));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationEnvironment));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.ApplicationProject));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(clientEvent.AegisVersion));
+                }
+
+                var blacklistEvent = evnt as NewRelicInsightsEvents.IpAddressBlacklistedEvent;
+                if (blacklistEvent != null)
+                {
+                    Assert.IsTrue(blacklistEvent.IsBlocked);
+                    Assert.IsTrue(blacklistEvent.IsSimulated);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.SourceEventType));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.IpAddress));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.GroupId));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.Country));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.Tag));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.Tag2));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.Tag3));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.AbsolutePath));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(blacklistEvent.FullPath));
+                }
+            }
+        }
+
+        private bool CheckAegisEvents(List<AegisBaseEvent> events, int allEventsCount, bool isTestParamsNull)
         {
             Assert.AreEqual(events.Count, allEventsCount);
 
@@ -1251,7 +1300,10 @@ namespace Aegis.Pumps.Tests
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.SourceEventType), evntBlacklist.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Country), evntBlacklist.EventType);
                     Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Tag), evntBlacklist.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Tag2), evntBlacklist.EventType);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(evntBlacklist.Tag3), evntBlacklist.EventType);
                     Assert.IsTrue(evntBlacklist.IsBlocked, evntBlacklist.EventType);
+                    Assert.IsTrue(evntBlacklist.IsSimulated, evntBlacklist.EventType);
                 }
             }
 

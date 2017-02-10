@@ -675,6 +675,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 */
 
+using System;
 using System.Net;
 using Jil;
 
@@ -687,6 +688,10 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
     /// </summary>
     public class IpAddressBlacklistedEvent : ClientEvent
     {
+        public IpAddressBlacklistedEvent(DateTime timeStamp) : base(timeStamp)
+        {
+        }
+
         [JilDirective(Name = "srcEventType")]
         public string SourceEventType { get; set; }
 
@@ -718,6 +723,12 @@ namespace Aegis.Pumps.NewRelicInsightsEvents
 
         [JilDirective(Name = "tag")]
         public string Tag { get; set; }
+
+        [JilDirective(Name = "tag2")]
+        public string Tag2 { get; set; }
+
+        [JilDirective(Name = "tag3")]
+        public string Tag3 { get; set; }
 
         /// <summary>
         ///     <see cref="AbsolutePath" /> is the absolute path of the URI to which the
