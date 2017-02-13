@@ -717,7 +717,8 @@ namespace Aegis.Pumps
         {
             { AegisBaseEvent.EventTypes.Payment + "$" + CustomerId, "CustomerId" },
             { AegisBaseEvent.EventTypes.Payment + "$" + Email, "Contact.Email" },
-            { AegisBaseEvent.EventTypes.Payment + "$" + AccountName, "AccountName" }
+            { AegisBaseEvent.EventTypes.Payment + "$" + AccountName, "AccountName" },
+            { AegisBaseEvent.EventTypes.MdotPaymentPay + "$" + Email, "Contact.Email" }
         };
 
         private static readonly Regex RegexNormalize = new Regex(@"[\W_]+", RegexOptions.Compiled);
