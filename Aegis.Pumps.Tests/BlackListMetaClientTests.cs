@@ -777,6 +777,70 @@ namespace Aegis.Pumps.Tests
             this.TestBlockEvent(BlackListMetaItem.KindType.AccountName);
         }
 
+        [TestMethod]
+        public void CheckBlockEmptyUserAgent()
+        {
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentRaw, "[EMPTY]", null);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentRaw, string.Empty, string.Empty);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentRaw, string.Empty, "    ");
+
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentHash, "7$11b11c7c80dd739e0385bdb90e82274f", null);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentHash, "0$d41d8cd98f00b204e9800998ecf8427e", string.Empty);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentHash, "0$d41d8cd98f00b204e9800998ecf8427e", "    ");
+
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash, "7$11b11c7c80dd739e0385bdb90e82274f", null);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash, "0$d41d8cd98f00b204e9800998ecf8427e", string.Empty);
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash, "0$d41d8cd98f00b204e9800998ecf8427e", "    ");
+            this.TestBlockEventOnHttpUserAgent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash, "0$d41d8cd98f00b204e9800998ecf8427e", " +  ");
+        }
+
+        public void TestBlockEventOnHttpUserAgent(
+            BlackListMetaItem.KindType blockKind,
+            string blackListValue,
+            string eventValue)
+        {
+            var self = new BlackListMetaClient();
+            var data = new List<BlackListSet<BlackListMetaItem>>()
+            {
+                new BlackListSet<BlackListMetaItem>()
+                {
+                    Data = new List<BlackListMetaItem>()
+                    {
+                        new BlackListMetaItem()
+                        {
+                            Kind = blockKind,
+                            EventType = AegisBaseEvent.EventTypes.Payment,
+                            Value = blackListValue,
+                            IsSimulated = true,
+                            IsBlocked = true
+                        }
+                    },
+                    VersionStamp = 1
+                }
+            };
+            self.SetNewData(data, DateTime.UtcNow);
+
+
+            BlackListMetaItem blackItem;
+            bool isSimulated, isBlocked;
+
+            var evntBlock = new AegisUniversalEvent()
+            {
+                EventType = AegisBaseEvent.EventTypes.Payment,
+                HttpUserAgent = eventValue
+            };
+
+            var result = self.Check(evntBlock, out blackItem, out isSimulated, out isBlocked);
+
+            var errorMessage = $"blockKind={blockKind} blackListValue='{blackListValue}' eventValue='{eventValue}'";
+
+            Assert.IsTrue(result, errorMessage);
+            Assert.IsTrue(isSimulated, errorMessage);
+            Assert.IsTrue(isBlocked, errorMessage);
+            Assert.IsNotNull(blackItem, errorMessage);
+            Assert.AreEqual(blockKind, blackItem.Kind, errorMessage);
+        }
+
         public void TestBlockEvent(BlackListMetaItem.KindType blockKind)
         {
             var self = new BlackListMetaClient();
@@ -786,9 +850,9 @@ namespace Aegis.Pumps.Tests
             BlackListMetaItem blackItem;
             bool isSimulated, isBlocked;
 
-            var evntBlockCustomerId = this.CreateEvent(blockKind);
+            var evntBlock = this.CreateEvent(blockKind);
 
-            var result = self.Check(evntBlockCustomerId, out blackItem, out isSimulated, out isBlocked);
+            var result = self.Check(evntBlock, out blackItem, out isSimulated, out isBlocked);
             Assert.IsTrue(result, blockKind.ToString());
             Assert.IsTrue(isSimulated, blockKind.ToString());
             Assert.IsTrue(isBlocked, blockKind.ToString());
