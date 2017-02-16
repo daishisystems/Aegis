@@ -687,10 +687,65 @@ namespace Aegis.Pumps.Actions
 {
     public static class ActionsUtils
     {
+        private static readonly HashSet<string> TopDomains = new HashSet<string>()
+        {
+            "com", "org", "net", "gov", "biz", "info"
+        };
         public const string CutPostfix = "[CUT]";
 
         private class MyHttpHeaders : HttpHeaders
         {
+        }
+
+        public static string GetTopDomain(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
+
+            try
+            {
+                var urlNew = url.ToLowerInvariant();
+                if (!urlNew.StartsWith("http://") && !urlNew.StartsWith("https://"))
+                {
+                    urlNew = "http://" + urlNew;
+                }
+
+                var uri = new Uri(urlNew);
+                var parts = uri.Host.Split('.');
+                if (parts.Length <= 2)
+                {
+                    return uri.Host;
+                }
+
+                var index = parts.Length - 1;
+
+                while (index > 0)
+                {
+                    if (parts[index].Length <= 2 && parts[index].All(char.IsLetter))
+                    {
+                        index--;
+                        continue;
+                    }
+
+                    if (TopDomains.Contains(parts[index]))
+                    {
+                        index--;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                return string.Join(".", parts.Skip(index));
+            }
+            catch (Exception)
+            {
+                // pass
+            }
+
+            return url;
         }
 
         public static void ParseEmail(

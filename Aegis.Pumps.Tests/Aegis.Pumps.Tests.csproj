@@ -75,6 +75,7 @@
     <Compile Include="ActionsDataHandlerTests.cs" />
     <Compile Include="ActionsHubMdotTests.cs" />
     <Compile Include="ActionsHubTests.cs" />
+    <Compile Include="ActionsUtilsTests.cs" />
     <Compile Include="AegisServiceClientTests.cs" />
     <Compile Include="BlackListClientTests.cs" />
     <Compile Include="AegisClientTests.cs" />
