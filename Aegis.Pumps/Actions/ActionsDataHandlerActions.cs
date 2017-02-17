@@ -759,6 +759,11 @@ namespace Aegis.Pumps.Actions
 
         public static string ActionMail(AegisClient client, string text, DateTime timeStamp)
         {
+            if (text.Contains("$"))
+            {
+                return text;
+            }
+
             var keyInfo = AegisClient.ClientInfo.GetDataKey(timeStamp);
 
             string mailHost, mailHash;
@@ -777,12 +782,22 @@ namespace Aegis.Pumps.Actions
 
         public static string ActionAccountNumber(AegisClient client, string text, DateTime timeStamp)
         {
+            if (text.Contains("$"))
+            {
+                return text;
+            }
+
             var textTruncated = ActionsUtils.TruncateCardAccountNumber(text);
             return CryptUtils.HashAccountNumber(textTruncated);
         }
 
         public static string ActionAccountName(AegisClient client, string text, DateTime timeStamp)
         {
+            if (text.Contains("$"))
+            {
+                return text;
+            }
+
             text = text?.ToLowerInvariant().Trim();
             if (string.IsNullOrWhiteSpace(text))
             {

@@ -778,14 +778,12 @@ namespace Aegis.Pumps.Tests
         {
             var testObj1 = new {a = 7, BlaMailBum = "john@smith.com", e = "bag"};
             var testObj2 = new {a = 7, Mail = "john@smith.com", e = "bag"};
-            //var testObj3 = new { a = 7, Mail = 3, e = "bag" };
 
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj1,
                 "{\"a\":7,\"e\":\"bag\",\"BlaMailBum\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
             this.DoTest(self, testObj2,
                 "{\"a\":7,\"e\":\"bag\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
-            //this.DoTest(self, testObj3, "{\"Mail\":\"unknown$sQ==$1$my_version$1$2\",\"a\":7,\"e\":\"bag\"}");
         }
 
         [TestMethod]
@@ -898,6 +896,17 @@ namespace Aegis.Pumps.Tests
             var self = new ActionsDataHandler2();
             this.DoTest(self, testObj,
             "{\"IsLoggedIn\":false,\"LimitOfSavedCardReached\":false,\"IsMandatoryLogin\":true,\"AddVatDetails\":false,\"IsVatApplicable\":true,\"IsBookingAlreadyCreated\":false,\"PaymentViewModel\":{\"IsExpired\":false,\"IsDefault\":false,\"UpdateContactDetails\":false,\"AddVatDetails\":false,\"IsFirstPayment\":true,\"AcceptDccOffer\":false,\"SavePaymentCardToAccount\":false,\"LimitOfSavedCardReached\":false,\"DefaultBillingAddress\":{\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"},\"BillingAddress\":{\"Line3\":\"X$DEL$X\",\"Line2\":\"X$DEL$X\",\"Line1\":\"X$DEL$X\"}},\"Bags\":{\"Added\":false,\"TotalPrice\":0,\"IsAddingBagsAllowed\":true,\"TotalQuantity\":0,\"Currency\":\"EUR\"}}");
+        }
+
+        [TestMethod]
+        public void CheckNotChangingWithDollarSymbol()
+        {
+            var testObj1 = new { Mail = "smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2", AccountNumberBum = "3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2", Expiration = "bla$bla", AccountName = "6A==$1$my_version$1" };
+
+            var self = new ActionsDataHandler2();
+            this.DoTest(self, testObj1,
+                "{\"AccountName\":\"6A==$1$my_version$1\",\"Expiration\":\"X$DEL$X\",\"AccountNumberBum\":\"3456$lccdy49FWk6+iqW34gbTSQaDfSxRyUEEsgSyZSPSJ5E=$2\",\"Mail\":\"smith.com$6AtrWLLQyxuU/GSD7Qk=$14$my_version$1$2\"}");
+
         }
 
         public void DoTest(
