@@ -681,6 +681,7 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Aegis.Core;
 using Aegis.Core.Data;
+using Aegis.Pumps.Actions;
 using Newtonsoft.Json.Linq;
 
 namespace Aegis.Pumps
@@ -709,6 +710,7 @@ namespace Aegis.Pumps
                 {BlackListMetaItem.KindType.HttpReferer, OnHttpReferer},
                 {BlackListMetaItem.KindType.EmailFull, OnEmailFull},
                 {BlackListMetaItem.KindType.EmailDomain, OnEmailDomain},
+                {BlackListMetaItem.KindType.EmailTopDomain, OnEmailTopDomain},
                 {BlackListMetaItem.KindType.CustomerId, OnCustomerId},
                 {BlackListMetaItem.KindType.AccountName, OnAccountName}
             };
@@ -810,6 +812,31 @@ namespace Aegis.Pumps
             {
                 var mail = new MailAddress(email);
                 var mailDomain = mail.Host.Substring(0, Math.Min(mail.Host.Length, 64));
+                return mailDomain.Trim().ToLowerInvariant();
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            return null;
+        }
+
+        public static string OnEmailTopDomain(AegisUniversalEvent evnt, ref CheckData data)
+        {
+            // get mail
+            var email = GetDataFromJson(evnt, ref data, Email);
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return null;
+            }
+
+            // parse mail
+            try
+            {
+                var mail = new MailAddress(email);
+                var mailDomain = ActionsUtils.GetTopDomain(mail.Host);
+                mailDomain = mailDomain.Substring(0, Math.Min(mailDomain.Length, 64));
                 return mailDomain.Trim().ToLowerInvariant();
             }
             catch (Exception)

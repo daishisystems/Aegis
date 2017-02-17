@@ -699,6 +699,7 @@ namespace Aegis.Pumps.Tests
                 BlackListMetaItem.KindType.HttpReferer,
                 BlackListMetaItem.KindType.EmailFull,
                 BlackListMetaItem.KindType.EmailDomain,
+                BlackListMetaItem.KindType.EmailTopDomain,
                 BlackListMetaItem.KindType.AccountName
         };
 
@@ -773,6 +774,7 @@ namespace Aegis.Pumps.Tests
             this.TestBlockEvent(BlackListMetaItem.KindType.HttpUserAgentNormalizedHash);
             this.TestBlockEvent(BlackListMetaItem.KindType.HttpReferer);
             this.TestBlockEvent(BlackListMetaItem.KindType.EmailDomain);
+            this.TestBlockEvent(BlackListMetaItem.KindType.EmailTopDomain);
             this.TestBlockEvent(BlackListMetaItem.KindType.EmailFull);
             this.TestBlockEvent(BlackListMetaItem.KindType.AccountName);
         }
@@ -877,6 +879,7 @@ namespace Aegis.Pumps.Tests
 
                 case BlackListMetaItem.KindType.EmailFull:
                 case BlackListMetaItem.KindType.EmailDomain:
+                case BlackListMetaItem.KindType.EmailTopDomain:
                     dataRaw = dataRaw.Replace("xxxx-email@bla.com-xxxx", "xxxx-email@bla.com-block-xxxx");
                     break;
 

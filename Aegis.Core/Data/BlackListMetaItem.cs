@@ -690,6 +690,7 @@ namespace Aegis.Core.Data
             HttpReferer,
             EmailFull,
             EmailDomain,
+            EmailTopDomain,
             CustomerId,
             AccountName
             //SessionId
