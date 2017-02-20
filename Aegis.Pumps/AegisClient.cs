@@ -887,7 +887,7 @@ namespace Aegis.Pumps
                     appSettings["Proxy"],
                     appSettings["AegisWebNonDefaultTimeout"],
                     appSettings["AegisServiceUri"],
-                    new[]
+                    new[] // TODO add support for X-Forwarded-For and similar
                     {
                         "NS_CLIENT_IP",
                         netscalerClientHeader,

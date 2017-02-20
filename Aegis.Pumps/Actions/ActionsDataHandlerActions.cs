@@ -702,7 +702,7 @@ namespace Aegis.Pumps.Actions
             { "fax", ActionRemove },
             { "password", ActionRemove },
             { "credential", ActionRemove },
-            { "addresss", ActionRemove },
+            { "addresss", ActionRemove }, // TODO add Addresss to remove list too?
 
             { "^first$", ActionRemove },
             { "^last$", ActionRemove },
